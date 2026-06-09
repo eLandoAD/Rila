@@ -1,7 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Navbar } from './navbar/navbar';
-import { RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { Footer } from "./footer/footer";
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -11,4 +13,15 @@ import { Footer } from "./footer/footer";
 })
 export class App {
   protected readonly title = signal('frontend');
+
+  private readonly router = inject(Router);
+
+  protected readonly isFilemanager = toSignal(
+    this.router.events.pipe(
+      filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+      map((e) => e.urlAfterRedirects.startsWith('/filemanager')),
+      startWith(this.router.url.startsWith('/filemanager')),
+    ),
+    { initialValue: this.router.url.startsWith('/filemanager') },
+  );
 }
