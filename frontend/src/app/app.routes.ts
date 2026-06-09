@@ -6,7 +6,6 @@ import { ForgotPassword } from './auth/forgot-password/forgot-password';
 import { ResetPassword } from './auth/reset-password/reset-password';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
 
   { path: 'login', component: Login },
   { path: 'register', component: Register },
