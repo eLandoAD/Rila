@@ -15,3 +15,16 @@ services:
 
 volumes:
   postgres_data:
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: rila-frontend
+    container_name: rila-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+    ports:
+      - "4000:4000"
