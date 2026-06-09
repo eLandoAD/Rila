@@ -1,0 +1,64 @@
+<div class="hero bg-base-200 min-h-screen">
+  <div class="hero-content flex-col lg:flex-row-reverse">
+
+    <!-- Left side text -->
+    <div class="text-center lg:text-left">
+      <h1 class="text-5xl font-bold">Create an Account</h1>
+      <p class="py-6">
+        Join our platform and start using all the available features.
+        After registration, you'll receive an email to verify your account.
+      </p>
+    </div>
+
+    <!-- Register Card -->
+    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+      <div class="card-body">
+
+        <fieldset class="fieldset">
+
+          <label class="label">Username</label>
+          <input
+            type="text"
+            class="input"
+            placeholder="Enter your username"
+          />
+
+          <label class="label">Email</label>
+          <input
+            type="email"
+            class="input"
+            placeholder="Enter your email"
+          />
+
+          <label class="label">Password</label>
+          <input
+            type="password"
+            class="input"
+            placeholder="Create a password"
+          />
+
+          <label class="label">Confirm Password</label>
+          <input
+            type="password"
+            class="input"
+            placeholder="Confirm your password"
+          />
+
+          <button class="btn btn-primary mt-4">
+            Sign Up
+          </button>
+
+          <div class="text-center mt-3">
+            <span>Already have an account? </span>
+            <a routerLink="/login" class="link link-hover">
+              Login
+            </a>
+          </div>
+
+        </fieldset>
+
+      </div>
+    </div>
+
+  </div>
+</div>
