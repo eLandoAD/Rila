@@ -1,0 +1,12 @@
+:host {
+  display: flex;
+  align-self: stretch;
+}
+
+.side-navbar {
+  align-self: stretch;
+}
+
+.side-navbar .menu a {
+  border-radius: var(--radius-box, 0.5rem);
+}
