@@ -27,3 +27,6 @@ Creato lo user service contenente due metodi utili poi per il controller
 Creato l'auth controller, contenente due endpoint per il login e la registrazione.
 /api/auth/login
 /api/auth/register
+
+# Step 4
+Auth stateless
