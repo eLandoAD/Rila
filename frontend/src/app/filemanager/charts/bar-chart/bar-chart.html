@@ -1,0 +1,16 @@
+<div class="flex h-48 items-end gap-3">
+  @for (bar of bars(); track bar.datum.label) {
+    <div class="group flex h-full flex-1 flex-col items-center justify-end gap-2">
+      <span class="text-base-content/60 text-xs opacity-0 transition-opacity group-hover:opacity-100">
+        {{ bar.datum.value }}{{ unit() }}
+      </span>
+      <div class="flex w-full flex-1 items-end">
+        <div class="w-full rounded-t-md transition-all duration-300 group-hover:brightness-110"
+          [style.height.%]="bar.heightPercent"
+          [style.background]="bar.color"
+          [attr.title]="bar.datum.label + ': ' + bar.datum.value + unit()"></div>
+      </div>
+      <span class="text-base-content/60 truncate text-xs">{{ bar.datum.label }}</span>
+    </div>
+  }
+</div>

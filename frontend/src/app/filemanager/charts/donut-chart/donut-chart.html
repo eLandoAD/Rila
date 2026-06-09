@@ -1,0 +1,33 @@
+<div class="flex flex-col items-center gap-4">
+  <div class="relative">
+    <svg viewBox="0 0 100 100" class="h-36 w-36 -rotate-90">
+      <circle cx="50" cy="50" [attr.r]="radius" fill="none"
+        class="stroke-base-300" [attr.stroke-width]="thickness()" />
+      @for (arc of arcs(); track arc.segment.label) {
+        <circle cx="50" cy="50" [attr.r]="radius" fill="none" stroke-linecap="round"
+          [attr.stroke]="arc.segment.color"
+          [attr.stroke-width]="thickness()"
+          [attr.stroke-dasharray]="arc.dashArray"
+          [attr.stroke-dashoffset]="arc.dashOffset" />
+      }
+    </svg>
+    @if (centerValue() || centerLabel()) {
+      <div class="absolute inset-0 flex flex-col items-center justify-center">
+        @if (centerValue()) { <span class="text-2xl font-bold leading-none">{{ centerValue() }}</span> }
+        @if (centerLabel()) { <span class="text-base-content/60 text-xs">{{ centerLabel() }}</span> }
+      </div>
+    }
+  </div>
+
+  @if (segments().length > 1) {
+    <ul class="flex w-full flex-col gap-1.5">
+      @for (s of segments(); track s.label) {
+        <li class="flex items-center gap-2 text-sm">
+          <span class="h-2.5 w-2.5 shrink-0 rounded-full" [style.background]="s.color"></span>
+          <span class="text-base-content/70 truncate">{{ s.label }}</span>
+          <span class="ml-auto font-medium">{{ s.value }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>

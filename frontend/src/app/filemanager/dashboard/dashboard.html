@@ -1,6 +1,48 @@
 <div class="flex min-h-screen">
   <app-side-navbar></app-side-navbar>
+
   <main class="flex-1 p-6">
     <h1 class="text-2xl font-bold">Dashboard</h1>
+    <p class="text-base-content/60 mt-1 text-sm">Overview of your storage and activity</p>
+
+    <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <!-- Spazio utilizzato -->
+      <section class="card bg-base-100 border-base-300 border shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-base">Storage used</h2>
+          <app-donut-chart
+            [segments]="storageSegments()"
+            [centerValue]="percent() + '%'"
+            centerLabel="used" />
+          <p class="text-base-content/60 text-center text-xs">
+            {{ usedGb() }} GB of {{ totalGb() }} GB
+          </p>
+        </div>
+      </section>
+
+      <!-- File per tipo -->
+      <section class="card bg-base-100 border-base-300 border shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-base">Files by type</h2>
+          <app-donut-chart [segments]="fileTypes()" centerLabel="categories" />
+        </div>
+      </section>
+
+      <!-- Crescita spazio -->
+      <section class="card bg-base-100 border-base-300 border shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-base">Storage growth (GB)</h2>
+          <app-line-chart [data]="storageTrend()" unit=" GB" />
+        </div>
+      </section>
+
+      <!-- Upload per giorno -->
+      <section class="card bg-base-100 border-base-300 border shadow-sm md:col-span-2 xl:col-span-3">
+        <div class="card-body">
+          <h2 class="card-title text-base">Uploads in the last 7 days</h2>
+          <app-bar-chart [data]="uploadsPerDay()" />
+        </div>
+      </section>
+    </div>
   </main>
 </div>
