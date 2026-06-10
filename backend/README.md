@@ -30,3 +30,10 @@ Creato l'auth controller, contenente due endpoint per il login e la registrazion
 
 # Step 4
 Auth stateless
+Creazione Jwt Service
+Aggiunta metodi
+- generateToken
+- extractUsername
+- isTokenValid
+
+Implementato il token vero dentro il /login e il /registration
