@@ -1,0 +1,27 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    username: postgres
+    password: password
+    # protocol : driver : server : porta / nome_db
+    url: jdbc:postgresql://localhost:5432/securevault_db
+    driver-class-name: org.postgresql.Driver
+  jpa:
+      hibernate:
+        # crea o aggiorna le tabelle sul DB in automatico all'avvio
+        ddl-auto: update
+      # query
+      show-sql: true
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          jdbc:
+            time_zone: UTC
+
+
+jwt:
+  secret: "LeonardoZappiniValeriaOrtisi1617181920Aura!"
+  expiration: 3600000
+
