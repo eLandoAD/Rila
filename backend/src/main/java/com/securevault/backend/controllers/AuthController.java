@@ -5,6 +5,7 @@ import com.securevault.backend.dto.LoginRequest;
 import com.securevault.backend.dto.RegisterRequest;
 import com.securevault.backend.entities.User;
 import com.securevault.backend.repositories.UserRepository;
+import com.securevault.backend.services.JwtService;
 import com.securevault.backend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class AuthController {
     // inject
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
 
     // POST /api/auth/register
@@ -32,7 +34,7 @@ public class AuthController {
         userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword());
 
         // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
-        return ResponseEntity.ok(new AuthResponse("fake-token", "Registration successful"));
+        return ResponseEntity.ok(new AuthResponse(jwtService.generateToken(request.getUsername()), "Registration successful"));
     }
 
 
@@ -52,7 +54,7 @@ public class AuthController {
         }
 
         // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
-        return ResponseEntity.ok(new AuthResponse("fake-token", "Login successful"));
+        return ResponseEntity.ok(new AuthResponse(jwtService.generateToken(user.get().getUsername()), "Login successful"));
     }
 
 
