@@ -1,0 +1,13 @@
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"username\": \"testuser\", \"email\": \"test@example.com\", \"password\": \"Test123!\"}"
+
+###
+curl -X POST http://localhost:8080/api/auth/login \
+-H "Content-Type: application/json" \
+-d "{\"usernameOrEmail\": \"testuser\", \"password\": \"Test123!\"}"
+
+###
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"usernameOrEmail\": \"test@example.com\", \"password\": \"Test123!\"}"
