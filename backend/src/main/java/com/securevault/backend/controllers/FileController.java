@@ -2,11 +2,13 @@ package com.securevault.backend.controllers;
 
 import com.securevault.backend.dto.FileResponse;
 import com.securevault.backend.dto.FileUploadResponse;
+import com.securevault.backend.dto.RenameRequest;
 import com.securevault.backend.entities.StoredFile;
 import com.securevault.backend.entities.User;
 import com.securevault.backend.repositories.StoredFileRepository;
 import com.securevault.backend.repositories.UserRepository;
 import com.securevault.backend.services.FileStorageService;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -148,5 +150,32 @@ public class FileController {
         }
     }
 
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> rename(@PathVariable UUID id, @RequestBody RenameRequest request) {
+        try {
+            // prendo lo username
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            // trovo il file
+            StoredFile storedFile = storedFileRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("File not found!"));
+
+            // controllo che l'utente sia l'owner
+            if (!storedFile.getUser().getUsername().equals(username)) {
+                throw new RuntimeException("Access denied: you are not the owner of this file");
+            }
+
+            // cambio nome dell'entità
+            storedFile.setEncName(request.newEncName);
+
+            // salvo la modifica nel DB
+            storedFileRepository.save(storedFile);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            throw new RuntimeException("Error while renaming the file: " + e.getMessage(), e);
+        }
+    }
 
 }
