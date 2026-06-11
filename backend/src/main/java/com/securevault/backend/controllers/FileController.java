@@ -1,5 +1,6 @@
 package com.securevault.backend.controllers;
 
+import com.securevault.backend.dto.FileResponse;
 import com.securevault.backend.dto.FileUploadResponse;
 import com.securevault.backend.entities.StoredFile;
 import com.securevault.backend.entities.User;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -89,6 +91,37 @@ public class FileController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error during download", e);
         }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<FileResponse>> listFiles() {
+        try {
+            // come prima recupero username e User dal DB
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // recupero tutti i file dell'utente
+            List<StoredFile> files = storedFileRepository.findByUser(user);
+
+            // da stored file a FileResponse
+            List<FileResponse> response = files.stream().map(file -> {
+                 FileResponse dto = new FileResponse();
+                 dto.setId(file.getId());
+                 dto.setEncName(file.getEncName());
+                 dto.setFileSize(file.getFileSize());
+                 dto.setCreatedAt(file.getCreatedAt());
+                 return dto;
+            }).toList();
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e){
+            throw new RuntimeException("Error retrieving file list: " + e);
+        }
+
+
     }
 
 
