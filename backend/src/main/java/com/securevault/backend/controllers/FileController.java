@@ -107,21 +107,45 @@ public class FileController {
 
             // da stored file a FileResponse
             List<FileResponse> response = files.stream().map(file -> {
-                 FileResponse dto = new FileResponse();
-                 dto.setId(file.getId());
-                 dto.setEncName(file.getEncName());
-                 dto.setFileSize(file.getFileSize());
-                 dto.setCreatedAt(file.getCreatedAt());
-                 return dto;
+                FileResponse dto = new FileResponse();
+                dto.setId(file.getId());
+                dto.setEncName(file.getEncName());
+                dto.setFileSize(file.getFileSize());
+                dto.setCreatedAt(file.getCreatedAt());
+                return dto;
             }).toList();
 
             return ResponseEntity.ok(response);
 
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Error retrieving file list: " + e);
         }
 
+    }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        try {
+            // prendo come prima username e cerco il file nel DB
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+            StoredFile storedFile = storedFileRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("File not found!"));
+
+            // controllo che il proprietario sia l'utente loggato
+            if (!storedFile.getUser().getUsername().equals(username)) {
+                throw new RuntimeException("Access denied: you are not the owner of this file");
+            }
+
+            // elimino il file dal disco
+            fileStorageService.deleteFile(storedFile.getStoragePath());
+            // rimuovo anche dal database
+            storedFileRepository.delete(storedFile);
+
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            throw new RuntimeException("Error while deleting the file: " + e.getMessage(), e);
+        }
     }
 
 
