@@ -14,37 +14,69 @@
     <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
       <div class="card-body">
 
-        <fieldset class="fieldset">
+        <form class="fieldset" (ngSubmit)="submit()" #registerForm="ngForm">
+
+          @if (error()) {
+            <div role="alert" class="alert alert-error text-sm">
+              <span>{{ error() }}</span>
+            </div>
+          }
 
           <label class="label">Username</label>
           <input
             type="text"
+            name="username"
             class="input"
             placeholder="Enter your username"
+            autocomplete="username"
+            required
+            minlength="3"
+            [(ngModel)]="username"
           />
 
           <label class="label">Email</label>
           <input
             type="email"
+            name="email"
             class="input"
             placeholder="Enter your email"
+            autocomplete="email"
+            required
+            email
+            [(ngModel)]="email"
           />
 
           <label class="label">Password</label>
           <input
             type="password"
+            name="password"
             class="input"
             placeholder="Create a password"
+            autocomplete="new-password"
+            required
+            minlength="8"
+            [(ngModel)]="password"
           />
 
           <label class="label">Confirm Password</label>
           <input
             type="password"
+            name="confirmPassword"
             class="input"
             placeholder="Confirm your password"
+            autocomplete="new-password"
+            required
+            [(ngModel)]="confirmPassword"
           />
 
-          <button class="btn btn-primary mt-4">
+          <button
+            type="submit"
+            class="btn btn-primary mt-4"
+            [disabled]="loading() || registerForm.invalid"
+          >
+            @if (loading()) {
+              <span class="loading loading-spinner loading-sm"></span>
+            }
             Sign Up
           </button>
 
@@ -55,7 +87,7 @@
             </a>
           </div>
 
-        </fieldset>
+        </form>
 
       </div>
     </div>
