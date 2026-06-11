@@ -3,8 +3,8 @@ server:
 
 spring:
   datasource:
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: postgres
+    password: password
     # protocol : driver : server : porta / nome_db
     url: jdbc:postgresql://localhost:5432/securevault_db
     driver-class-name: org.postgresql.Driver
@@ -17,8 +17,11 @@ spring:
       properties:
         hibernate:
           dialect: org.hibernate.dialect.PostgreSQLDialect
+          jdbc:
+            time_zone: UTC
+
 
 jwt:
-  secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION}
+  secret: "LeonardoZappiniValeriaOrtisi1617181920Aura!"
+  expiration: 3600000
 

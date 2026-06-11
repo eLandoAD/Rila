@@ -37,3 +37,13 @@ Aggiunta metodi
 - isTokenValid
 
 Implementato il token vero dentro il /login e il /registration
+
+
+# Step 5
+Filtro per intercettare ogni richiesta e verificare che contenga il token
+
+Tests
+![alt text](image.png)
+
+
+![alt text](image-1.png)
