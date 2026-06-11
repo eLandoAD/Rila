@@ -9,15 +9,49 @@
     </div>
     <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
       <div class="card-body">
-        <fieldset class="fieldset">
-          <label class="label">Email</label>
-          <input type="email" class="input" placeholder="Email" />
+        <form class="fieldset" (ngSubmit)="submit()" #loginForm="ngForm">
+          @if (error()) {
+            <div role="alert" class="alert alert-error text-sm">
+              <span>{{ error() }}</span>
+            </div>
+          }
+
+          <label class="label">Username or Email</label>
+          <input
+            type="text"
+            name="usernameOrEmail"
+            class="input"
+            placeholder="Username or Email"
+            autocomplete="username"
+            required
+            [(ngModel)]="usernameOrEmail"
+          />
+
           <label class="label">Password</label>
-          <input type="password" class="input" placeholder="Password" />
-          <div><a class="link link-hover">Forgot password?</a></div>
+          <input
+            type="password"
+            name="password"
+            class="input"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+            [(ngModel)]="password"
+          />
+
+          <div><a routerLink="/forgot-password" class="link link-hover">Forgot password?</a></div>
           <div><a class="link link-hover" routerLink="/register">Create an account</a></div>
-          <button class="btn btn-neutral mt-4">Login</button>
-        </fieldset>
+
+          <button
+            type="submit"
+            class="btn btn-neutral mt-4"
+            [disabled]="loading() || loginForm.invalid"
+          >
+            @if (loading()) {
+              <span class="loading loading-spinner loading-sm"></span>
+            }
+            Login
+          </button>
+        </form>
       </div>
     </div>
   </div>
