@@ -17,27 +17,45 @@
           We've sent a verification email to:
         </p>
 
-        <!-- Replace with the user's email later -->
         <p class="font-bold text-primary">
-          user@example.com
+          {{ email ?? 'your email address' }}
         </p>
 
         <p class="text-sm opacity-70 mt-2">
           Please check your inbox and click the verification link to activate your account.
         </p>
 
+        @if (resent()) {
+          <div role="alert" class="alert alert-success text-sm mt-4">
+            <span>Verification email sent again. Check your inbox.</span>
+          </div>
+        }
+
+        @if (error()) {
+          <div role="alert" class="alert alert-error text-sm mt-4">
+            <span>{{ error() }}</span>
+          </div>
+        }
+
         <div class="card-actions flex-col w-full mt-6">
 
-          <button class="btn btn-primary w-full">
+          <button
+            class="btn btn-primary w-full"
+            (click)="resend()"
+            [disabled]="loading() || !email"
+          >
+            @if (loading()) {
+              <span class="loading loading-spinner loading-sm"></span>
+            }
             Resend Verification Email
           </button>
 
-          <button
+          <a
             routerLink="/login"
             class="btn btn-ghost w-full"
           >
             Back to Login
-          </button>
+          </a>
 
         </div>
 

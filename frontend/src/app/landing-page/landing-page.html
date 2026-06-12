@@ -16,9 +16,9 @@
         zero-knowledge architecture. Your files, your keys, your privacy.
       </p>
 
-      <button class="btn btn-primary">
+      <a routerLink="/register" class="btn btn-primary">
         Get Started
-      </button>
+      </a>
     </div>
   </div>
 </div>
@@ -492,9 +492,9 @@
             <li>✓ File sharing</li>
           </ul>
 
-          <button class="btn btn-outline mt-6">
+          <a routerLink="/register" class="btn btn-outline mt-6">
             Start Free
-          </button>
+          </a>
         </div>
       </div>
 
@@ -524,9 +524,9 @@
             <li>✓ Priority support</li>
           </ul>
 
-          <button class="btn btn-primary mt-6">
+          <a routerLink="/register" class="btn btn-primary mt-6">
             Get Pro
-          </button>
+          </a>
         </div>
       </div>
 
@@ -552,9 +552,9 @@
             <li>✓ Dedicated support</li>
           </ul>
 
-          <button class="btn btn-outline mt-6">
+          <a href="mailto:giacomo.masiero@marconirovereto.it" class="btn btn-outline mt-6">
             Contact Sales
-          </button>
+          </a>
         </div>
       </div>
 
@@ -634,20 +634,30 @@
       Join thousands of satisfied users and experience secure file storage today.
     </p>
 
-    <div class="join w-full max-w-xl mx-auto mb-6">
-      <input
-        class="input input-bordered join-item w-full"
-        placeholder="Enter your email"
-        type="email"
-      />
+    @if (subscribed()) {
+      <div role="alert" class="alert alert-success max-w-xl mx-auto mb-6">
+        <span>Thanks for subscribing! We'll keep you posted.</span>
+      </div>
+    } @else {
+      <form class="join w-full max-w-xl mx-auto mb-6" (ngSubmit)="subscribe()" #newsletterForm="ngForm">
+        <input
+          class="input input-bordered join-item w-full"
+          placeholder="Enter your email"
+          type="email"
+          name="newsletterEmail"
+          required
+          email
+          [(ngModel)]="newsletterEmail"
+        />
 
-      <button class="btn btn-primary join-item">
-        Subscribe
-      </button>
-    </div>
+        <button type="submit" class="btn btn-primary join-item" [disabled]="newsletterForm.invalid">
+          Subscribe
+        </button>
+      </form>
+    }
 
-    <button class="btn bg-white text-blue-500 border-white hover:bg-blue-100 hover:border-blue-100">
+    <a routerLink="/register" class="btn bg-white text-blue-500 border-white hover:bg-blue-100 hover:border-blue-100">
       Get Started
-    </button>
+    </a>
   </div>
 </section>
