@@ -127,6 +127,25 @@ public class FolderController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> renameFolder(@PathVariable UUID id, @RequestBody RenameRequest request) {
+        // recupero identità
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Folder folder = folderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        // verifico owner
+        if (!folder.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Access denied: you are not the owner");
+        }
+
+        folder.setEncName(request.newEncName);
+        folderRepository.save(folder);
+
+        return ResponseEntity.ok().build();
+    }
+
     @PatchMapping("/{id}/move")
     public ResponseEntity<Void> moveFolder(@PathVariable UUID id, @RequestBody MoveRequest request) {
         // username

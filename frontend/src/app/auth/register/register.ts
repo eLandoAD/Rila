@@ -36,17 +36,16 @@ export class Register {
 
     this.loading.set(true);
 
-    this.auth
-      .register({ username: this.username, email: this.email, password: this.password })
-      .subscribe({
-        next: () => {
-          this.loading.set(false);
-          this.router.navigateByUrl('/filemanager/dashboard');
-        },
-        error: (err: HttpErrorResponse) => {
-          this.loading.set(false);
-          this.error.set(err.error?.message ?? 'Registration failed. Please try again.');
-        },
-      });
+    this.auth.register(this.username, this.email, this.password).subscribe({
+      next: () => {
+        this.loading.set(false);
+        // l'account va verificato via email prima di poter accedere
+        this.router.navigate(['/verify-email'], { queryParams: { email: this.email } });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+        this.error.set(err.error?.message ?? 'Registration failed. Please try again.');
+      },
+    });
   }
 }

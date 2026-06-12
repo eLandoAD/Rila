@@ -1,15 +1,17 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest } from './auth.models';
+import { CryptoService } from '../crypto/crypto.service';
 
 const TOKEN_KEY = 'sv_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  private readonly crypto = inject(CryptoService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly baseUrl = `${environment.apiBaseUrl}/auth`;
@@ -23,36 +25,84 @@ export class AuthService {
     return token ? this.extractSubject(token) : null;
   });
 
-  register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.baseUrl}/register`, request)
-      .pipe(tap((res) => this.persistToken(res.token)));
+  /**
+   * Generates the envelope keys client-side, then registers. No token is
+   * returned: the account must be verified by email first.
+   */
+  register(username: string, email: string, password: string): Observable<AuthResponse> {
+    return from(this.crypto.setupRegistrationKeys(password)).pipe(
+      switchMap((env) => {
+        const request: RegisterRequest = {
+          username,
+          email,
+          password,
+          encryptedDek: env.encryptedDek,
+          dekIv: env.iv,
+          keySalt: env.salt,
+        };
+        return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
+      }),
+    );
   }
 
+  /**
+   * Logs in, then unwraps the DEK into memory using the password.
+   */
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.baseUrl}/login`, request)
-      .pipe(tap((res) => this.persistToken(res.token)));
+    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, request).pipe(
+      switchMap((res) => {
+        this.persistToken(res.token);
+        if (res.token && res.encryptedDek && res.dekIv && res.keySalt) {
+          return from(
+            this.crypto.setupLoginKeys(request.password, res.encryptedDek, res.dekIv, res.keySalt),
+          ).pipe(map(() => res));
+        }
+        return [res];
+      }),
+    );
   }
 
   logout(): void {
     this.persistToken(null);
+    this.crypto.clearSession();
   }
 
-  forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/forgot-password`, { email });
+  forgotPassword(email: string): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
   }
 
-  resetPassword(token: string, password: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/reset-password`, { token, password });
+  /**
+   * Resets the password. Because the old password (and therefore the old DEK)
+   * is unavailable, a fresh DEK is generated under the new password — see
+   * SECURITY.md for the password-reset tradeoff.
+   */
+  resetPassword(token: string, newPassword: string): Observable<unknown> {
+    return from(this.crypto.setupRegistrationKeys(newPassword)).pipe(
+      switchMap((env) =>
+        this.http.post(
+          `${this.baseUrl}/reset-password`,
+          {
+            token,
+            newPassword,
+            newEncryptedDek: env.encryptedDek,
+            newDekIv: env.iv,
+            newKeySalt: env.salt,
+          },
+          { responseType: 'text' },
+        ),
+      ),
+    );
   }
 
-  verifyEmail(token: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/verify-email`, { token });
+  verifyEmail(token: string): Observable<unknown> {
+    return this.http.get(`${this.baseUrl}/verify`, {
+      params: { token },
+      responseType: 'text',
+    });
   }
 
-  resendVerification(email: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/resend-verification`, { email });
+  resendVerification(email: string): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/resend-verification`, { email }, { responseType: 'text' });
   }
 
   getToken(): string | null {

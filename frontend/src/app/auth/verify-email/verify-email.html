@@ -4,64 +4,62 @@
     <div class="card bg-base-100 w-full max-w-md shadow-2xl">
       <div class="card-body items-center text-center">
 
-        <!-- Icon -->
-        <div class="text-6xl mb-2">
-          📧
-        </div>
+        @switch (state()) {
+          @case ('verified') {
+            <div class="text-6xl mb-2">✅</div>
+            <h1 class="card-title text-3xl">Email verified</h1>
+            <p class="py-2">Your account is now active. You can sign in.</p>
+            <a routerLink="/login" class="btn btn-primary w-full mt-4">Go to Login</a>
+          }
 
-        <h1 class="card-title text-3xl">
-          Verify Your Email
-        </h1>
+          @case ('verifying') {
+            <span class="loading loading-spinner loading-lg text-primary"></span>
+            <h1 class="card-title text-2xl mt-2">Verifying your email…</h1>
+          }
 
-        <p class="py-2">
-          We've sent a verification email to:
-        </p>
+          @case ('error') {
+            <div class="text-6xl mb-2">⚠️</div>
+            <h1 class="card-title text-3xl">Verification failed</h1>
+            <p class="text-error py-2 text-sm">{{ error() }}</p>
+            <a routerLink="/login" class="btn btn-ghost w-full mt-2">Back to Login</a>
+          }
 
-        <p class="font-bold text-primary">
-          {{ email ?? 'your email address' }}
-        </p>
+          @default {
+            <div class="text-6xl mb-2">📧</div>
+            <h1 class="card-title text-3xl">Verify Your Email</h1>
+            <p class="py-2">We've sent a verification email to:</p>
+            <p class="font-bold text-primary">{{ email ?? 'your email address' }}</p>
+            <p class="text-sm opacity-70 mt-2">
+              Please check your inbox and click the verification link to activate your account.
+            </p>
 
-        <p class="text-sm opacity-70 mt-2">
-          Please check your inbox and click the verification link to activate your account.
-        </p>
-
-        @if (resent()) {
-          <div role="alert" class="alert alert-success text-sm mt-4">
-            <span>Verification email sent again. Check your inbox.</span>
-          </div>
-        }
-
-        @if (error()) {
-          <div role="alert" class="alert alert-error text-sm mt-4">
-            <span>{{ error() }}</span>
-          </div>
-        }
-
-        <div class="card-actions flex-col w-full mt-6">
-
-          <button
-            class="btn btn-primary w-full"
-            (click)="resend()"
-            [disabled]="loading() || !email"
-          >
-            @if (loading()) {
-              <span class="loading loading-spinner loading-sm"></span>
+            @if (resent()) {
+              <div role="alert" class="alert alert-success text-sm mt-4">
+                <span>Verification email sent again. Check your inbox.</span>
+              </div>
             }
-            Resend Verification Email
-          </button>
 
-          <a
-            routerLink="/login"
-            class="btn btn-ghost w-full"
-          >
-            Back to Login
-          </a>
+            @if (error()) {
+              <div role="alert" class="alert alert-error text-sm mt-4">
+                <span>{{ error() }}</span>
+              </div>
+            }
 
-        </div>
+            <div class="card-actions flex-col w-full mt-6">
+              <button class="btn btn-primary w-full" (click)="resend()" [disabled]="loading() || !email">
+                @if (loading()) {
+                  <span class="loading loading-spinner loading-sm"></span>
+                }
+                Resend Verification Email
+              </button>
+              <a routerLink="/login" class="btn btn-ghost w-full">Back to Login</a>
+            </div>
 
-        <p class="text-xs opacity-60 mt-4">
-          Didn't receive the email? Check your spam folder or request a new verification email.
-        </p>
+            <p class="text-xs opacity-60 mt-4">
+              Didn't receive the email? Check your spam folder or request a new verification email.
+            </p>
+          }
+        }
 
       </div>
     </div>
