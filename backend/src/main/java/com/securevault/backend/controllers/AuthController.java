@@ -25,11 +25,12 @@ public class AuthController {
     // POST /api/auth/register
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        // chiamo userService
-        userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword());
+        // chiamo userService con il materiale di cifratura envelope generato dal client
+        userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword(),
+                request.getEncryptedDek(), request.getDekIv(), request.getKeySalt());
 
-        // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
-        return ResponseEntity.ok(new AuthResponse(null, "Registration successful"));
+        // nessun token: l'account va prima verificato via email
+        return ResponseEntity.ok(new AuthResponse(null, "Registration successful, check your email to verify your account"));
     }
 
 
@@ -49,11 +50,17 @@ public class AuthController {
         }
 
         if (!user.get().getEnabled()) {
-            return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check the console"));
+            return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check your email"));
         }
 
-        // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
-        return ResponseEntity.ok(new AuthResponse(jwtService.generateToken(user.get().getUsername()), "Login successful"));
+        // ritorno token + materiale envelope per sbloccare il DEK nel browser
+        User u = user.get();
+        return ResponseEntity.ok(new AuthResponse(
+                jwtService.generateToken(u.getUsername()),
+                "Login successful",
+                u.getEncryptedDek(),
+                u.getDekIv(),
+                u.getKeySalt()));
     }
 
 
@@ -63,15 +70,22 @@ public class AuthController {
         return ResponseEntity.ok("Account activated with success!");
     }
 
+    @PostMapping("/resend-verification")
+    public ResponseEntity<String> resendVerification(@RequestBody ForgotPasswordRequest request) {
+        userService.resendVerification(request.getEmail());
+        return ResponseEntity.ok("Verification email sent");
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
         userService.forgotPassword(request.getEmail());
-        return ResponseEntity.ok("If the email exists, check the console for the reset link");
+        return ResponseEntity.ok("If the email exists, a reset link has been sent");
     }
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request.getToken(), request.getNewPassword(), request.getNewEncryptedDek());
+        userService.resetPassword(request.getToken(), request.getNewPassword(),
+                request.getNewEncryptedDek(), request.getNewDekIv(), request.getNewKeySalt());
         return ResponseEntity.ok("Password updated successfully");
     }
 

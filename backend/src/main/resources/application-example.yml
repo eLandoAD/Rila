@@ -19,9 +19,29 @@ spring:
           dialect: org.hibernate.dialect.PostgreSQLDialect
           jdbc:
             time_zone: UTC
+  # SMTP — in locale punta al catcher MailHog (docker-compose), in prod usa SMTP reale
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 
 jwt:
   secret: "LeonardoZappiniValeriaOrtisi1617181920Aura!"
   expiration: 3600000
+
+# parametri applicativi usati nelle email
+app:
+  # mittente delle email transazionali
+  mail:
+    from: noreply@securevault.local
+  # base URL del frontend per i link in email (verifica / reset)
+  frontend-url: http://localhost:4200
 
