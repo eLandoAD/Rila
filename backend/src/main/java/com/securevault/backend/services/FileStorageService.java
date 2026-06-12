@@ -1,22 +1,14 @@
 package com.securevault.backend.services;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Service
-@RequiredArgsConstructor
 public class FileStorageService {
-
-    private final CryptoService cryptoService;
 
     public void saveFile(byte[] encryptedContent, String fileName) {
         Path storageDirectory = Paths.get("..", "storage").toAbsolutePath().normalize();
