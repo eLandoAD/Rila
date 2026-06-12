@@ -102,8 +102,19 @@ public class FolderController {
                     return dto;
                 }).toList();
 
+        List<FolderResponse> breadcrumbs = new java.util.ArrayList<>();
+        Folder temp = currentFolder;
+        while (temp != null) {
+            breadcrumbs.add(0, new FolderResponse(
+                temp.getId(),
+                temp.getEncName(),
+                temp.getParentFolder() != null ? temp.getParentFolder().getId() : null
+            ));
+            temp = temp.getParentFolder();
+        }
+
         // ritorno la risposta completa
-        return ResponseEntity.ok(new FolderContentResponse(folderResponses, fileResponses, folderId, currentFolderName));
+        return ResponseEntity.ok(new FolderContentResponse(folderResponses, fileResponses, breadcrumbs, folderId, currentFolderName));
     }
 
     @DeleteMapping("/{id}")

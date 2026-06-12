@@ -13,6 +13,7 @@ import java.util.UUID;
 public class FolderContentResponse {
     private List<FolderResponse> folders;
     private List<FileResponse> files;
+    private List<FolderResponse> breadcrumbs;
     private UUID currentFolderId;
     private String currentFolderName;
 }
