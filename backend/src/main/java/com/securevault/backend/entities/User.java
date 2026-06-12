@@ -1,6 +1,12 @@
 package com.securevault.backend.entities;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
+
     // id
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,7 +43,6 @@ public class User {
     // "ROLE_USER,ROLE_ADMIN"
     // "ROLE_USER,ROLE_TESTER"
     // "ROLE_USER,ROLE_ADMIN,ROLE_TESTER"
-
 
     // per disabilitare un utente
     @Column(nullable = false)
@@ -69,5 +75,12 @@ public class User {
 
     @Column(name = "encrypted_dek", length = 512)
     private String encryptedDek;
+
+    @Column(name = "dek_iv", length = 255)
+    private String dekIv;
+    
+    
+    @Column(name = "key_salt", length = 255)
+    private String keySalt;
 
 }
