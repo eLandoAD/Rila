@@ -2,6 +2,7 @@ package com.securevault.backend.controllers;
 
 import com.securevault.backend.dto.FileResponse;
 import com.securevault.backend.dto.FileUploadResponse;
+import com.securevault.backend.dto.MoveRequest;
 import com.securevault.backend.dto.RenameRequest;
 import com.securevault.backend.entities.Folder;
 import com.securevault.backend.entities.StoredFile;
@@ -10,6 +11,7 @@ import com.securevault.backend.repositories.FolderRepository;
 import com.securevault.backend.repositories.StoredFileRepository;
 import com.securevault.backend.repositories.UserRepository;
 import com.securevault.backend.services.FileStorageService;
+import com.securevault.backend.services.FolderService;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -33,6 +35,7 @@ public class FileController {
     private final StoredFileRepository storedFileRepository;
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
+    private final FolderService folderService;
 
     @PostMapping("/upload")
     public ResponseEntity<FileUploadResponse> upload(@RequestParam("file") MultipartFile file, @RequestParam("iv") String iv, @RequestParam("encName") String encName,
@@ -194,6 +197,13 @@ public class FileController {
         } catch (Exception e) {
             throw new RuntimeException("Error while renaming the file: " + e.getMessage(), e);
         }
+    }
+
+    @PatchMapping("/{id}/move")
+    public ResponseEntity<Void> move(@PathVariable UUID id, @RequestBody MoveRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        folderService.moveFile(id, request.getTargetFolderId(), username);
+        return ResponseEntity.noContent().build();
     }
 
 

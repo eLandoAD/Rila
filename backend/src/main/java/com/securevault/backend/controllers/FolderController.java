@@ -1,9 +1,6 @@
 package com.securevault.backend.controllers;
 
-import com.securevault.backend.dto.CreateFolderRequest;
-import com.securevault.backend.dto.FileResponse;
-import com.securevault.backend.dto.FolderContentResponse;
-import com.securevault.backend.dto.FolderResponse;
+import com.securevault.backend.dto.*;
 import com.securevault.backend.entities.Folder;
 import com.securevault.backend.entities.StoredFile;
 import com.securevault.backend.entities.User;
@@ -107,6 +104,27 @@ public class FolderController {
 
         // ritorno la risposta completa
         return ResponseEntity.ok(new FolderContentResponse(folderResponses, fileResponses, folderId, currentFolderName));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteFolder(@PathVariable UUID id) {
+        // recupero identità
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        folderService.deleteFolderRecursive(id, username);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/move")
+    public ResponseEntity<Void> moveFolder(@PathVariable UUID id, @RequestBody MoveRequest request) {
+        // username
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // chiamo il service
+        folderService.moveFolder(id, request.getTargetFolderId(), username);
+
+        return ResponseEntity.noContent().build();
     }
 
 }
