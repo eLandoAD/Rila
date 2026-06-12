@@ -1,6 +1,84 @@
 <div class="flex min-h-screen">
   <app-side-navbar></app-side-navbar>
+
   <main class="flex-1 p-6">
     <h1 class="text-2xl font-bold">Upload</h1>
+    <p class="text-base-content/60 mt-1 text-sm">
+      Files are encrypted in your browser before they leave your device.
+    </p>
+
+    <!-- Dropzone -->
+    <label
+      class="mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-colors"
+      [class.border-primary]="dragging()"
+      [class.bg-primary]="false"
+      [class.border-base-300]="!dragging()"
+      (drop)="onDrop($event)"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)">
+      <svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/40 h-10 w-10" fill="none"
+        viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+      <p class="mt-3 font-medium">Drag &amp; drop files here</p>
+      <p class="text-base-content/60 text-sm">or click to browse</p>
+      <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
+    </label>
+
+    <!-- Selected files -->
+    @if (items().length > 0) {
+      <div class="mt-6 space-y-3">
+        @for (item of items(); track $index) {
+          <div class="card bg-base-100 border-base-300 border shadow-sm">
+            <div class="card-body gap-2 p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                  <p class="truncate font-medium">{{ item.file.name }}</p>
+                  <p class="text-base-content/60 text-xs">{{ format(item.file.size) }}</p>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-2">
+                  @switch (item.status) {
+                    @case ('done') {
+                      <span class="badge badge-success">Done</span>
+                    }
+                    @case ('error') {
+                      <span class="badge badge-error">Failed</span>
+                    }
+                    @case ('uploading') {
+                      <span class="loading loading-spinner loading-sm"></span>
+                    }
+                    @default {
+                      <button class="btn btn-ghost btn-xs" (click)="remove($index)">Remove</button>
+                    }
+                  }
+                </div>
+              </div>
+
+              @if (item.status === 'uploading' || item.status === 'done') {
+                <progress class="progress progress-primary w-full" [value]="item.progress" max="100"></progress>
+              }
+
+              @if (item.status === 'error') {
+                <p class="text-error text-xs">{{ item.error }}</p>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="mt-6 flex gap-3">
+        <button class="btn btn-primary" (click)="uploadAll()" [disabled]="uploading()">
+          @if (uploading()) {
+            <span class="loading loading-spinner loading-sm"></span>
+          }
+          Upload all
+        </button>
+        <button class="btn btn-ghost" (click)="goToFiles()">Go to my files</button>
+      </div>
+    } @else {
+      <p class="text-base-content/50 mt-6 text-sm">No files selected yet.</p>
+    }
   </main>
 </div>
