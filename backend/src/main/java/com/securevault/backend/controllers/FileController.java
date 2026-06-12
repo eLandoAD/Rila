@@ -3,8 +3,10 @@ package com.securevault.backend.controllers;
 import com.securevault.backend.dto.FileResponse;
 import com.securevault.backend.dto.FileUploadResponse;
 import com.securevault.backend.dto.RenameRequest;
+import com.securevault.backend.entities.Folder;
 import com.securevault.backend.entities.StoredFile;
 import com.securevault.backend.entities.User;
+import com.securevault.backend.repositories.FolderRepository;
 import com.securevault.backend.repositories.StoredFileRepository;
 import com.securevault.backend.repositories.UserRepository;
 import com.securevault.backend.services.FileStorageService;
@@ -30,9 +32,11 @@ public class FileController {
     private final FileStorageService fileStorageService;
     private final StoredFileRepository storedFileRepository;
     private final UserRepository userRepository;
+    private final FolderRepository folderRepository;
 
     @PostMapping("/upload")
-    public ResponseEntity<FileUploadResponse> upload(@RequestParam("file") MultipartFile file, @RequestParam("iv") String iv, @RequestParam("encName") String encName) {
+    public ResponseEntity<FileUploadResponse> upload(@RequestParam("file") MultipartFile file, @RequestParam("iv") String iv, @RequestParam("encName") String encName,
+                                                     @RequestParam(value = "folder_id", required = false) UUID folderId) {
 
         try {
             // recupero user
@@ -45,6 +49,18 @@ public class FileController {
             String physicalName = UUID.randomUUID().toString();
             fileStorageService.saveFile(file.getBytes(), physicalName);
 
+            // cerco la cartella
+            Folder folder = null;
+            if (folderId != null) {
+                folder = folderRepository.findById(folderId)
+                        .orElseThrow(() -> new RuntimeException("Target folder not found"));
+
+                if (!folder.getUser().getId().equals(user.getId())) {
+                    throw new RuntimeException("Access denied to target folder");
+                }
+
+            }
+
             // non uso il costruttore (ho messo allArgs, quindi vorrebbe anche id e data creazione),
             // per ovviare a questo problema uso i setter
             StoredFile storedFile = new StoredFile();
@@ -52,6 +68,8 @@ public class FileController {
             storedFile.setIv(iv);
             storedFile.setStoragePath(physicalName);
             storedFile.setUser(user);
+            // associo la cartella padre o null se root
+            storedFile.setFolder(folder);
             // prendo la dimensione dal file Multipart
             storedFile.setFileSize(file.getSize());
 
@@ -177,5 +195,7 @@ public class FileController {
             throw new RuntimeException("Error while renaming the file: " + e.getMessage(), e);
         }
     }
+
+
 
 }
