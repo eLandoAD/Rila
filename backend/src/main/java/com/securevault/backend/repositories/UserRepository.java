@@ -22,4 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // verifica se esiste un utente per questo username
     Optional<User> existsByEmail(String email);
 
+    Optional<User> findByVerificationToken(String token);
+
+    Optional<User> findByResetToken(String token);
+
 }
