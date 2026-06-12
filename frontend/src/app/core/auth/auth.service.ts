@@ -39,6 +39,22 @@ export class AuthService {
     this.persistToken(null);
   }
 
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/forgot-password`, { email });
+  }
+
+  resetPassword(token: string, password: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/reset-password`, { token, password });
+  }
+
+  verifyEmail(token: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/verify-email`, { token });
+  }
+
+  resendVerification(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/resend-verification`, { email });
+  }
+
   getToken(): string | null {
     return this.tokenSignal();
   }

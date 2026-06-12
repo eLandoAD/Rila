@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-verify-email',
@@ -8,4 +10,32 @@ import { RouterLink } from '@angular/router';
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.css',
 })
-export class VerifyEmail {}
+export class VerifyEmail {
+  private readonly auth = inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
+
+  readonly email = this.route.snapshot.queryParamMap.get('email');
+
+  readonly loading = signal(false);
+  readonly resent = signal(false);
+  readonly error = signal<string | null>(null);
+
+  resend(): void {
+    if (this.loading() || !this.email) {
+      return;
+    }
+    this.error.set(null);
+    this.loading.set(true);
+
+    this.auth.resendVerification(this.email).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.resent.set(true);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+        this.error.set(err.error?.message ?? 'Could not resend the email. Please try again.');
+      },
+    });
+  }
+}
