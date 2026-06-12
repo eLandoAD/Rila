@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,8 +31,10 @@ public class UserService {
         user.setEmail(email);
         // password criptata
         user.setPassword(passwordEncoder.encode(password));
-
+        user.setEnabled(false);
+        user.setVerificationToken(UUID.randomUUID().toString());
         userRepository.save(user);
+        System.out.println(">>> Verification link: http://localhost:8080/api/auth/verify?token=" + user.getVerificationToken());
         return user;
     }
 
@@ -52,4 +55,54 @@ public class UserService {
         // tento con email, sennò lo gestisce l'optional
         return userRepository.findByEmail(usernameOrEmail);
     }
+
+    public void verifyEmail(String token) {
+        User user = userRepository.findByVerificationToken(token)
+                .orElseThrow(() -> new RuntimeException("Token not valid"));
+
+        if (user.getEnabled()) {
+            throw new RuntimeException("Account already activated");
+        }
+
+        user.setEnabled(true);
+        user.setVerificationToken(null);
+        userRepository.save(user);
+    }
+
+    public void forgotPassword(String email) {
+        // user
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email not found"));
+
+        // genero token, scadenza
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(System.currentTimeMillis() + (15*60*1000L));
+        userRepository.save(user);
+
+        // sim email
+        System.out.println(">>> LINK RESET PASSWORD: http://localhost:8080/api/auth/reset-password?token=" + token);
+
+    }
+
+    public void resetPassword(String token, String newPassword, String newEncryptedDek) {
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Token not valid"));
+
+        // controllo scadenza
+        if (System.currentTimeMillis() > user.getResetTokenExpiry()) {
+            user.setResetToken(null);
+            user.setResetTokenExpiry(null);
+            userRepository.save(user);
+            throw new RuntimeException("Token expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setEncryptedDek(newEncryptedDek);
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
+    }
+
+
 }

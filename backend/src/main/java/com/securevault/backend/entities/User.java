@@ -40,7 +40,7 @@ public class User {
 
     // per disabilitare un utente
     @Column(nullable = false)
-    private Boolean enabled = true;
+    private Boolean enabled = false;
 
     // tempo creazione
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -56,5 +56,18 @@ public class User {
         this.updatedAt = System.currentTimeMillis();
     }
 
+    // token univoco per la verifica
+    @Column(name = "verification_token", length = 255)
+    private String verificationToken;
+
+    // per reset password
+    @Column(name = "reset_token", length = 255)
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private Long resetTokenExpiry;
+
+    @Column(name = "encrypted_dek", length = 512)
+    private String encryptedDek;
 
 }
