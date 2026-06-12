@@ -1,5 +1,46 @@
 # SecureVault — Encrypted File Storage
 
+End-to-end encrypted file storage. Files and their names are encrypted in the browser; the
+server only ever stores ciphertext. See **[SECURITY.md](./SECURITY.md)** for the encryption and
+key-management design.
+
+**Stack:** Spring Boot (Java) · Angular (SSR) · PostgreSQL · local filesystem blob storage.
+
+## Running the project
+
+### With Docker (recommended)
+
+```bash
+docker compose up -d --build
+```
+
+This starts everything:
+
+| Service | URL | Notes |
+|---------|-----|-------|
+| Frontend (Angular SSR) | http://localhost:4200 | the app |
+| Backend (Spring Boot) | http://localhost:8080 | REST API under `/api` |
+| PostgreSQL | localhost:5432 | `securevault_db` |
+| MailHog (dev SMTP) | http://localhost:8025 | catches verification / reset emails |
+
+Open http://localhost:4200, register, then open **MailHog** (http://localhost:8025) to click the
+verification link. After verifying, log in and start uploading.
+
+Configuration is via environment variables (see `docker-compose.yml`): database credentials,
+`JWT_SECRET`, and SMTP settings (`SMTP_HOST`, `MAIL_FROM`, `FRONTEND_URL`, …). To use a real SMTP
+server instead of MailHog, override `SMTP_HOST`/`SMTP_PORT`/`SMTP_USERNAME`/`SMTP_PASSWORD` and
+set `SMTP_AUTH=true`, `SMTP_STARTTLS=true`.
+
+### Running locally without Docker
+
+- **Backend:** copy `backend/src/main/resources/application-example.yml` to `application.yml`,
+  fill in the database and SMTP settings, then `cd backend && ./gradlew bootRun` (requires JDK 25
+  and a running PostgreSQL).
+- **Frontend:** `cd frontend && npm install && npm start` (dev server on http://localhost:4200).
+  The API base URL is configured in `frontend/src/environments/environment.ts`.
+
+---
+
 > **Intern Project Brief.** This is a competitive build. Three teams are building the same
 > specification. The strongest implementation wins. Read this entire document before writing
 > any code.
