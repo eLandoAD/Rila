@@ -42,4 +42,20 @@ public class FileStorageService {
             throw new RuntimeException("Error while reading the file: " + e.getMessage(), e);
         }
     }
+
+    public void deleteFile(String fileName) {
+        // prendo il path della cartella
+        Path storageDirectory = Paths.get("..", "storage").toAbsolutePath().normalize();
+
+        // file specifico
+        Path filePath = storageDirectory.resolve(fileName);
+
+        // lo elimino se esiste
+        try {
+            Files.deleteIfExists(filePath);
+        } catch(IOException ioe) {
+            throw new RuntimeException("Error while deleting the file: " + ioe);
+        }
+
+    }
 }
