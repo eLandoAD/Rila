@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpEventType } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CryptoService } from '../crypto/crypto.service';
 import { FolderService } from './folder.service';
@@ -22,7 +23,7 @@ export class FileService {
     
     // 1. E2EE Encryption
     const { cipher, iv } = await this.crypto.encrypt(buffer);
-    const encName = await this.crypto.encryptText(file.name, iv);
+    const encName = await this.crypto.encryptName(file.name);
 
     // 2. Prepare FormData
     const form = new FormData();
@@ -36,7 +37,7 @@ export class FileService {
     // 3. Execute Upload
     await new Promise<void>((resolve, reject) => {
       this.http
-        .post<FileUploadResponse>(`${this.baseUrl}/upload`, form, {
+        .post<FileUploadResponse>(`${this.baseUrl}/files/upload`, form, {
           observe: 'events',
           reportProgress: true,
         })
@@ -68,7 +69,7 @@ export class FileService {
     const url = URL.createObjectURL(new Blob([plain]));
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = meta.name;
+    anchor.download = file.name;
     anchor.click();
     URL.revokeObjectURL(url);
   }

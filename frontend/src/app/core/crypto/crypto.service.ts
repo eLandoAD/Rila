@@ -128,6 +128,37 @@ export class CryptoService {
     this.currentDek = null;
   }
 
+  /**
+   * Whether a DEK is loaded in memory (i.e. the user can encrypt/decrypt).
+   */
+  hasSession(): boolean {
+    return this.currentDek !== null;
+  }
+
+  /**
+   * Encrypts a file/folder name. The per-name IV is embedded in the returned
+   * string (`iv:ciphertext`) so it is self-contained.
+   */
+  async encryptName(name: string): Promise<string> {
+    const data = new TextEncoder().encode(name);
+    const { cipher, iv } = await this.encrypt(data.buffer as ArrayBuffer);
+    return `${iv}:${this.toBase64(new Uint8Array(cipher))}`;
+  }
+
+  /**
+   * Decrypts a name produced by {@link encryptName}.
+   */
+  async decryptName(encName: string): Promise<string> {
+    const sep = encName.indexOf(':');
+    if (sep === -1) {
+      return encName;
+    }
+    const iv = encName.slice(0, sep);
+    const cipher = this.fromBase64(encName.slice(sep + 1));
+    const plain = await this.decrypt(cipher.buffer as ArrayBuffer, iv);
+    return new TextDecoder().decode(plain);
+  }
+
   private getRequiredKey(): CryptoKey {
     if (!this.currentDek) {
       throw new Error('Encryption key not initialized. Please log in.');
@@ -215,9 +246,9 @@ export class CryptoService {
     return btoa(binary);
   }
 
-  private fromBase64(b64: string): Uint8Array {
+  private fromBase64(b64: string): Uint8Array<ArrayBuffer> {
     const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
+    const bytes = new Uint8Array(new ArrayBuffer(binary.length));
     for (let i = 0; i < binary.length; i++) {
       bytes[i] = binary.charCodeAt(i);
     }

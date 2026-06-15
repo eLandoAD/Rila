@@ -1,4 +1,5 @@
-export interface StoredFileMeta {
+/** Raw DTOs returned by the backend (names are ciphertext). */
+export interface FileResponseDto {
   id: string;
   name: string;      // Decrypted name
   encName: string;   // Encrypted name from server

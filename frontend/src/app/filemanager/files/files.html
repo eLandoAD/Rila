@@ -2,7 +2,8 @@
   <app-side-navbar></app-side-navbar>
 
   <main class="flex-1 p-6">
-    <div class="flex items-center justify-between gap-4">
+    <!-- Header -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
         <h1 class="text-2xl font-bold">File</h1>
         <p class="text-base-content/60 mt-1 text-sm">Your encrypted files & folders</p>
@@ -139,6 +140,102 @@
         </div>
         <div class="modal-backdrop" (click)="closeMove()"></div>
       </div>
+
+      @if (folders().length === 0 && files().length === 0) {
+        <div class="mt-10 flex flex-col items-center justify-center text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/30 h-12 w-12" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+          <p class="mt-3 font-medium">This folder is empty</p>
+          <p class="text-base-content/60 text-sm">Upload a file or create a folder to get started.</p>
+        </div>
+      } @else {
+        <div class="mt-4 overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Created</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Folders -->
+              @for (folder of folders(); track folder.id) {
+                <tr class="hover">
+                  <td>
+                    <a (click)="load(folder.id)" class="flex cursor-pointer items-center gap-2 font-medium">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="text-primary h-5 w-5" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                      {{ folder.name }}
+                    </a>
+                  </td>
+                  <td class="text-base-content/50">—</td>
+                  <td class="text-base-content/50">—</td>
+                  <td class="text-right">
+                    <button class="btn btn-ghost btn-xs" (click)="renameFolder(folder)" [disabled]="busy()">Rename</button>
+                    <button class="btn btn-ghost btn-xs" (click)="openMove('folder', folder)" [disabled]="busy()">Move</button>
+                    <button class="btn btn-ghost btn-xs text-error" (click)="deleteFolder(folder)" [disabled]="busy()">Delete</button>
+                  </td>
+                </tr>
+              }
+
+              <!-- Files -->
+              @for (file of files(); track file.id) {
+                <tr class="hover">
+                  <td class="flex items-center gap-2 font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/40 h-5 w-5" fill="none"
+                      viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    {{ file.name }}
+                  </td>
+                  <td>{{ format(file.size) }}</td>
+                  <td>{{ file.createdAt | date: 'short' }}</td>
+                  <td class="text-right">
+                    <button class="btn btn-ghost btn-xs" (click)="download(file)" [disabled]="busy()">Download</button>
+                    <button class="btn btn-ghost btn-xs" (click)="renameFile(file)" [disabled]="busy()">Rename</button>
+                    <button class="btn btn-ghost btn-xs" (click)="openMove('file', file)" [disabled]="busy()">Move</button>
+                    <button class="btn btn-ghost btn-xs text-error" (click)="deleteFile(file)" [disabled]="busy()">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     }
   </main>
 </div>
+
+<!-- Move modal -->
+@if (move(); as m) {
+  <div class="modal modal-open">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold">Move "{{ m.name }}"</h3>
+      <p class="text-base-content/60 mt-1 text-sm">Choose a destination folder:</p>
+
+      <ul class="menu mt-3 max-h-64 w-full overflow-y-auto">
+        @for (target of m.targets; track target.id) {
+          <li>
+            <a (click)="confirmMove(target.id)" [style.padding-left.rem]="target.depth * 1">
+              {{ target.name }}
+            </a>
+          </li>
+        }
+      </ul>
+
+      <div class="modal-action">
+        <button class="btn btn-ghost" (click)="closeMove()">Cancel</button>
+      </div>
+    </div>
+    <div class="modal-backdrop" (click)="closeMove()"></div>
+  </div>
+}

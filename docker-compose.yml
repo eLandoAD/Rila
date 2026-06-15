@@ -60,5 +60,14 @@ services:
     ports:
       - "4200:4200"
 
+  # Dev SMTP catcher: captures outgoing emails, web UI on http://localhost:8025
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: securevault_mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
 volumes:
   postgres_data:

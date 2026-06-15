@@ -17,6 +17,10 @@ export class VerifyEmail implements OnInit {
   readonly email = this.route.snapshot.queryParamMap.get('email');
   private readonly token = this.route.snapshot.queryParamMap.get('token');
 
+  // 'pending' = waiting for the user to click the email link (no token yet)
+  readonly state = signal<'pending' | 'verifying' | 'verified' | 'error'>(
+    this.token ? 'verifying' : 'pending',
+  );
   readonly loading = signal(false);
   readonly resent = signal(false);
   readonly error = signal<string | null>(null);

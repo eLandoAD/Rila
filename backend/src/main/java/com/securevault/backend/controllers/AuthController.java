@@ -37,8 +37,8 @@ public class AuthController {
             request.getRecoveryDekIv()        // Aggiunto
         );
 
-        // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
-        return ResponseEntity.ok(new AuthResponse(null, "Registration successful"));
+        // nessun token: l'account va prima verificato via email
+        return ResponseEntity.ok(new AuthResponse(null, "Registration successful, check your email to verify your account"));
     }
 
 
@@ -63,7 +63,7 @@ public class AuthController {
         }
 
         if (!user.get().getEnabled()) {
-            return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check the console"));
+            return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check your email"));
         }
 
         // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
@@ -78,10 +78,16 @@ public class AuthController {
         return ResponseEntity.ok("Account activated with success!");
     }
 
+    @PostMapping("/resend-verification")
+    public ResponseEntity<String> resendVerification(@RequestBody ForgotPasswordRequest request) {
+        userService.resendVerification(request.getEmail());
+        return ResponseEntity.ok("Verification email sent");
+    }
+
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
         userService.forgotPassword(request.getEmail());
-        return ResponseEntity.ok("If the email exists, check the console for the reset link");
+        return ResponseEntity.ok("If the email exists, a reset link has been sent");
     }
 
     @PostMapping("/reset-password")

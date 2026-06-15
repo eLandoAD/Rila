@@ -23,11 +23,9 @@ public class UserService {
     private final EmailService emailService;
 
     /**
-     * Metodo che registra un utente con username, email e password criptata
-     * @param username campo username
-     * @param email campo email
-     * @param password campo passowrd
-     * @return ritorno l'intero oggetto User
+     * Registra un utente con username, email, password hashata e il materiale di
+     * cifratura envelope (encryptedDek, dekIv, keySalt) generato dal client.
+     * @return l'intero oggetto User
      */
     public User registerUser(String username, String email, String password, String encryptedDek, String dekIv, String keySalt, String recoveryEncryptedDek, String recoveryDekIv) {
         // controllo duplicati con messaggio chiaro (evita il 403 mascherato da /error)
@@ -85,18 +83,24 @@ public class UserService {
         user.setEnabled(true);
         user.setVerificationToken(null);
         userRepository.save(user);
+
+        // avviso di benvenuto: account attivato
+        emailService.sendWelcomeEmail(user.getEmail(), user.getUsername());
     }
 
-    public void forgotPassword(String email) {
-        // user
+    public void resendVerification(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Email not found"));
 
-        // genero token, scadenza
-        String token = UUID.randomUUID().toString();
-        user.setResetToken(token);
-        user.setResetTokenExpiry(System.currentTimeMillis() + (15*60*1000L));
+        if (user.getEnabled()) {
+            throw new RuntimeException("Account already activated");
+        }
+
+        // rigenero il token e re-invio l'email
+        user.setVerificationToken(UUID.randomUUID().toString());
         userRepository.save(user);
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), user.getVerificationToken());
+    }
 
         emailService.sendResetPasswordEmail(user.getEmail(), token);
     }
@@ -114,11 +118,17 @@ public class UserService {
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
+        // il client rigenera/ri-incapsula il DEK sotto la nuova password
         user.setEncryptedDek(newEncryptedDek);
+        user.setDekIv(newDekIv);
+        user.setKeySalt(newKeySalt);
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
         user.setDekIv(newDekIv);
         userRepository.save(user);
+
+        // avviso di sicurezza: password cambiata
+        emailService.sendPasswordChangedAlert(user.getEmail(), user.getUsername());
     }
 
 

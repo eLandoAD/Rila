@@ -85,13 +85,13 @@ export class Files implements OnInit {
   async download(meta: StoredFileMeta): Promise<void> {
     if (this.downloadingId()) return;
     this.error.set(null);
-    this.downloadingId.set(meta.id);
+    this.busy.set(true);
     try {
       await this.fileService.download(meta);
     } catch {
       this.error.set('Decryption or download failed.');
     } finally {
-      this.downloadingId.set(null);
+      this.busy.set(false);
     }
   }
 
