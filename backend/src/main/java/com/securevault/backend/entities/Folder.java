@@ -22,6 +22,9 @@ public class Folder {
     @Column(name = "enc_name", nullable = false)
     private String encName;
 
+    @Column(name = "iv")
+    private String iv;
+
     // riferimento a tutto l'utente
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

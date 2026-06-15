@@ -49,13 +49,14 @@ public class FolderController {
         Folder folder = new Folder();
         folder.setUser(user);
         folder.setEncName(request.getEncName());
+        folder.setIv(request.getIv());
         // se parent = null -> cartella root
         folder.setParentFolder(parent);
 
         folderRepository.save(folder);
 
         // ritorno
-        return ResponseEntity.ok(new FolderResponse(folder.getId(), folder.getEncName(), request.getParentId()));
+        return ResponseEntity.ok(new FolderResponse(folder.getId(), folder.getEncName(), folder.getIv(), request.getParentId()));
     }
 
     @GetMapping("/content")
@@ -89,7 +90,7 @@ public class FolderController {
 
         // mappatura in dto delle cartelle e dei file
         List<FolderResponse> folderResponses = folders.stream()
-                .map(f -> new FolderResponse(f.getId(), f.getEncName(), folderId))
+                .map(f -> new FolderResponse(f.getId(), f.getEncName(), f.getIv(), folderId))
                 .toList();
 
         List<FileResponse> fileResponses = files.stream()
@@ -99,6 +100,7 @@ public class FolderController {
                     dto.setEncName(f.getEncName());
                     dto.setFileSize(f.getFileSize());
                     dto.setCreatedAt(f.getCreatedAt());
+                    dto.setIv(f.getIv());
                     return dto;
                 }).toList();
 
@@ -108,6 +110,7 @@ public class FolderController {
             breadcrumbs.add(0, new FolderResponse(
                 temp.getId(),
                 temp.getEncName(),
+                temp.getIv(),
                 temp.getParentFolder() != null ? temp.getParentFolder().getId() : null
             ));
             temp = temp.getParentFolder();
