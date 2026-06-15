@@ -45,7 +45,7 @@ services:
       APP_MAIL_FROM: ${SMTP_USER:-noreply@northleap.it}
       APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8085}:8080"
 
   frontend:
     build:
@@ -58,7 +58,7 @@ services:
       NODE_ENV: production
       PORT: 4200
     ports:
-      - "4200:4200"
+      - "${FRONTEND_PORT:-4205}:4200"
 
   # Dev SMTP catcher: captures outgoing emails, web UI on http://localhost:8025
   mailhog:
@@ -66,8 +66,8 @@ services:
     container_name: securevault_mailhog
     restart: unless-stopped
     ports:
-      - "1025:1025"
-      - "8025:8025"
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_PORT:-8025}:8025"
 
 volumes:
   postgres_data:
