@@ -5,6 +5,7 @@ import { Observable, from, map, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest, RegisterRequest } from './auth.models';
 import { CryptoService } from '../crypto/crypto.service';
+import { AuthResponse, LoginRequest, RegisterRequest, ResetPasswordRequest, ResetInfoResponse } from './auth.models';
 
 const TOKEN_KEY = 'sv_token';
 
@@ -25,24 +26,8 @@ export class AuthService {
     return token ? this.extractSubject(token) : null;
   });
 
-  /**
-   * Generates the envelope keys client-side, then registers. No token is
-   * returned: the account must be verified by email first.
-   */
-  register(username: string, email: string, password: string): Observable<AuthResponse> {
-    return from(this.crypto.setupRegistrationKeys(password)).pipe(
-      switchMap((env) => {
-        const request: RegisterRequest = {
-          username,
-          email,
-          password,
-          encryptedDek: env.encryptedDek,
-          dekIv: env.iv,
-          keySalt: env.salt,
-        };
-        return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
-      }),
-    );
+  register(request: RegisterRequest): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
   }
 
   /**
@@ -67,41 +52,23 @@ export class AuthService {
     this.crypto.clearSession();
   }
 
-  forgotPassword(email: string): Observable<unknown> {
+  forgotPassword(email: string): Observable<string> {
     return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
   }
 
-  /**
-   * Resets the password. Because the old password (and therefore the old DEK)
-   * is unavailable, a fresh DEK is generated under the new password — see
-   * SECURITY.md for the password-reset tradeoff.
-   */
-  resetPassword(token: string, newPassword: string): Observable<unknown> {
-    return from(this.crypto.setupRegistrationKeys(newPassword)).pipe(
-      switchMap((env) =>
-        this.http.post(
-          `${this.baseUrl}/reset-password`,
-          {
-            token,
-            newPassword,
-            newEncryptedDek: env.encryptedDek,
-            newDekIv: env.iv,
-            newKeySalt: env.salt,
-          },
-          { responseType: 'text' },
-        ),
-      ),
-    );
+  getResetInfo(token: string): Observable<ResetInfoResponse> {
+    return this.http.get<ResetInfoResponse>(`${this.baseUrl}/reset-info`, { params: { token } });
   }
 
-  verifyEmail(token: string): Observable<unknown> {
-    return this.http.get(`${this.baseUrl}/verify`, {
-      params: { token },
-      responseType: 'text',
-    });
+  resetPassword(request: ResetPasswordRequest): Observable<string> {
+    return this.http.post(`${this.baseUrl}/reset-password`, request, { responseType: 'text' });
   }
 
-  resendVerification(email: string): Observable<unknown> {
+  verifyEmail(token: string): Observable<string> {
+    return this.http.get(`${this.baseUrl}/verify`, { params: { token }, responseType: 'text' });
+  }
+
+  resendVerification(email: string): Observable<string> {
     return this.http.post(`${this.baseUrl}/resend-verification`, { email }, { responseType: 'text' });
   }
 

@@ -124,6 +124,23 @@ public class FolderService {
     }
 
     @Transactional
+    public void renameFolder(UUID folderId, String newEncName, String newIv, String username) {
+        // recupero la cartella
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+
+        // verifico owner
+        if (!folder.getUser().getUsername().equals(username)) {
+            throw new RuntimeException("Access denied: you are not the owner");
+        }
+
+        // aggiorno nome cifrato e iv
+        folder.setEncName(newEncName);
+        folder.setIv(newIv);
+        folderRepository.save(folder);
+    }
+
+    @Transactional
     public void moveFile(UUID fileId, UUID targetFolderId, String username) {
         // recupero il file
         StoredFile file = storedFileRepository.findById(fileId)

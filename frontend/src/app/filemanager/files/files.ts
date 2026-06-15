@@ -1,183 +1,147 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { HttpErrorResponse } from '@angular/common/http';
 import { SideNavbar } from '../side-navbar/side-navbar';
 import { FileService } from '../../core/files/file.service';
-import { FileItem, FolderItem } from '../../core/files/file.models';
+import { FolderService } from '../../core/files/folder.service';
+import { StoredFileMeta, FolderResponse } from '../../core/files/file.models';
 import { formatBytes } from '../../core/files/format';
 
-interface MoveTarget {
-  id: string | null;
-  name: string;
-  depth: number;
-}
-
-interface MoveState {
-  kind: 'file' | 'folder';
-  id: string;
-  name: string;
-  targets: MoveTarget[];
-}
+type MoveTarget =
+  | { kind: 'file'; meta: StoredFileMeta }
+  | { kind: 'folder'; folder: FolderResponse };
 
 @Component({
   selector: 'app-files',
+  standalone: true,
   imports: [SideNavbar, RouterLink, DatePipe],
   templateUrl: './files.html',
   styleUrl: './files.css',
 })
 export class Files implements OnInit {
   private readonly fileService = inject(FileService);
+  protected readonly folderService = inject(FolderService);
 
-  protected readonly folders = this.fileService.folders;
-  protected readonly files = this.fileService.files;
-  protected readonly breadcrumbs = this.fileService.breadcrumbs;
-  protected readonly locked = this.fileService.locked;
+  protected readonly files = this.folderService.currentFiles;
+  protected readonly folders = this.folderService.currentFolders;
+  protected readonly breadcrumbs = this.folderService.breadcrumbs;
+  protected readonly currentFolderId = this.folderService.currentFolderId;
 
-  protected readonly busy = signal(false);
+  protected readonly downloadingId = signal<string | null>(null);
   protected readonly error = signal<string | null>(null);
-  protected readonly uploadProgress = signal<number | null>(null);
-  protected readonly move = signal<MoveState | null>(null);
-
+  protected readonly loading = signal(false);
+  protected readonly moving = signal<MoveTarget | null>(null);
   protected readonly format = formatBytes;
 
   ngOnInit(): void {
-    void this.load(null);
+    this.navigateTo(null);
   }
 
-  async load(folderId: string | null): Promise<void> {
+  async navigateTo(folderId: string | null): Promise<void> {
     this.error.set(null);
+    this.loading.set(true);
     try {
-      await this.fileService.loadFolder(folderId);
-    } catch (err) {
-      this.report(err);
+      await this.folderService.loadFolderContent(folderId);
+    } catch {
+      this.error.set('Failed to load folder content.');
+    } finally {
+      this.loading.set(false);
     }
   }
 
-  // --- folders ---
+  // --- Folders ---
 
-  async createFolder(): Promise<void> {
-    const name = prompt('New folder name')?.trim();
-    if (!name) {
-      return;
+  async createNewFolder(): Promise<void> {
+    const name = prompt('Folder name:')?.trim();
+    if (!name) return;
+    try {
+      await this.folderService.createFolder(name, this.currentFolderId());
+    } catch {
+      this.error.set('Failed to create folder.');
     }
-    await this.run(() => this.fileService.createFolder(name));
   }
 
-  async renameFolder(folder: FolderItem): Promise<void> {
-    const name = prompt('Rename folder', folder.name)?.trim();
-    if (!name || name === folder.name) {
-      return;
+  async renameFolder(folder: FolderResponse): Promise<void> {
+    const name = prompt('New folder name:', folder.name)?.trim();
+    if (!name || name === folder.name) return;
+    try {
+      await this.folderService.renameFolder(folder.id, name);
+    } catch {
+      this.error.set('Failed to rename folder.');
     }
-    await this.run(() => this.fileService.renameFolder(folder.id, name));
   }
 
-  async deleteFolder(folder: FolderItem): Promise<void> {
-    if (!confirm(`Delete folder "${folder.name}" and everything inside it?`)) {
-      return;
+  async deleteFolder(folder: FolderResponse): Promise<void> {
+    if (!confirm(`Delete folder "${folder.name}" and all its content?`)) return;
+    try {
+      await this.folderService.deleteFolder(folder.id);
+    } catch {
+      this.error.set('Failed to delete folder.');
     }
-    await this.run(() => this.fileService.deleteFolder(folder.id));
   }
 
-  // --- files ---
+  // --- Files ---
 
-  async onUpload(event: Event): Promise<void> {
-    const input = event.target as HTMLInputElement;
-    const files = input.files;
-    if (!files || files.length === 0) {
-      return;
-    }
+  async download(meta: StoredFileMeta): Promise<void> {
+    if (this.downloadingId()) return;
     this.error.set(null);
     this.busy.set(true);
     try {
-      for (const file of Array.from(files)) {
-        this.uploadProgress.set(0);
-        await this.fileService.upload(file, (p) => this.uploadProgress.set(p));
-      }
-      await this.fileService.loadFolder(this.fileService.currentFolderId());
-    } catch (err) {
-      this.report(err);
+      await this.fileService.download(meta);
+    } catch {
+      this.error.set('Decryption or download failed.');
     } finally {
-      this.uploadProgress.set(null);
       this.busy.set(false);
-      input.value = '';
     }
   }
 
-  async download(file: FileItem): Promise<void> {
-    await this.run(() => this.fileService.download(file));
-  }
-
-  async renameFile(file: FileItem): Promise<void> {
-    const name = prompt('Rename file', file.name)?.trim();
-    if (!name || name === file.name) {
-      return;
-    }
-    await this.run(() => this.fileService.renameFile(file.id, name));
-  }
-
-  async deleteFile(file: FileItem): Promise<void> {
-    if (!confirm(`Delete "${file.name}"?`)) {
-      return;
-    }
-    await this.run(() => this.fileService.deleteFile(file.id));
-  }
-
-  // --- move ---
-
-  async openMove(kind: 'file' | 'folder', item: FileItem | FolderItem): Promise<void> {
-    this.error.set(null);
+  async renameFile(meta: StoredFileMeta): Promise<void> {
+    const name = prompt('New file name:', meta.name)?.trim();
+    if (!name || name === meta.name) return;
     try {
-      const all = await this.fileService.listAllFolders();
-      const targets: MoveTarget[] = [
-        { id: null, name: 'Root', depth: 0 },
-        ...all
-          // a folder cannot be moved into itself
-          .filter((f) => !(kind === 'folder' && f.id === item.id))
-          .map((f) => ({ id: f.id, name: f.name, depth: f.depth + 1 })),
-      ];
-      this.move.set({ kind, id: item.id, name: item.name, targets });
-    } catch (err) {
-      this.report(err);
+      await this.fileService.rename(meta, name);
+    } catch {
+      this.error.set('Failed to rename file.');
     }
   }
 
-  async confirmMove(targetId: string | null): Promise<void> {
-    const state = this.move();
-    if (!state) {
-      return;
+  async removeFile(meta: StoredFileMeta): Promise<void> {
+    if (!confirm(`Delete "${meta.name}"?`)) return;
+    try {
+      await this.fileService.delete(meta.id);
+    } catch {
+      this.error.set('Failed to delete file.');
     }
-    this.move.set(null);
-    await this.run(() =>
-      state.kind === 'file'
-        ? this.fileService.moveFile(state.id, targetId)
-        : this.fileService.moveFolder(state.id, targetId),
-    );
+  }
+
+  // --- Move (files & folders) ---
+
+  openMove(target: MoveTarget): void {
+    this.moving.set(target);
   }
 
   closeMove(): void {
-    this.move.set(null);
+    this.moving.set(null);
   }
 
-  private async run(action: () => Promise<void>): Promise<void> {
-    this.error.set(null);
-    this.busy.set(true);
+  /** Folders shown as destinations: subfolders of the current view, minus the one being moved. */
+  protected moveDestinations(): FolderResponse[] {
+    const t = this.moving();
+    return this.folders().filter((f) => !(t?.kind === 'folder' && f.id === t.folder.id));
+  }
+
+  async confirmMove(targetFolderId: string | null): Promise<void> {
+    const t = this.moving();
+    if (!t) return;
+    this.closeMove();
     try {
-      await action();
-    } catch (err) {
-      this.report(err);
-    } finally {
-      this.busy.set(false);
+      if (t.kind === 'file') {
+        await this.fileService.move(t.meta.id, targetFolderId);
+      } else {
+        await this.folderService.moveFolder(t.folder.id, targetFolderId);
+      }
+    } catch {
+      this.error.set('Move failed.');
     }
-  }
-
-  private report(err: unknown): void {
-    this.error.set(
-      err instanceof HttpErrorResponse
-        ? (err.error?.message ?? `Request failed (${err.status})`)
-        : err instanceof Error
-          ? err.message
-          : 'Something went wrong',
-    );
   }
 }

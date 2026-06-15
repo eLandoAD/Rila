@@ -5,21 +5,23 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold">My Files</h1>
-        <p class="text-base-content/60 mt-1 text-sm">Encrypted files and folders</p>
+        <h1 class="text-2xl font-bold">File</h1>
+        <p class="text-base-content/60 mt-1 text-sm">Your encrypted files & folders</p>
       </div>
+      <div class="flex gap-2">
+        <button class="btn btn-outline btn-sm" (click)="createNewFolder()">New folder</button>
+        <a routerLink="/filemanager/uploads" class="btn btn-primary btn-sm">Upload</a>
+      </div>
+    </div>
 
-      @if (!locked()) {
-        <div class="flex items-center gap-2">
-          <button class="btn btn-ghost btn-sm" (click)="createFolder()" [disabled]="busy()">
-            New folder
-          </button>
-          <label class="btn btn-primary btn-sm" [class.btn-disabled]="busy()">
-            Upload
-            <input type="file" multiple class="hidden" (change)="onUpload($event)" />
-          </label>
-        </div>
-      }
+    <!-- Breadcrumbs -->
+    <div class="text-sm breadcrumbs mt-4">
+      <ul>
+        <li><a (click)="navigateTo(null)">Root</a></li>
+        @for (crumb of breadcrumbs(); track crumb.id) {
+          <li><a (click)="navigateTo(crumb.id)">{{ crumb.name }}</a></li>
+        }
+      </ul>
     </div>
 
     @if (error()) {
@@ -28,30 +30,115 @@
       </div>
     }
 
-    @if (uploadProgress() !== null) {
-      <progress class="progress progress-primary mt-4 w-full" [value]="uploadProgress()" max="100"></progress>
-    }
-
-    @if (locked()) {
-      <!-- No DEK in memory (e.g. after a reload): files can't be decrypted -->
-      <div class="mt-10 flex flex-col items-center justify-center text-center">
-        <div class="text-5xl">🔒</div>
-        <p class="mt-3 font-medium">Your vault is locked</p>
-        <p class="text-base-content/60 max-w-md text-sm">
-          For your security the encryption key is kept only in memory. Please log in again to
-          unlock and access your files.
-        </p>
-        <a routerLink="/login" class="btn btn-primary btn-sm mt-4">Log in again</a>
+    @if (loading()) {
+      <div class="mt-10 flex justify-center">
+        <span class="loading loading-spinner loading-lg"></span>
       </div>
     } @else {
-      <!-- Breadcrumbs -->
-      <div class="text-sm breadcrumbs mt-4">
-        <ul>
-          <li><a (click)="load(null)" class="cursor-pointer">Root</a></li>
-          @for (crumb of breadcrumbs(); track crumb.id) {
-            <li><a (click)="load(crumb.id)" class="cursor-pointer">{{ crumb.name }}</a></li>
+      <!-- Folders -->
+      @if (folders().length > 0) {
+        <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          @for (folder of folders(); track folder.id) {
+            <div class="bg-base-200 group flex items-center gap-3 rounded-lg p-3">
+              <button class="flex flex-1 items-center gap-3 overflow-hidden text-left"
+                (click)="navigateTo(folder.id)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="text-primary h-6 w-6 shrink-0"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+                <span class="truncate font-medium">{{ folder.name }}</span>
+              </button>
+              <div class="dropdown dropdown-end">
+                <button tabindex="0" class="btn btn-ghost btn-xs btn-circle">⋮</button>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-10 w-36 p-2 shadow">
+                  <li><a (click)="renameFolder(folder)">Rename</a></li>
+                  <li><a (click)="openMove({ kind: 'folder', folder })">Move</a></li>
+                  <li><a class="text-error" (click)="deleteFolder(folder)">Delete</a></li>
+                </ul>
+              </div>
+            </div>
           }
-        </ul>
+        </div>
+      }
+
+      <!-- Files -->
+      @if (files().length > 0) {
+        <div class="mt-6 overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Size</th>
+                <th>Uploaded</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (file of files(); track file.id) {
+                <tr>
+                  <td class="font-medium">{{ file.name }}</td>
+                  <td>{{ format(file.size) }}</td>
+                  <td>{{ file.uploadedAt | date: 'short' }}</td>
+                  <td class="text-right">
+                    <button class="btn btn-ghost btn-xs" (click)="download(file)"
+                      [disabled]="downloadingId() === file.id">
+                      @if (downloadingId() === file.id) {
+                        <span class="loading loading-spinner loading-xs"></span>
+                      }
+                      Download
+                    </button>
+                    <button class="btn btn-ghost btn-xs" (click)="renameFile(file)">Rename</button>
+                    <button class="btn btn-ghost btn-xs" (click)="openMove({ kind: 'file', meta: file })">Move</button>
+                    <button class="btn btn-ghost btn-xs text-error" (click)="removeFile(file)">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- Empty state -->
+      @if (folders().length === 0 && files().length === 0) {
+        <div class="mt-10 flex flex-col items-center justify-center text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/30 h-12 w-12" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+          <p class="mt-3 font-medium">This folder is empty</p>
+          <p class="text-base-content/60 text-sm">Upload a file or create a folder to get started.</p>
+          <div class="mt-4 flex gap-2">
+            <button class="btn btn-outline btn-sm" (click)="createNewFolder()">New folder</button>
+            <a routerLink="/filemanager/uploads" class="btn btn-primary btn-sm">Upload a file</a>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- Move modal -->
+    @if (moving(); as target) {
+      <div class="modal modal-open">
+        <div class="modal-box">
+          <h3 class="text-lg font-bold">
+            Move {{ target.kind === 'file' ? target.meta.name : target.folder.name }}
+          </h3>
+          <p class="text-base-content/60 mt-1 text-sm">Choose a destination folder.</p>
+          <ul class="menu bg-base-200 rounded-box mt-4 w-full">
+            <li><a (click)="confirmMove(null)">📁 Root</a></li>
+            @for (dest of moveDestinations(); track dest.id) {
+              <li><a (click)="confirmMove(dest.id)">📁 {{ dest.name }}</a></li>
+            }
+          </ul>
+          @if (moveDestinations().length === 0) {
+            <p class="text-base-content/50 mt-2 text-xs">No subfolders here — you can move to Root.</p>
+          }
+          <div class="modal-action">
+            <button class="btn btn-sm" (click)="closeMove()">Cancel</button>
+          </div>
+        </div>
+        <div class="modal-backdrop" (click)="closeMove()"></div>
       </div>
 
       @if (folders().length === 0 && files().length === 0) {

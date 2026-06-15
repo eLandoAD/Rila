@@ -25,9 +25,17 @@ public class AuthController {
     // POST /api/auth/register
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
-        // chiamo userService con il materiale di cifratura envelope generato dal client
-        userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword(),
-                request.getEncryptedDek(), request.getDekIv(), request.getKeySalt());
+        // chiamo userService
+        userService.registerUser(
+            request.getUsername(), 
+            request.getEmail(), 
+            request.getPassword(), 
+            request.getEncryptedDek(), 
+            request.getDekIv(), 
+            request.getKeySalt(),
+            request.getRecoveryEncryptedDek(), // Aggiunto
+            request.getRecoveryDekIv()        // Aggiunto
+        );
 
         // nessun token: l'account va prima verificato via email
         return ResponseEntity.ok(new AuthResponse(null, "Registration successful, check your email to verify your account"));
@@ -39,6 +47,11 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
         // chiamo userService
         Optional<User> user = userService.findByUsernameOrEmail(loginRequest.getUsernameOrEmail());
+
+        User u = null;
+        if (user.isPresent()) {
+            u = user.get();
+        }
 
         // se non esiste mando errore
         if (user.isEmpty()) {
@@ -53,14 +66,9 @@ public class AuthController {
             return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check your email"));
         }
 
-        // ritorno token + materiale envelope per sbloccare il DEK nel browser
-        User u = user.get();
-        return ResponseEntity.ok(new AuthResponse(
-                jwtService.generateToken(u.getUsername()),
-                "Login successful",
-                u.getEncryptedDek(),
-                u.getDekIv(),
-                u.getKeySalt()));
+        // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
+        return ResponseEntity.ok(
+                new AuthResponse(jwtService.generateToken(user.get().getUsername()), "Login successful", u.getEncryptedDek(), u.getDekIv(), u.getKeySalt()));
     }
 
 
@@ -84,16 +92,15 @@ public class AuthController {
 
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-        userService.resetPassword(request.getToken(), request.getNewPassword(),
-                request.getNewEncryptedDek(), request.getNewDekIv(), request.getNewKeySalt());
+        userService.resetPassword(request.getToken(), request.getNewPassword(), request.getNewEncryptedDek(), request.getNewDekIv());
         return ResponseEntity.ok("Password updated successfully");
     }
 
-
-
-
-
-
-
+    @GetMapping("/reset-info")
+    public ResponseEntity<ResetInfoResponse> getResetInfo(@RequestParam String token) {
+        // chiamiamo il service
+        ResetInfoResponse info = userService.getResetInfo(token);
+        return ResponseEntity.ok(info);
+    }
 
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth.service';
@@ -25,13 +25,22 @@ export class VerifyEmail implements OnInit {
   readonly resent = signal(false);
   readonly error = signal<string | null>(null);
 
+  // stati della verifica automatica dal link email
+  readonly verifying = signal(false);
+  readonly verified = signal(false);
+
   ngOnInit(): void {
+    // se arriviamo dal link email (con token) verifichiamo subito, senza azioni utente
     if (this.token) {
+      this.verifying.set(true);
       this.auth.verifyEmail(this.token).subscribe({
-        next: () => this.state.set('verified'),
+        next: () => {
+          this.verifying.set(false);
+          this.verified.set(true);
+        },
         error: (err: HttpErrorResponse) => {
-          this.state.set('error');
-          this.error.set(err.error?.message ?? 'This verification link is invalid or has expired.');
+          this.verifying.set(false);
+          this.error.set(err.error?.message ?? 'Invalid or expired verification link.');
         },
       });
     }

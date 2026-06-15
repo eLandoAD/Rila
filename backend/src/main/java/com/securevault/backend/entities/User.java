@@ -83,4 +83,11 @@ public class User {
     @Column(name = "key_salt", length = 255)
     private String keySalt;
 
+
+    @Column(name = "recovery_encrypted_dek", length = 512)
+    private String recoveryEncryptedDek;
+
+    @Column(name = "recovery_dek_iv", length = 255)
+    private String recoveryDekIv;
+
 }

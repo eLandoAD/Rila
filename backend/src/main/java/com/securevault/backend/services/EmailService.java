@@ -1,6 +1,5 @@
 package com.securevault.backend.services;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,78 +7,85 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-/**
- * Sends transactional emails (verification, password reset, security alerts) over SMTP.
- *
- * The links embedded in the emails point at the frontend, which then calls the
- * backend API — so the user always lands on a real page instead of a raw JSON endpoint.
- */
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.mail.from:noreply@securevault.local}")
+    // mittente e base url del frontend, configurabili da env
+    @Value("${app.mail.from:noreply@northleap.it}")
     private String from;
 
-    @Value("${app.frontend-url:http://localhost:4000}")
+    @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
 
-    public void sendVerificationEmail(String to, String username, String token) {
+    public void sendVerificationEmail(String to, String token) {
         String link = frontendUrl + "/verify-email?token=" + token;
-        String body = """
-                <h2>Welcome to SecureVault, %s!</h2>
-                <p>Confirm your email address to activate your account:</p>
-                <p><a href="%s" style="background:#570df8;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">Verify my email</a></p>
-                <p>Or paste this link into your browser:<br><code>%s</code></p>
-                <p>If you did not create this account you can ignore this message.</p>
-                """.formatted(username, link, link);
-        send(to, "Verify your SecureVault account", body);
+        String html = buildTemplate(
+                "Confirm your account",
+                "Welcome to SecureVault! Confirm your account to start storing your encrypted files.",
+                "Confirm account",
+                link,
+                "If you did not create this account, you can safely ignore this email."
+        );
+        send(to, "SecureVault — confirm your account", html, link);
     }
 
-    public void sendPasswordResetEmail(String to, String username, String token) {
+    public void sendResetPasswordEmail(String to, String token) {
         String link = frontendUrl + "/reset-password?token=" + token;
-        String body = """
-                <h2>Password reset requested</h2>
-                <p>Hi %s, we received a request to reset your SecureVault password.</p>
-                <p><a href="%s" style="background:#570df8;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;">Reset my password</a></p>
-                <p>Or paste this link into your browser:<br><code>%s</code></p>
-                <p>This link expires in 15 minutes. If you did not request a reset, ignore this email and your password stays unchanged.</p>
-                """.formatted(username, link, link);
-        send(to, "Reset your SecureVault password", body);
+        String html = buildTemplate(
+                "Reset your password",
+                "We received a request to reset your SecureVault password. "
+                        + "You will need your Recovery Key to complete the reset. This link expires in 15 minutes.",
+                "Reset password",
+                link,
+                "If you did not request this, you can safely ignore this email — your password stays unchanged."
+        );
+        send(to, "SecureVault — reset your password", html, link);
     }
 
-    public void sendPasswordChangedAlert(String to, String username) {
-        String body = """
-                <h2>Your password was changed</h2>
-                <p>Hi %s, your SecureVault password was just changed.</p>
-                <p>If this was you, no action is needed. If you did not change your password,
-                contact support immediately — your account may be compromised.</p>
-                """.formatted(username);
-        send(to, "Security alert: your password was changed", body);
+    // semplice template HTML inline, responsive e con fallback testuale sul link
+    private String buildTemplate(String title, String body, String cta, String link, String footer) {
+        return """
+                <!DOCTYPE html>
+                <html lang="en">
+                <body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+                  <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 0;">
+                    <tr><td align="center">
+                      <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                        <tr><td style="background:#4f46e5;padding:24px 32px;color:#ffffff;font-size:20px;font-weight:bold;">🔒 SecureVault</td></tr>
+                        <tr><td style="padding:32px;">
+                          <h1 style="margin:0 0 16px;font-size:22px;color:#111827;">%s</h1>
+                          <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#374151;">%s</p>
+                          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:8px;background:#4f46e5;">
+                            <a href="%s" style="display:inline-block;padding:12px 28px;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;">%s</a>
+                          </td></tr></table>
+                          <p style="margin:24px 0 0;font-size:13px;color:#6b7280;">Or copy this link into your browser:<br>
+                            <a href="%s" style="color:#4f46e5;word-break:break-all;">%s</a></p>
+                        </td></tr>
+                        <tr><td style="padding:20px 32px;background:#f9fafb;font-size:12px;color:#9ca3af;border-top:1px solid #e5e7eb;">%s</td></tr>
+                      </table>
+                    </td></tr>
+                  </table>
+                </body>
+                </html>
+                """.formatted(title, body, link, cta, link, link, footer);
     }
 
-    public void sendWelcomeEmail(String to, String username) {
-        String body = """
-                <h2>Your account is active</h2>
-                <p>Hi %s, your email has been verified and your SecureVault account is ready.</p>
-                <p>You can now sign in and start storing your files with end-to-end encryption.</p>
-                """.formatted(username);
-        send(to, "Welcome to SecureVault", body);
-    }
-
-    private void send(String to, String subject, String htmlBody) {
+    private void send(String to, String subject, String html, String fallbackLink) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
             helper.setFrom(from);
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlBody, true);
+            helper.setText(html, true); // true => HTML
             mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Failed to send email to " + to, e);
+        } catch (Exception e) {
+            // fallback: se l'SMTP non è raggiungibile (es. dev), logghiamo il link
+            System.out.println(">>> [EMAIL FALLBACK] Could not send to " + to + " (" + e.getMessage() + ")");
+            System.out.println(">>> [EMAIL FALLBACK] " + subject + ": " + fallbackLink);
         }
     }
 }

@@ -10,5 +10,4 @@ public class ResetPasswordRequest {
     // New envelope material: the DEK re-wrapped under the new password (client-side)
     private String newEncryptedDek;
     private String newDekIv;
-    private String newKeySalt;
 }

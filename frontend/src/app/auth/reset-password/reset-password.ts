@@ -1,8 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth.service';
+import { CryptoService } from '../../core/crypto/crypto.service';
+import { ResetInfoResponse } from '../../core/auth/auth.models';
 
 @Component({
   selector: 'app-reset-password',
@@ -11,45 +13,79 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './reset-password.html',
   styleUrl: './reset-password.css',
 })
-export class ResetPassword {
+export class ResetPassword implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly crypto = inject(CryptoService);
 
-  password = '';
+  recoveryKey = '';
+  newPassword = '';
   confirmPassword = '';
 
   readonly loading = signal(false);
   readonly done = signal(false);
   readonly error = signal<string | null>(null);
+  
+  private resetInfo: ResetInfoResponse | null = null;
+  private token = '';
 
-  submit(): void {
-    if (this.loading()) {
+  ngOnInit(): void {
+    this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
+    if (!this.token) {
+      this.error.set('Invalid or missing reset token.');
       return;
     }
+
+    // Fetch E2EE metadata needed for recovery
+    this.auth.getResetInfo(this.token).subscribe({
+      next: (info) => {
+        this.resetInfo = info;
+      },
+      error: () => {
+        this.error.set('Invalid token or user data not found.');
+      }
+    });
+  }
+
+  async submit(): Promise<void> {
+    if (this.loading() || !this.resetInfo) return;
     this.error.set(null);
 
-    if (this.password !== this.confirmPassword) {
+    if (this.newPassword !== this.confirmPassword) {
       this.error.set('Passwords do not match.');
-      return;
-    }
-
-    const token = this.route.snapshot.queryParamMap.get('token');
-    if (!token) {
-      this.error.set('Invalid or missing reset token. Please use the link from your email.');
       return;
     }
 
     this.loading.set(true);
 
-    this.auth.resetPassword(token, this.password).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.done.set(true);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.loading.set(false);
-        this.error.set(err.error?.message ?? 'Could not reset your password. Please try again.');
-      },
-    });
+    try {
+      // PERFORM THE RE-ENCRYPTION DANCE
+      const result = await this.crypto.setupRecoveryKeys(
+        this.recoveryKey,
+        this.resetInfo.recoveryEncryptedDek,
+        this.resetInfo.recoveryDekIv,
+        this.resetInfo.keySalt,
+        this.newPassword
+      );
+
+      this.auth.resetPassword({
+        token: this.token,
+        newPassword: this.newPassword,
+        newEncryptedDek: result.newEncryptedDek,
+        newDekIv: result.newDekIv
+      }).subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.done.set(true);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.error.set(err.error?.message ?? 'Could not reset password.');
+        },
+      });
+    } catch (err) {
+      this.loading.set(false);
+      this.error.set('Invalid Recovery Key. We could not decrypt your master key.');
+    }
   }
 }

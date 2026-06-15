@@ -135,6 +135,7 @@ public class FileController {
                 dto.setEncName(file.getEncName());
                 dto.setFileSize(file.getFileSize());
                 dto.setCreatedAt(file.getCreatedAt());
+                dto.setIv(file.getIv());
                 return dto;
             }).toList();
 

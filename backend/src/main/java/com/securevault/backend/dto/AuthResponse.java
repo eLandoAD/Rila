@@ -10,14 +10,12 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
     private String token;
     private String message;
-
-    // Envelope encryption material returned on login so the browser can unwrap the DEK
     private String encryptedDek;
     private String dekIv;
     private String keySalt;
 
+    // costruttore ridotto per le risposte senza dati E2EE (errori, registrazione)
     public AuthResponse(String token, String message) {
-        this.token = token;
-        this.message = message;
+        this(token, message, null, null, null);
     }
 }

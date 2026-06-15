@@ -1,23 +1,11 @@
 /** Raw DTOs returned by the backend (names are ciphertext). */
 export interface FileResponseDto {
   id: string;
-  encName: string;
-  fileSize: number;
-  createdAt: number;
-}
-
-export interface FolderResponseDto {
-  id: string;
-  encName: string;
-  parentId: string | null;
-}
-
-export interface FolderContentDto {
-  folders: FolderResponseDto[];
-  files: FileResponseDto[];
-  breadcrumbs: FolderResponseDto[];
-  currentFolderId: string | null;
-  currentFolderName: string;
+  name: string;      // Decrypted name
+  encName: string;   // Encrypted name from server
+  size: number;
+  iv: string;
+  uploadedAt: number;
 }
 
 export interface FileUploadResponse {
@@ -26,21 +14,26 @@ export interface FileUploadResponse {
   message: string;
 }
 
-/** View models with decrypted names. */
-export interface FileItem {
+export interface FileListResponse {
   id: string;
-  name: string;
-  size: number;
+  encName: string;
+  fileSize: number;
   createdAt: number;
+  iv: string;
 }
 
-export interface FolderItem {
+export interface FolderResponse {
   id: string;
-  name: string;
+  encName: string;
+  iv: string;
   parentId: string | null;
+  name?: string; // Decrypted name (populated in frontend)
 }
 
-export interface Breadcrumb {
-  id: string;
-  name: string;
+export interface FolderContentResponse {
+  folders: FolderResponse[];
+  files: FileListResponse[];
+  breadcrumbs: FolderResponse[];
+  currentFolderId: string | null;
+  currentFolderName: string;
 }
