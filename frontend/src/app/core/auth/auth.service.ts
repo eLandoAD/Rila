@@ -1,10 +1,8 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, map, switchMap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest } from './auth.models';
-import { CryptoService } from '../crypto/crypto.service';
 import { AuthResponse, LoginRequest, RegisterRequest, ResetPasswordRequest, ResetInfoResponse } from './auth.models';
 
 const TOKEN_KEY = 'sv_token';
@@ -12,7 +10,6 @@ const TOKEN_KEY = 'sv_token';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly crypto = inject(CryptoService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly baseUrl = `${environment.apiBaseUrl}/auth`;
@@ -30,26 +27,14 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
   }
 
-  /**
-   * Logs in, then unwraps the DEK into memory using the password.
-   */
   login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, request).pipe(
-      switchMap((res) => {
-        this.persistToken(res.token);
-        if (res.token && res.encryptedDek && res.dekIv && res.keySalt) {
-          return from(
-            this.crypto.setupLoginKeys(request.password, res.encryptedDek, res.dekIv, res.keySalt),
-          ).pipe(map(() => res));
-        }
-        return [res];
-      }),
-    );
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/login`, request)
+      .pipe(tap((res) => this.persistToken(res.token)));
   }
 
   logout(): void {
     this.persistToken(null);
-    this.crypto.clearSession();
   }
 
   forgotPassword(email: string): Observable<string> {
