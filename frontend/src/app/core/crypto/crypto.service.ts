@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 
 /**
  * Client-side AES-GCM encryption. The encryption key (DEK) is derived from the user's
- * password and stored only in memory during the session.
+ * password or a recovery key and stored only in memory during the session.
  */
 @Injectable({ providedIn: 'root' })
 export class CryptoService {
@@ -23,39 +23,76 @@ export class CryptoService {
   }
 
   /**
+   * Encrypts a small string (like a filename) using the session DEK.
+   */
+  async encryptText(text: string, iv: string): Promise<string> {
+    const key = this.getRequiredKey();
+    const cipher = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
+      key,
+      new TextEncoder().encode(text)
+    );
+    return this.toBase64(new Uint8Array(cipher));
+  }
+
+  /**
    * Decrypts a file's data using the session DEK.
    */
   async decrypt(cipher: ArrayBuffer, iv: string): Promise<ArrayBuffer> {
     const key = this.getRequiredKey();
-    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.fromBase64(iv) }, key, cipher);
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.fromBase64(iv) as any }, key, cipher);
   }
 
   /**
-   * Phase 2 Support: Generates everything needed for a new user registration.
+   * Decrypts a small string (like a filename) using the session DEK.
+   */
+  async decryptText(encText: string, iv: string): Promise<string> {
+    const key = this.getRequiredKey();
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
+      key,
+      this.fromBase64(encText) as unknown as Uint8Array<ArrayBuffer>
+    );
+    return new TextDecoder().decode(plain);
+  }
+
+  /**
+   * Support for Registration: Generates everything needed including a Recovery Key.
    */
   async setupRegistrationKeys(password: string): Promise<{
     encryptedDek: string;
     iv: string;
     salt: string;
+    recoveryKey: string;
+    recoveryEncryptedDek: string;
+    recoveryDekIv: string;
   }> {
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const dek = await this.generateDEK();
-    const kek = await this.deriveKEK(password, salt);
     
+    // 1. Password-based KEK
+    const kek = await this.deriveKEK(password, salt);
     const { encryptedDek, iv } = await this.encryptDEK(dek, kek);
     
-    // Store in memory for immediate use after registration
+    // 2. Recovery Key-based KEK
+    const recoveryKey = this.generateRecoveryKeyString();
+    const emergencyKek = await this.deriveKEK(recoveryKey, salt); // same salt for simplicity
+    const { encryptedDek: recoveryEncDek, iv: recoveryIv } = await this.encryptDEK(dek, emergencyKek);
+
     this.currentDek = dek;
     
     return {
       encryptedDek,
       iv,
-      salt: this.toBase64(salt)
+      salt: this.toBase64(salt),
+      recoveryKey,
+      recoveryEncryptedDek: recoveryEncDek,
+      recoveryDekIv: recoveryIv
     };
   }
 
   /**
-   * Phase 3 Support: Decrypts the DEK after a successful login.
+   * Support for Login: Decrypts the DEK using the password.
    */
   async setupLoginKeys(password: string, encryptedDek: string, iv: string, salt: string): Promise<void> {
     const saltBytes = this.fromBase64(salt);
@@ -64,8 +101,29 @@ export class CryptoService {
   }
 
   /**
-   * Clears the key from memory on logout.
+   * Support for Reset/Recovery: Decrypts the DEK using the Recovery Key and re-encrypts with new password.
    */
+  async setupRecoveryKeys(recoveryKey: string, recoveryEncryptedDek: string, recoveryDekIv: string, salt: string, newPassword: string): Promise<{
+    newEncryptedDek: string;
+    newDekIv: string;
+  }> {
+    const saltBytes = this.fromBase64(salt);
+    
+    // 1. Decrypt original DEK with Recovery Key
+    const emergencyKek = await this.deriveKEK(recoveryKey, saltBytes);
+    const dek = await this.decryptDEK(recoveryEncryptedDek, recoveryDekIv, emergencyKek);
+    
+    // 2. Re-encrypt original DEK with New Password
+    const newKek = await this.deriveKEK(newPassword, saltBytes);
+    const { encryptedDek: newEncDek, iv: newIv } = await this.encryptDEK(dek, newKek);
+    
+    this.currentDek = dek;
+    return {
+      newEncryptedDek: newEncDek,
+      newDekIv: newIv
+    };
+  }
+
   clearSession(): void {
     this.currentDek = null;
   }
@@ -80,18 +138,18 @@ export class CryptoService {
   private async generateDEK(): Promise<CryptoKey> {
     return crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },
-      true, // must be extractable for wrapKey
+      true, // must be extractable for wrap/unwrap
       ['encrypt', 'decrypt']
     );
   }
 
-  private async deriveKEK(password: string, salt: Uint8Array): Promise<CryptoKey> {
+  private async deriveKEK(secret: string, salt: Uint8Array): Promise<CryptoKey> {
     const encoder = new TextEncoder();
-    const passwordBytes = encoder.encode(password);
+    const secretBytes = encoder.encode(secret);
 
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
-      passwordBytes,
+      secretBytes,
       'PBKDF2',
       false,
       ['deriveKey']
@@ -100,13 +158,13 @@ export class CryptoService {
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: salt,
+        salt: salt as any,
         iterations: 100000,
         hash: 'SHA-256',
       },
       keyMaterial,
       { name: 'AES-GCM', length: 256 },
-      false, // KEK is never extractable
+      false,
       ['wrapKey', 'unwrapKey']
     );
   }
@@ -129,13 +187,24 @@ export class CryptoService {
   private async decryptDEK(encryptedDek: string, iv: string, kek: CryptoKey): Promise<CryptoKey> {
     return crypto.subtle.unwrapKey(
       'raw',
-      this.fromBase64(encryptedDek),
+      this.fromBase64(encryptedDek) as any,
       kek,
-      { name: 'AES-GCM', iv: this.fromBase64(iv) },
+      { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
       { name: 'AES-GCM', length: 256 },
-      false, // DEK stays in memory, not extractable
+      false,
       ['encrypt', 'decrypt']
     );
+  }
+
+  private generateRecoveryKeyString(): string {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; 
+    const bytes = crypto.getRandomValues(new Uint8Array(20));
+    let key = 'SV-';
+    for (let i = 0; i < bytes.length; i++) {
+      if (i > 0 && i % 4 === 0) key += '-';
+      key += alphabet[bytes[i] % alphabet.length];
+    }
+    return key;
   }
 
   private toBase64(bytes: Uint8Array): string {
