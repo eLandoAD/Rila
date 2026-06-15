@@ -9,13 +9,13 @@
     [class.justify-center]="collapsed()">
     @if (!collapsed()) {
       <div class="flex items-center gap-2.5 overflow-hidden">
-        <div class="w-8 h-8 rounded-xl bg-linear-to-tr from-primary to-secondary flex items-center justify-center text-primary-content font-bold shadow-md shadow-primary/20">
+        <div class="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-primary-content font-bold shadow-sm">
           SV
         </div>
-        <span class="truncate text-lg font-extrabold bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">SecureVault</span>
+        <span class="truncate text-lg font-extrabold text-base-content">SecureVault</span>
       </div>
     } @else {
-      <div class="w-8 h-8 rounded-xl bg-linear-to-tr from-primary to-secondary flex items-center justify-center text-primary-content font-bold shadow-md shadow-primary/20">
+      <div class="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-primary-content font-bold shadow-sm">
         SV
       </div>
     }

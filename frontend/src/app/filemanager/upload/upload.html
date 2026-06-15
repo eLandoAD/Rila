@@ -5,7 +5,7 @@
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">Upload Files</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-base-content">Upload Files</h1>
         <p class="text-xs text-base-content/60 mt-1">
           Your files are encrypted client-side using zero-knowledge cryptosystems before upload.
         </p>
@@ -113,7 +113,7 @@
 
         <!-- Action Bar -->
         <div class="mt-6 flex gap-3">
-          <button class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-md hover:shadow-primary/20 transition-all duration-300 rounded-xl px-6 h-12" 
+          <button class="btn btn-primary border-0 text-primary-content font-bold shadow-sm rounded-xl px-6 h-12" 
                   (click)="uploadAll()" 
                   [disabled]="uploading()">
             @if (uploading()) {

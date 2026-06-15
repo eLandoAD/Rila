@@ -10,7 +10,7 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">Files</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight text-base-content">Files</h1>
         <p class="text-xs text-base-content/60 mt-1">Manage and access your end-to-end encrypted storage</p>
       </div>
       <div class="flex items-center gap-2.5">
@@ -20,7 +20,7 @@
           </svg>
           New Folder
         </button>
-        <button class="btn btn-primary btn-sm bg-linear-to-r from-primary to-secondary text-primary-content border-0 font-bold rounded-xl shadow-md hover:shadow-primary/20 transition-all duration-300" (click)="fileInput.click()">
+        <button class="btn btn-primary btn-sm font-bold rounded-xl shadow-sm" (click)="fileInput.click()">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
@@ -30,11 +30,14 @@
       </div>
     </div>
 
-    <!-- Breadcrumbs -->
+    <!-- Breadcrumbs (Drop Target) -->
     <div class="text-sm breadcrumbs bg-base-100 border border-base-300/40 px-4 py-2.5 rounded-2xl shadow-sm mb-6 flex items-center gap-2">
       <ul class="flex flex-wrap items-center gap-1.5">
         <li>
-          <a (click)="navigateTo(null)" class="flex items-center gap-1 opacity-70 hover:opacity-100 hover:text-primary transition-all font-semibold cursor-pointer">
+          <a (click)="navigateTo(null)"
+             (dragover)="onFolderDragOver($event)"
+             (drop)="onItemDrop($event, null)"
+             class="flex items-center gap-1 opacity-70 hover:opacity-100 hover:text-primary transition-all font-semibold cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
@@ -44,7 +47,10 @@
         @for (crumb of breadcrumbs(); track crumb.id) {
           <li class="flex items-center gap-1">
             <span class="opacity-40">/</span>
-            <a (click)="navigateTo(crumb.id)" class="opacity-70 hover:opacity-100 hover:text-primary transition-all font-semibold cursor-pointer max-w-[120px] truncate">
+            <a (click)="navigateTo(crumb.id)"
+               (dragover)="onFolderDragOver($event)"
+               (drop)="onItemDrop($event, crumb.id)"
+               class="opacity-70 hover:opacity-100 hover:text-primary transition-all font-semibold cursor-pointer max-w-[120px] truncate">
               {{ crumb.name }}
             </a>
           </li>
@@ -75,7 +81,12 @@
           <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-3 px-1">Folders</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             @for (folder of folders(); track folder.id) {
-              <div class="card bg-base-100 border border-base-300/40 shadow-xs hover:shadow-md rounded-2xl transition-all duration-300 group hover:border-primary/20">
+              <!-- Folder Card (Draggable and Drop Target) -->
+              <div class="card bg-base-100 border border-base-300/40 shadow-xs hover:shadow-md rounded-2xl transition-all duration-300 group hover:border-primary/20"
+                   draggable="true"
+                   (dragstart)="onItemDragStart($event, 'folder', folder.id)"
+                   (dragover)="onFolderDragOver($event)"
+                   (drop)="onItemDrop($event, folder.id)">
                 <div class="card-body p-4 flex flex-row items-center gap-3">
                   <!-- Folder Link Wrapper -->
                   <button class="flex-1 flex items-center gap-3 overflow-hidden text-left cursor-pointer" (click)="navigateTo(folder.id)">
@@ -141,7 +152,10 @@
               </thead>
               <tbody>
                 @for (file of files(); track file.id) {
-                  <tr class="hover:bg-base-200/50 border-base-300/30 transition-colors group">
+                  <!-- Draggable File Row -->
+                  <tr class="hover:bg-base-200/50 border-base-300/30 transition-colors group cursor-grab active:cursor-grabbing"
+                      draggable="true"
+                      (dragstart)="onItemDragStart($event, 'file', file.id)">
                     <td class="pl-6 font-semibold text-base-content flex items-center gap-3 py-3.5">
                       <div class="p-2 bg-secondary/10 text-secondary rounded-lg shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,56 +167,56 @@
                     <td class="text-sm text-base-content/70">{{ format(file.size) }}</td>
                     <td class="text-sm text-base-content/70">{{ file.uploadedAt | date: 'mediumDate' }}</td>
                     <td class="text-right pr-6 py-2">
-                      <div class="flex items-center justify-end gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                         <!-- Download Button -->
-                        <button class="btn btn-ghost btn-sm rounded-xl text-primary font-semibold flex items-center gap-1.5" 
+                        <button class="btn btn-ghost btn-xs text-primary font-semibold flex items-center justify-center p-1 rounded-lg" 
                                 (click)="download(file)" 
-                                [disabled]="downloadingId() === file.id">
+                                [disabled]="downloadingId() === file.id"
+                                title="Download">
                           @if (downloadingId() === file.id) {
                             <span class="loading loading-spinner loading-xs"></span>
                           } @else {
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
                           }
-                          Download
                         </button>
 
-                        <!-- Actions Dropdown -->
-                        <div class="dropdown dropdown-end">
-                          <button tabindex="0" class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                            </svg>
-                          </button>
-                          <ul tabindex="0" class="dropdown-content menu bg-base-100 border border-base-300/40 rounded-box z-10 w-44 p-2 shadow-lg">
-                            <li>
-                              <a (click)="renameFile(file)" class="rounded-lg py-2 text-sm flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                Rename
-                              </a>
-                            </li>
-                            <li>
-                              <a (click)="openMove({ kind: 'file', meta: file })" class="rounded-lg py-2 text-sm flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                                Move To
-                              </a>
-                            </li>
-                            <li>
-                              <a (click)="shareFile(file)" class="rounded-lg py-2 text-sm text-primary hover:bg-primary/10 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 10.742l4.828-2.414m0 0a3 3 0 10-3.62-1.09l-4.829 2.414m4.829 2.414a3 3 0 11-3.62 1.09l-4.829-2.414m4.829-2.414l-.001.001" /></svg>
-                                Share
-                              </a>
-                            </li>
-                            <hr class="border-base-300/40 my-1">
-                            <li>
-                              <a (click)="removeFile(file)" class="rounded-lg py-2 text-sm text-error hover:bg-error/10 flex items-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                Delete
-                              </a>
-                            </li>
-                          </ul>
-                        </div>
+                        <!-- Share Button -->
+                        <button class="btn btn-ghost btn-xs text-primary font-semibold flex items-center justify-center p-1 rounded-lg"
+                                (click)="shareFile(file)"
+                                title="Copy Secure Share Link">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 10.742l4.828-2.414m0 0a3 3 0 10-3.62-1.09l-4.829 2.414m4.829 2.414a3 3 0 11-3.62 1.09l-4.829-2.414m4.829-2.414l-.001.001" />
+                          </svg>
+                        </button>
+
+                        <!-- Rename Button -->
+                        <button class="btn btn-ghost btn-xs text-base-content/60 flex items-center justify-center p-1 rounded-lg"
+                                (click)="renameFile(file)"
+                                title="Rename File">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+
+                        <!-- Move Button -->
+                        <button class="btn btn-ghost btn-xs text-base-content/60 flex items-center justify-center p-1 rounded-lg"
+                                (click)="openMove({ kind: 'file', meta: file })"
+                                title="Move File">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                          </svg>
+                        </button>
+
+                        <!-- Delete Button -->
+                        <button class="btn btn-ghost btn-xs text-error flex items-center justify-center p-1 rounded-lg hover:bg-error/10"
+                                (click)="removeFile(file)"
+                                title="Delete File">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -229,7 +243,7 @@
             <button class="btn btn-outline border-base-300 flex-1 rounded-xl h-12 text-sm font-semibold hover:bg-base-300 transition-colors" (click)="createNewFolder()">
               New Folder
             </button>
-            <button class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-md hover:shadow-primary/20 transition-all duration-300 flex-1 rounded-xl h-12 text-sm" (click)="fileInput.click()">
+            <button class="btn btn-primary font-bold shadow-sm flex-1 rounded-xl h-12 text-sm" (click)="fileInput.click()">
               Upload Files
             </button>
           </div>

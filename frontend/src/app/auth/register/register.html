@@ -1,13 +1,13 @@
-<div class="hero min-h-screen bg-linear-to-br from-base-300 via-base-200 to-base-300 px-4">
+<div class="hero min-h-screen bg-base-200 px-4">
   <div class="hero-content flex-col lg:flex-row gap-12 max-w-5xl w-full">
     
     <!-- Info Section (Left side on desktop) -->
     <div class="text-center lg:text-left flex-1 max-w-md">
       <div class="flex items-center justify-center lg:justify-start gap-2.5 mb-4">
-        <div class="w-10 h-10 rounded-2xl bg-linear-to-tr from-primary to-secondary flex items-center justify-center text-primary-content font-bold shadow-lg shadow-primary/20">
+        <div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-primary-content font-bold shadow-sm">
           SV
         </div>
-        <span class="text-2xl font-black bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">SecureVault</span>
+        <span class="text-2xl font-black text-base-content">SecureVault</span>
       </div>
       <h1 class="text-4xl md:text-5xl font-black tracking-tight text-base-content leading-none mb-6">
         Create Your Secure Account
@@ -56,7 +56,7 @@
               </button>
             </div>
 
-            <button class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-md hover:shadow-primary/20 transition-all duration-300 w-full rounded-xl h-12" (click)="finish()">
+            <button class="btn btn-primary border-0 text-primary-content font-bold shadow-sm w-full rounded-xl h-12" (click)="finish()">
               Proceed to Login
             </button>
           </div>
@@ -136,7 +136,7 @@
             <!-- Submit Button -->
             <button
               type="submit"
-              class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-md hover:shadow-primary/20 transition-all duration-300 w-full rounded-xl h-12 mt-4"
+              class="btn btn-primary border-0 text-primary-content font-bold shadow-sm w-full rounded-xl h-12 mt-4"
               [disabled]="loading() || registerForm.invalid"
             >
               @if (loading()) {

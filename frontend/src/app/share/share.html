@@ -1,16 +1,16 @@
-<div class="hero min-h-screen bg-linear-to-br from-base-300 via-base-200 to-base-300">
+<div class="hero min-h-screen bg-base-200">
   <div class="hero-content text-center">
     <div class="card w-full max-w-lg bg-base-100/40 backdrop-blur-xl border border-base-300/40 shadow-2xl rounded-3xl p-6 md:p-8">
       <div class="card-body items-center text-center p-0">
         
         <!-- Premium Animated Glow Header -->
-        <div class="relative flex items-center justify-center w-24 h-24 rounded-full bg-linear-to-tr from-primary/20 to-secondary/20 border border-primary/20 shadow-[0_0_50px_-12px_var(--color-primary)] mb-6 animate-pulse">
+        <div class="relative flex items-center justify-center w-24 h-24 rounded-full bg-primary/10 border border-primary/20 shadow-sm mb-6 animate-pulse">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
         </div>
 
-        <h1 class="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+        <h1 class="text-3xl font-extrabold tracking-tight text-base-content mb-2">
           Secure Share Link
         </h1>
         <p class="text-xs text-base-content/60 max-w-sm mb-6">
@@ -69,7 +69,7 @@
           <div class="flex flex-col sm:flex-row gap-3 w-full">
             @if (!success() && !error() && !loading() && !decrypting()) {
               <button
-                class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-lg hover:shadow-primary/30 transition-all duration-300 flex-1 rounded-2xl h-14"
+                class="btn btn-primary border-0 text-primary-content font-bold shadow-sm flex-1 rounded-2xl h-14"
                 (click)="downloadAndDecrypt()"
               >
                 Decrypt & Download

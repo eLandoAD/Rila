@@ -121,6 +121,40 @@ export class Files implements OnInit {
     }
   }
 
+  // --- Internal Item Drag and Drop (Move) ---
+
+  onItemDragStart(event: DragEvent, kind: 'file' | 'folder', id: string): void {
+    if (event.dataTransfer) {
+      event.dataTransfer.setData('application/json', JSON.stringify({ kind, id }));
+      event.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  onFolderDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  async onItemDrop(event: DragEvent, targetFolderId: string | null): Promise<void> {
+    event.preventDefault();
+    const dataStr = event.dataTransfer?.getData('application/json');
+    if (!dataStr) return;
+    try {
+      const { kind, id } = JSON.parse(dataStr);
+      if (kind === 'file') {
+        await this.fileService.move(id, targetFolderId);
+      } else if (kind === 'folder') {
+        if (id === targetFolderId) return; // Prevent moving into itself
+        await this.folderService.moveFolder(id, targetFolderId);
+      }
+    } catch (err) {
+      console.error('Failed to move item via drag and drop', err);
+      this.error.set('Failed to move item.');
+    }
+  }
+
   // --- Folders ---
 
   async createNewFolder(): Promise<void> {
