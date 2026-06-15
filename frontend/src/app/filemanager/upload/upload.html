@@ -1,84 +1,139 @@
-<div class="flex min-h-screen">
-  <app-side-navbar></app-side-navbar>
+<div class="flex min-h-screen bg-base-200">
+  <app-side-navbar class="shrink-0"></app-side-navbar>
 
-  <main class="flex-1 p-6">
-    <h1 class="text-2xl font-bold">Upload</h1>
-    <p class="text-base-content/60 mt-1 text-sm">
-      Files are encrypted in your browser before they leave your device.
-    </p>
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+    <!-- Header -->
+    <div class="mb-6 flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">Upload Files</h1>
+        <p class="text-xs text-base-content/60 mt-1">
+          Your files are encrypted client-side using zero-knowledge cryptosystems before upload.
+        </p>
+      </div>
+      <button class="btn btn-ghost btn-sm rounded-xl font-semibold hover:bg-base-300" (click)="goToFiles()">
+        Go to my files
+      </button>
+    </div>
 
-    <!-- Dropzone -->
+    <!-- Dropzone Area -->
     <label
-      class="mt-6 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-colors"
+      class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed p-12 text-center transition-all duration-300 cursor-pointer bg-base-100/50 backdrop-blur-md select-none group"
       [class.border-primary]="dragging()"
-      [class.bg-primary]="false"
+      [class.shadow-[0_0_30px_-5px_var(--color-primary)]]="dragging()"
       [class.border-base-300]="!dragging()"
+      [class.hover:border-primary/50]="!dragging()"
       (drop)="onDrop($event)"
       (dragover)="onDragOver($event)"
       (dragleave)="onDragLeave($event)">
-      <svg xmlns="http://www.w3.org/2000/svg" class="text-base-content/40 h-10 w-10" fill="none"
-        viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-      <p class="mt-3 font-medium">Drag &amp; drop files here</p>
-      <p class="text-base-content/60 text-sm">or click to browse</p>
+      
+      <!-- Icon with group hovering animations -->
+      <div class="p-5 bg-base-200/80 rounded-2xl border border-base-300/60 shadow-xs mb-4 group-hover:scale-105 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300"
+        [class.bg-primary/10]="dragging()"
+        [class.text-primary]="dragging()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 opacity-70 group-hover:opacity-100 transition-opacity" fill="none"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+      </div>
+      
+      <p class="font-bold text-lg text-base-content group-hover:text-primary transition-colors">Drag &amp; drop files here</p>
+      <p class="text-xs text-base-content/50 mt-1">or click to browse local storage</p>
       <input type="file" multiple class="hidden" (change)="onFilesSelected($event)" />
     </label>
 
-    <!-- Selected files -->
+    <!-- Selected Files Queue -->
     @if (items().length > 0) {
-      <div class="mt-6 space-y-3">
-        @for (item of items(); track $index) {
-          <div class="card bg-base-100 border-base-300 border shadow-sm">
-            <div class="card-body gap-2 p-4">
-              <div class="flex items-center justify-between gap-4">
-                <div class="min-w-0">
-                  <p class="truncate font-medium">{{ item.file.name }}</p>
-                  <p class="text-base-content/60 text-xs">{{ format(item.file.size) }}</p>
+      <div class="mt-8">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-3 px-1">Selected Files Queue</h2>
+        
+        <div class="space-y-3">
+          @for (item of items(); track $index) {
+            <div class="card bg-base-100 border border-base-300/40 shadow-xs rounded-2xl overflow-hidden transition-all duration-300 hover:border-base-300/80 hover:shadow-xs">
+              <div class="card-body p-4 flex flex-col gap-2">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="p-2 bg-secondary/10 text-secondary rounded-lg shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate font-semibold text-sm text-base-content" [title]="item.file.name">{{ item.file.name }}</p>
+                      <p class="text-[10px] text-base-content/50 mt-0.5">{{ format(item.file.size) }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Status Widgets -->
+                  <div class="flex shrink-0 items-center gap-2">
+                    @switch (item.status) {
+                      @case ('done') {
+                        <div class="badge badge-success border-0 text-success bg-success/10 font-bold gap-1 text-xs px-2.5 py-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                          Ready
+                        </div>
+                      }
+                      @case ('error') {
+                        <div class="badge badge-error border-0 text-error bg-error/10 font-bold gap-1 text-xs px-2.5 py-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                          Failed
+                        </div>
+                      }
+                      @case ('uploading') {
+                        <span class="loading loading-spinner loading-xs text-primary"></span>
+                      }
+                      @default {
+                        <button class="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10" (click)="remove($index)" title="Remove from queue">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      }
+                    }
+                  </div>
                 </div>
 
-                <div class="flex shrink-0 items-center gap-2">
-                  @switch (item.status) {
-                    @case ('done') {
-                      <span class="badge badge-success">Done</span>
-                    }
-                    @case ('error') {
-                      <span class="badge badge-error">Failed</span>
-                    }
-                    @case ('uploading') {
-                      <span class="loading loading-spinner loading-sm"></span>
-                    }
-                    @default {
-                      <button class="btn btn-ghost btn-xs" (click)="remove($index)">Remove</button>
-                    }
-                  }
-                </div>
+                <!-- Progress indicators -->
+                @if (item.status === 'uploading' || item.status === 'done') {
+                  <div class="w-full mt-1">
+                    <progress class="progress progress-primary w-full h-1.5" [value]="item.progress" max="100"></progress>
+                    <div class="flex justify-between text-[10px] text-base-content/40 mt-1">
+                      <span>Encrypting...</span>
+                      <span>{{ item.progress }}%</span>
+                    </div>
+                  </div>
+                }
+
+                <!-- Error Messages -->
+                @if (item.status === 'error' && item.error) {
+                  <p class="text-error text-xs font-medium bg-error/10 border border-error/20 p-2.5 rounded-xl mt-1">{{ item.error }}</p>
+                }
               </div>
-
-              @if (item.status === 'uploading' || item.status === 'done') {
-                <progress class="progress progress-primary w-full" [value]="item.progress" max="100"></progress>
-              }
-
-              @if (item.status === 'error') {
-                <p class="text-error text-xs">{{ item.error }}</p>
-              }
             </div>
-          </div>
-        }
-      </div>
-
-      <div class="mt-6 flex gap-3">
-        <button class="btn btn-primary" (click)="uploadAll()" [disabled]="uploading()">
-          @if (uploading()) {
-            <span class="loading loading-spinner loading-sm"></span>
           }
-          Upload all
-        </button>
-        <button class="btn btn-ghost" (click)="goToFiles()">Go to my files</button>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="mt-6 flex gap-3">
+          <button class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-md hover:shadow-primary/20 transition-all duration-300 rounded-xl px-6 h-12" 
+                  (click)="uploadAll()" 
+                  [disabled]="uploading()">
+            @if (uploading()) {
+              <span class="loading loading-spinner loading-sm mr-1"></span>
+            }
+            Upload Queue
+          </button>
+          <button class="btn btn-ghost rounded-xl border border-base-300 px-6 h-12 hover:bg-base-300 font-semibold" (click)="goToFiles()">
+            View Files
+          </button>
+        </div>
       </div>
     } @else {
-      <p class="text-base-content/50 mt-6 text-sm">No files selected yet.</p>
+      <div class="mt-12 flex flex-col items-center justify-center py-6 text-center max-w-sm mx-auto text-base-content/40 select-none">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-60 mb-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <p class="text-sm font-semibold">No files queued</p>
+        <p class="text-xs text-base-content/50 mt-1">Select files or drag them above to queue them for encryption.</p>
+      </div>
     }
   </main>
 </div>

@@ -222,9 +222,39 @@ export class CryptoService {
       kek,
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
       { name: 'AES-GCM', length: 256 },
-      false,
+      true, // extractable = true for public link sharing
       ['encrypt', 'decrypt']
     );
+  }
+
+  async getRawDek(): Promise<string> {
+    const key = this.getRequiredKey();
+    const raw = await crypto.subtle.exportKey('raw', key);
+    return this.toBase64(new Uint8Array(raw));
+  }
+
+  async importRawDek(b64Key: string): Promise<CryptoKey> {
+    const rawBytes = this.fromBase64(b64Key);
+    return crypto.subtle.importKey(
+      'raw',
+      rawBytes,
+      'AES-GCM',
+      false,
+      ['decrypt']
+    );
+  }
+
+  async decryptWithKey(cipher: ArrayBuffer, iv: string, key: CryptoKey): Promise<ArrayBuffer> {
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.fromBase64(iv) as any }, key, cipher);
+  }
+
+  async decryptTextWithKey(encText: string, iv: string, key: CryptoKey): Promise<string> {
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
+      key,
+      this.fromBase64(encText) as unknown as Uint8Array<ArrayBuffer>
+    );
+    return new TextDecoder().decode(plain);
   }
 
   private generateRecoveryKeyString(): string {

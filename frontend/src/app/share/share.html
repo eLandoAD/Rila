@@ -1,0 +1,100 @@
+<div class="hero min-h-screen bg-linear-to-br from-base-300 via-base-200 to-base-300">
+  <div class="hero-content text-center">
+    <div class="card w-full max-w-lg bg-base-100/40 backdrop-blur-xl border border-base-300/40 shadow-2xl rounded-3xl p-6 md:p-8">
+      <div class="card-body items-center text-center p-0">
+        
+        <!-- Premium Animated Glow Header -->
+        <div class="relative flex items-center justify-center w-24 h-24 rounded-full bg-linear-to-tr from-primary/20 to-secondary/20 border border-primary/20 shadow-[0_0_50px_-12px_var(--color-primary)] mb-6 animate-pulse">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+
+        <h1 class="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent mb-2">
+          Secure Share Link
+        </h1>
+        <p class="text-xs text-base-content/60 max-w-sm mb-6">
+          This file is end-to-end encrypted. Decryption happens locally in your browser. The server cannot access your key or plaintext data.
+        </p>
+
+        @if (error()) {
+          <div role="alert" class="alert alert-error bg-error/15 border-error/20 text-error-content rounded-2xl p-4 text-sm max-w-md w-full mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <!-- File Details Card -->
+        <div class="w-full bg-base-200/50 backdrop-blur-md rounded-2xl p-5 border border-base-300/30 text-left mb-8 transition-all duration-300 hover:border-primary/20 hover:shadow-[0_4px_20px_-8px_var(--color-primary)]">
+          <div class="flex items-center gap-4">
+            <div class="p-3 bg-primary/10 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold text-primary uppercase tracking-wider mb-1">Encrypted File</p>
+              <h3 class="text-base font-bold text-base-content truncate" [title]="fileName()">
+                {{ fileName() }}
+              </h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress and Actions -->
+        <div class="w-full space-y-4">
+          @if (loading()) {
+            <div class="flex flex-col items-center py-4 space-y-3">
+              <span class="loading loading-ring loading-lg text-primary"></span>
+              <p class="text-sm font-medium text-base-content/80">Downloading ciphertext from server...</p>
+            </div>
+          } @else if (decrypting()) {
+            <div class="flex flex-col items-center py-4 space-y-3">
+              <span class="loading loading-infinity loading-lg text-secondary animate-pulse"></span>
+              <p class="text-sm font-medium text-base-content/80">Decrypting locally in browser...</p>
+            </div>
+          } @else if (success()) {
+            <div class="flex flex-col items-center py-4 space-y-3">
+              <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center text-success mb-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-success">Decrypted and downloaded successfully!</p>
+              <p class="text-xs text-base-content/50">Check your system's downloads folder.</p>
+            </div>
+          }
+
+          <!-- Control Buttons -->
+          <div class="flex flex-col sm:flex-row gap-3 w-full">
+            @if (!success() && !error() && !loading() && !decrypting()) {
+              <button
+                class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-lg hover:shadow-primary/30 transition-all duration-300 flex-1 rounded-2xl h-14"
+                (click)="downloadAndDecrypt()"
+              >
+                Decrypt & Download
+              </button>
+            } @else if (success()) {
+              <button
+                class="btn btn-outline btn-primary flex-1 rounded-2xl h-14 border-2 transition-all duration-300"
+                (click)="downloadAndDecrypt()"
+              >
+                Download Again
+              </button>
+            }
+
+            <a
+              routerLink="/"
+              class="btn btn-ghost hover:bg-base-200/50 rounded-2xl h-14 flex items-center justify-center font-semibold"
+              [class.w-full]="success() || error()"
+              [class.sm:w-1/3]="!success() && !error()"
+            >
+              Home
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

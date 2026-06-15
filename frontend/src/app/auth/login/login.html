@@ -1,58 +1,106 @@
-<div class="hero bg-base-200 min-h-screen">
-  <div class="hero-content flex-col lg:flex-row-reverse">
-    <div class="text-center lg:text-left">
-      <h1 class="text-5xl font-bold">Login now!</h1>
-      <p class="py-6">
-        Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
-        quasi. In deleniti eaque aut repudiandae et a id nisi.
+<div class="hero min-h-screen bg-linear-to-br from-base-300 via-base-200 to-base-300 px-4">
+  <div class="hero-content flex-col lg:flex-row gap-12 max-w-5xl w-full">
+    
+    <!-- Info Section (Left side on desktop) -->
+    <div class="text-center lg:text-left flex-1 max-w-md">
+      <div class="flex items-center justify-center lg:justify-start gap-2.5 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-linear-to-tr from-primary to-secondary flex items-center justify-center text-primary-content font-bold shadow-lg shadow-primary/20">
+          SV
+        </div>
+        <span class="text-2xl font-black bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">SecureVault</span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-black tracking-tight text-base-content leading-none mb-6">
+        Access Your Zero-Knowledge Vault
+      </h1>
+      <p class="text-sm text-base-content/70 leading-relaxed">
+        SecureVault uses client-side end-to-end encryption. Your password derives the key that unwraps your vault, so your keys never leave your device and our servers never see your raw files.
       </p>
     </div>
-    <div class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-      <div class="card-body">
-        <form class="fieldset" (ngSubmit)="submit()" #loginForm="ngForm">
-          @if (error()) {
-            <div role="alert" class="alert alert-error text-sm">
-              <span>{{ error() }}</span>
+
+    <!-- Login Form Card (Right side on desktop) -->
+    <div class="card bg-base-100/40 backdrop-blur-xl border border-base-300/40 w-full max-w-sm shrink-0 shadow-2xl rounded-3xl overflow-hidden">
+      <div class="card-body p-6 sm:p-8">
+        <h2 class="text-2xl font-extrabold text-base-content mb-2 text-center lg:text-left">Welcome Back</h2>
+        <p class="text-xs text-base-content/60 mb-6 text-center lg:text-left">Enter your credentials to decrypt your storage</p>
+
+        <form class="fieldset space-y-4" (ngSubmit)="submit()" #loginForm="ngForm">
+          
+          <!-- Alerts -->
+          @if (infoMessage()) {
+            <div role="alert" class="alert alert-info bg-info/10 border-info/20 text-info-content rounded-2xl p-4 text-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <span>{{ infoMessage() }}</span>
             </div>
           }
 
-          <label class="label">Username or Email</label>
-          <input
-            type="text"
-            name="usernameOrEmail"
-            class="input"
-            placeholder="Username or Email"
-            autocomplete="username"
-            required
-            [(ngModel)]="usernameOrEmail"
-          />
+          @if (error()) {
+            <div class="flex flex-col gap-2">
+              <div role="alert" class="alert alert-error bg-error/10 border-error/20 text-error-content rounded-2xl p-4 text-xs flex items-start gap-2.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5 mt-0.5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span class="flex-1">{{ error() }}</span>
+              </div>
+              @if (error()?.toLowerCase()?.includes('verify') || error()?.toLowerCase()?.includes('verified')) {
+                <div class="text-center">
+                  <a [routerLink]="['/verify-email']" [queryParams]="{ email: usernameOrEmail }" class="link link-primary font-bold text-xs">
+                    Resend verification email?
+                  </a>
+                </div>
+              }
+            </div>
+          }
 
-          <label class="label">Password</label>
-          <input
-            type="password"
-            name="password"
-            class="input"
-            placeholder="Password"
-            autocomplete="current-password"
-            required
-            [(ngModel)]="password"
-          />
+          <!-- Username Input -->
+          <div class="form-control w-full">
+            <label class="label text-xs font-semibold opacity-65 mb-1">Username or Email</label>
+            <input
+              type="text"
+              name="usernameOrEmail"
+              class="input input-bordered w-full rounded-xl h-11 text-sm transition-all focus:border-primary"
+              placeholder="Enter username or email"
+              autocomplete="username"
+              required
+              [(ngModel)]="usernameOrEmail"
+            />
+          </div>
 
-          <div><a routerLink="/forgot-password" class="link link-hover">Forgot password?</a></div>
-          <div><a class="link link-hover" routerLink="/register">Create an account</a></div>
+          <!-- Password Input -->
+          <div class="form-control w-full">
+            <div class="flex justify-between items-center mb-1">
+              <label class="label text-xs font-semibold opacity-65">Password</label>
+              <a routerLink="/forgot-password" class="text-xs link link-hover opacity-60 hover:opacity-100 hover:text-primary font-medium">Forgot password?</a>
+            </div>
+            <input
+              type="password"
+              name="password"
+              class="input input-bordered w-full rounded-xl h-11 text-sm transition-all focus:border-primary"
+              placeholder="Enter password"
+              autocomplete="current-password"
+              required
+              [(ngModel)]="password"
+            />
+          </div>
 
+          <!-- Submit Button -->
           <button
             type="submit"
-            class="btn btn-neutral mt-4"
+            class="btn btn-primary bg-linear-to-r from-primary to-secondary border-0 text-primary-content font-bold shadow-md hover:shadow-primary/20 transition-all duration-300 w-full rounded-xl h-12 mt-2"
             [disabled]="loading() || loginForm.invalid"
           >
             @if (loading()) {
-              <span class="loading loading-spinner loading-sm"></span>
+              <span class="loading loading-spinner loading-sm mr-1"></span>
             }
             Login
           </button>
+
+          <!-- Register Link -->
+          <div class="text-center text-xs opacity-70 mt-4">
+            <span>Don't have an account? </span>
+            <a class="link link-primary font-bold" routerLink="/register">Create an account</a>
+          </div>
         </form>
+
       </div>
     </div>
+
   </div>
 </div>

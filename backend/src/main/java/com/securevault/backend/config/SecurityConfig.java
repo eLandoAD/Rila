@@ -46,6 +46,7 @@ public class SecurityConfig {
                 // accesso senza login
                 .requestMatchers("/api/status").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/files/public/**").permitAll()
                 // accesso admin
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()              

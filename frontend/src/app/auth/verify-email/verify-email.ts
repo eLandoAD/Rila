@@ -1,12 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.css',
 })
@@ -14,7 +15,7 @@ export class VerifyEmail implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
 
-  readonly email = this.route.snapshot.queryParamMap.get('email');
+  readonly emailInput = signal<string>(this.route.snapshot.queryParamMap.get('email') ?? '');
   private readonly token = this.route.snapshot.queryParamMap.get('token');
 
   // 'pending' = waiting for the user to click the email link (no token yet)
@@ -47,13 +48,14 @@ export class VerifyEmail implements OnInit {
   }
 
   resend(): void {
-    if (this.loading() || !this.email) {
+    const email = this.emailInput().trim();
+    if (this.loading() || !email) {
       return;
     }
     this.error.set(null);
     this.loading.set(true);
 
-    this.auth.resendVerification(this.email).subscribe({
+    this.auth.resendVerification(email).subscribe({
       next: () => {
         this.loading.set(false);
         this.resent.set(true);

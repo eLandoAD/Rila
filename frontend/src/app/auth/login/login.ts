@@ -16,13 +16,18 @@ export class Login {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-  private readonly crypto = inject(CryptoService)
+  private readonly crypto = inject(CryptoService);
 
   usernameOrEmail = '';
   password = '';
 
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly infoMessage = signal<string | null>(
+    this.route.snapshot.queryParamMap.get('registered') === 'true'
+      ? 'Registration successful! Please check your email to verify your account before logging in.'
+      : null
+  );
 
   submit(): void {
     if (this.loading()) {
@@ -35,13 +40,13 @@ export class Login {
       .login({ usernameOrEmail: this.usernameOrEmail, password: this.password })
       .subscribe({
         next: async (res) => {
+          if (res.encryptedDek && res.dekIv && res.keySalt) {
+            await this.crypto.setupLoginKeys(this.password, res.encryptedDek, res.dekIv, res.keySalt);
+          }
           this.loading.set(false);
           const redirect =
             this.route.snapshot.queryParamMap.get('redirect') ?? '/filemanager/dashboard';
           this.router.navigateByUrl(redirect);
-          if (res.encryptedDek && res.dekIv && res.keySalt) { 
-            await this.crypto.setupLoginKeys(this.password, res.encryptedDek, res.dekIv, res.keySalt); 
-          }
         },
         error: (err: HttpErrorResponse) => {
           this.loading.set(false);

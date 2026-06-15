@@ -1,48 +1,81 @@
-<div class="flex min-h-screen">
-  <app-side-navbar></app-side-navbar>
+<div class="flex min-h-screen bg-base-200">
+  <app-side-navbar class="shrink-0"></app-side-navbar>
 
-  <main class="flex-1 p-6">
-    <h1 class="text-2xl font-bold">Dashboard</h1>
-    <p class="text-base-content/60 mt-1 text-sm">Overview of your storage and activity</p>
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-secondary bg-clip-text text-transparent">Dashboard</h1>
+      <p class="text-xs text-base-content/60 mt-1">Overview of your storage metrics, statistics, and uploads</p>
+    </div>
 
-    <div class="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-      <!-- Spazio utilizzato -->
-      <section class="card bg-base-100 border-base-300 border shadow-sm">
-        <div class="card-body">
-          <h2 class="card-title text-base">Storage used</h2>
+    <!-- Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      
+      <!-- Storage Used Card -->
+      <section class="card bg-base-100 border border-base-300/40 shadow-sm rounded-3xl transition-all duration-300 hover:shadow-md hover:border-primary/20">
+        <div class="card-body p-6 flex flex-col items-center">
+          <div class="w-full flex justify-between items-center mb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40">Storage Limit</h2>
+            <div class="badge badge-primary badge-sm bg-primary/10 border-0 text-primary font-bold">E2EE Vault</div>
+          </div>
+          
           <app-donut-chart
+            class="w-full flex justify-center py-2"
             [segments]="storageSegments()"
             [centerValue]="percent() + '%'"
-            centerLabel="used" />
-          <p class="text-base-content/60 text-center text-xs">
-            {{ usedGb() }} GB of {{ totalGb() }} GB
-          </p>
+            centerLabel="Used" />
+          
+          <div class="w-full border-t border-base-300/45 mt-4 pt-3 text-center">
+            <p class="text-xs font-semibold text-base-content/70">
+              {{ usedGb() }} GB of {{ totalGb() }} GB Used
+            </p>
+          </div>
         </div>
       </section>
 
-      <!-- File per tipo -->
-      <section class="card bg-base-100 border-base-300 border shadow-sm">
-        <div class="card-body">
-          <h2 class="card-title text-base">Files by type</h2>
-          <app-donut-chart [segments]="fileTypes()" centerLabel="categories" />
+      <!-- Files by Category Card -->
+      <section class="card bg-base-100 border border-base-300/40 shadow-sm rounded-3xl transition-all duration-300 hover:shadow-md hover:border-secondary/20">
+        <div class="card-body p-6 flex flex-col items-center">
+          <div class="w-full flex justify-between items-center mb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40">Files by Type</h2>
+            <div class="badge badge-secondary badge-sm bg-secondary/10 border-0 text-secondary font-bold">Categories</div>
+          </div>
+          
+          <app-donut-chart 
+            class="w-full flex justify-center py-2"
+            [segments]="fileTypes()" 
+            centerLabel="Total Files" />
         </div>
       </section>
 
-      <!-- Crescita spazio -->
-      <section class="card bg-base-100 border-base-300 border shadow-sm">
-        <div class="card-body">
-          <h2 class="card-title text-base">Storage growth (GB)</h2>
-          <app-line-chart [data]="storageTrend()" unit=" GB" />
+      <!-- Storage Growth Trend Card -->
+      <section class="card bg-base-100 border border-base-300/40 shadow-sm rounded-3xl transition-all duration-300 hover:shadow-md hover:border-accent/20">
+        <div class="card-body p-6 flex flex-col">
+          <div class="w-full flex justify-between items-center mb-4">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40">Storage Trend</h2>
+            <div class="text-[10px] font-bold text-accent uppercase tracking-wider">Growth (GB)</div>
+          </div>
+          
+          <div class="flex-1 min-h-[160px] flex items-end">
+            <app-line-chart class="w-full" [data]="storageTrend()" unit=" GB" />
+          </div>
         </div>
       </section>
 
-      <!-- Upload per giorno -->
-      <section class="card bg-base-100 border-base-300 border shadow-sm md:col-span-2 xl:col-span-3">
-        <div class="card-body">
-          <h2 class="card-title text-base">Uploads in the last 7 days</h2>
-          <app-bar-chart [data]="uploadsPerDay()" />
+      <!-- Uploads Activity Bar Chart Card -->
+      <section class="card bg-base-100 border border-base-300/40 shadow-sm rounded-3xl transition-all duration-300 hover:shadow-md hover:border-info/20 md:col-span-2 xl:col-span-3">
+        <div class="card-body p-6 flex flex-col">
+          <div class="w-full flex justify-between items-center mb-5">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40">Recent Activity</h2>
+            <div class="text-[10px] font-bold text-info uppercase tracking-wider">Uploads (Last 7 days)</div>
+          </div>
+          
+          <div class="w-full min-h-[180px] flex items-end">
+            <app-bar-chart class="w-full" [data]="uploadsPerDay()" />
+          </div>
         </div>
       </section>
+
     </div>
   </main>
 </div>

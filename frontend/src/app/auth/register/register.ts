@@ -69,7 +69,18 @@ export class Register {
     }
   }
 
+  readonly copied = signal(false);
+
+  async copyKey(): Promise<void> {
+    const key = this.recoveryKey();
+    if (key) {
+      await navigator.clipboard.writeText(key);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    }
+  }
+
   finish(): void {
-    this.router.navigateByUrl('/filemanager/files');
+    this.router.navigateByUrl('/login?registered=true');
   }
 }

@@ -3,7 +3,7 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CryptoService } from '../crypto/crypto.service';
 import { FolderService } from './folder.service';
-import { FileUploadResponse, StoredFileMeta } from './file.models';
+import { FileUploadResponse, StoredFileMeta, FileListResponse } from './file.models';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -94,5 +94,21 @@ export class FileService {
   async move(id: string, targetFolderId: string | null): Promise<void> {
     await firstValueFrom(this.http.patch(`${this.baseUrl}/${id}/move`, { targetFolderId }));
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
+  }
+
+  async getAllFiles(): Promise<StoredFileMeta[]> {
+    const res = await firstValueFrom(
+      this.http.get<FileListResponse[]>(this.baseUrl)
+    );
+    return Promise.all(
+      res.map(async (f) => ({
+        id: f.id,
+        name: await this.crypto.decryptText(f.encName, f.iv),
+        encName: f.encName,
+        size: f.fileSize,
+        iv: f.iv,
+        uploadedAt: f.createdAt
+      }))
+    );
   }
 }

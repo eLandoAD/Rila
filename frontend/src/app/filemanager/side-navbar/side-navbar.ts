@@ -13,6 +13,7 @@ export class SideNavbar {
   private readonly router = inject(Router);
 
   protected readonly collapsed = signal(false);
+  protected readonly username = this.auth.username;
 
   toggle(): void {
     this.collapsed.update((v) => !v);

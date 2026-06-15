@@ -207,6 +207,26 @@ public class FileController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/public/{id}")
+    public ResponseEntity<byte[]> downloadFilePublic(@PathVariable UUID id) {
+        try {
+            StoredFile storedFile = storedFileRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+
+            byte[] fileContent = fileStorageService.loadFile(storedFile.getStoragePath());
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + storedFile.getEncName() + "\"")
+                    .header("x-iv", storedFile.getIv())
+                    .header("x-enc-name", storedFile.getEncName())
+                    .body(fileContent);
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error during download", e);
+        }
+    }
+
 
 
 }

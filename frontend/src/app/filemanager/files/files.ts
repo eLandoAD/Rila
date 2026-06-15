@@ -1,11 +1,11 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { SideNavbar } from '../side-navbar/side-navbar';
 import { FileService } from '../../core/files/file.service';
 import { FolderService } from '../../core/files/folder.service';
 import { StoredFileMeta, FolderResponse } from '../../core/files/file.models';
 import { formatBytes } from '../../core/files/format';
+import { CryptoService } from '../../core/crypto/crypto.service';
 
 type MoveTarget =
   | { kind: 'file'; meta: StoredFileMeta }
@@ -14,13 +14,14 @@ type MoveTarget =
 @Component({
   selector: 'app-files',
   standalone: true,
-  imports: [SideNavbar, RouterLink, DatePipe],
+  imports: [SideNavbar, DatePipe],
   templateUrl: './files.html',
   styleUrl: './files.css',
 })
 export class Files implements OnInit {
   private readonly fileService = inject(FileService);
   protected readonly folderService = inject(FolderService);
+  private readonly crypto = inject(CryptoService);
 
   protected readonly files = this.folderService.currentFiles;
   protected readonly folders = this.folderService.currentFolders;
@@ -32,6 +33,13 @@ export class Files implements OnInit {
   protected readonly loading = signal(false);
   protected readonly moving = signal<MoveTarget | null>(null);
   protected readonly format = formatBytes;
+
+  // Drag and Drop / Inline upload state
+  protected readonly dragging = signal(false);
+  protected readonly uploadingFile = signal(false);
+  protected readonly uploadProgress = signal(0);
+  protected readonly uploadFileName = signal('');
+  private dragCounter = 0;
 
   ngOnInit(): void {
     this.navigateTo(null);
@@ -46,6 +54,70 @@ export class Files implements OnInit {
       this.error.set('Failed to load folder content.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  onDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    this.dragCounter++;
+    this.dragging.set(true);
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    this.dragCounter--;
+    if (this.dragCounter <= 0) {
+      this.dragCounter = 0;
+      this.dragging.set(false);
+    }
+  }
+
+  async onDrop(event: DragEvent): Promise<void> {
+    event.preventDefault();
+    this.dragCounter = 0;
+    this.dragging.set(false);
+
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      await this.uploadFileList(event.dataTransfer.files);
+    }
+  }
+
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      await this.uploadFileList(input.files);
+      input.value = '';
+    }
+  }
+
+  private async uploadFileList(files: FileList): Promise<void> {
+    this.uploadingFile.set(true);
+    this.error.set(null);
+    const folderId = this.currentFolderId();
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        this.uploadFileName.set(file.name);
+        this.uploadProgress.set(0);
+
+        await this.fileService.upload(file, folderId, (percent) => {
+          this.uploadProgress.set(percent);
+        });
+      }
+      // Refresh current folder contents
+      await this.folderService.loadFolderContent(folderId);
+    } catch (err) {
+      console.error('File upload failed', err);
+      this.error.set('One or more file uploads failed.');
+    } finally {
+      this.uploadingFile.set(false);
+      this.uploadProgress.set(0);
+      this.uploadFileName.set('');
     }
   }
 
@@ -111,6 +183,18 @@ export class Files implements OnInit {
       await this.fileService.delete(meta.id);
     } catch {
       this.error.set('Failed to delete file.');
+    }
+  }
+
+  async shareFile(meta: StoredFileMeta): Promise<void> {
+    try {
+      const rawDek = await this.crypto.getRawDek();
+      const shareUrl = `${window.location.origin}/share?id=${meta.id}&name=${encodeURIComponent(meta.encName)}&iv=${meta.iv}#${rawDek}`;
+      await navigator.clipboard.writeText(shareUrl);
+      alert(`Secure sharing link copied to clipboard!\n\nThis link contains the decryption key in the hash fragment. The server cannot see it.`);
+    } catch (err) {
+      console.error('Failed to generate sharing link', err);
+      this.error.set('Failed to generate sharing link.');
     }
   }
 

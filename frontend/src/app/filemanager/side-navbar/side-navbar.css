@@ -8,5 +8,25 @@
 }
 
 .side-navbar .menu a {
-  border-radius: var(--radius-box, 0.5rem);
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid transparent;
+}
+
+.side-navbar .menu a:hover {
+  background-color: var(--color-base-200);
+  border-color: var(--color-base-300);
+  transform: translateX(4px);
+}
+
+.side-navbar .menu a.menu-active {
+  background: var(--color-primary);
+  color: var(--color-primary-content);
+  box-shadow: 0 4px 15px -3px var(--color-primary);
+  border-color: transparent;
+}
+
+.side-navbar .menu a.menu-active:hover {
+  transform: none;
 }
