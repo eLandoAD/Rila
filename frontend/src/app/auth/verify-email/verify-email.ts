@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth.service';
@@ -10,15 +10,37 @@ import { AuthService } from '../../core/auth/auth.service';
   templateUrl: './verify-email.html',
   styleUrl: './verify-email.css',
 })
-export class VerifyEmail {
+export class VerifyEmail implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
 
   readonly email = this.route.snapshot.queryParamMap.get('email');
+  private readonly token = this.route.snapshot.queryParamMap.get('token');
 
   readonly loading = signal(false);
   readonly resent = signal(false);
   readonly error = signal<string | null>(null);
+
+  // stati della verifica automatica dal link email
+  readonly verifying = signal(false);
+  readonly verified = signal(false);
+
+  ngOnInit(): void {
+    // se arriviamo dal link email (con token) verifichiamo subito, senza azioni utente
+    if (this.token) {
+      this.verifying.set(true);
+      this.auth.verifyEmail(this.token).subscribe({
+        next: () => {
+          this.verifying.set(false);
+          this.verified.set(true);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.verifying.set(false);
+          this.error.set(err.error?.message ?? 'Invalid or expired verification link.');
+        },
+      });
+    }
+  }
 
   resend(): void {
     if (this.loading() || !this.email) {

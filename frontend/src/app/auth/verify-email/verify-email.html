@@ -4,64 +4,70 @@
     <div class="card bg-base-100 w-full max-w-md shadow-2xl">
       <div class="card-body items-center text-center">
 
-        <!-- Icon -->
-        <div class="text-6xl mb-2">
-          📧
-        </div>
-
-        <h1 class="card-title text-3xl">
-          Verify Your Email
-        </h1>
-
-        <p class="py-2">
-          We've sent a verification email to:
-        </p>
-
-        <p class="font-bold text-primary">
-          {{ email ?? 'your email address' }}
-        </p>
-
-        <p class="text-sm opacity-70 mt-2">
-          Please check your inbox and click the verification link to activate your account.
-        </p>
-
-        @if (resent()) {
-          <div role="alert" class="alert alert-success text-sm mt-4">
-            <span>Verification email sent again. Check your inbox.</span>
+        @if (verifying()) {
+          <!-- Verifica automatica in corso dal link email -->
+          <span class="loading loading-spinner loading-lg text-primary"></span>
+          <h1 class="card-title text-3xl mt-2">Verifying your account…</h1>
+          <p class="text-sm opacity-70 mt-2">One moment, we're activating your account.</p>
+        } @else if (verified()) {
+          <!-- Verifica completata -->
+          <div class="text-6xl mb-2">✅</div>
+          <h1 class="card-title text-3xl">Account activated!</h1>
+          <p class="text-sm opacity-70 mt-2">Your email has been verified. You can now log in.</p>
+          <div class="card-actions w-full mt-6">
+            <a routerLink="/login" class="btn btn-primary w-full">Go to Login</a>
           </div>
-        }
-
-        @if (error()) {
+        } @else if (error()) {
+          <!-- Token non valido / scaduto -->
+          <div class="text-6xl mb-2">⚠️</div>
+          <h1 class="card-title text-3xl">Verification failed</h1>
           <div role="alert" class="alert alert-error text-sm mt-4">
             <span>{{ error() }}</span>
           </div>
+          <div class="card-actions w-full mt-6">
+            <a routerLink="/login" class="btn btn-ghost w-full">Back to Login</a>
+          </div>
+        } @else {
+          <!-- Stato post-registrazione: in attesa che l'utente apra il link -->
+          <div class="text-6xl mb-2">📧</div>
+
+          <h1 class="card-title text-3xl">Verify Your Email</h1>
+
+          <p class="py-2">We've sent a verification email to:</p>
+
+          <p class="font-bold text-primary">
+            {{ email ?? 'your email address' }}
+          </p>
+
+          <p class="text-sm opacity-70 mt-2">
+            Please check your inbox and click the verification link to activate your account.
+          </p>
+
+          @if (resent()) {
+            <div role="alert" class="alert alert-success text-sm mt-4">
+              <span>Verification email sent again. Check your inbox.</span>
+            </div>
+          }
+
+          <div class="card-actions flex-col w-full mt-6">
+            <button
+              class="btn btn-primary w-full"
+              (click)="resend()"
+              [disabled]="loading() || !email"
+            >
+              @if (loading()) {
+                <span class="loading loading-spinner loading-sm"></span>
+              }
+              Resend Verification Email
+            </button>
+
+            <a routerLink="/login" class="btn btn-ghost w-full">Back to Login</a>
+          </div>
+
+          <p class="text-xs opacity-60 mt-4">
+            Didn't receive the email? Check your spam folder or request a new verification email.
+          </p>
         }
-
-        <div class="card-actions flex-col w-full mt-6">
-
-          <button
-            class="btn btn-primary w-full"
-            (click)="resend()"
-            [disabled]="loading() || !email"
-          >
-            @if (loading()) {
-              <span class="loading loading-spinner loading-sm"></span>
-            }
-            Resend Verification Email
-          </button>
-
-          <a
-            routerLink="/login"
-            class="btn btn-ghost w-full"
-          >
-            Back to Login
-          </a>
-
-        </div>
-
-        <p class="text-xs opacity-60 mt-4">
-          Didn't receive the email? Check your spam folder or request a new verification email.
-        </p>
 
       </div>
     </div>
