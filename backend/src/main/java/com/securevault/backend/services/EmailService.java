@@ -45,6 +45,29 @@ public class EmailService {
         send(to, "SecureVault — reset your password", html, link);
     }
 
+    public void sendWelcomeEmail(String to, String username) {
+        String html = buildTemplate(
+                "Welcome to SecureVault!",
+                "Hello " + username + ", your account is verified and ready. You can now log in and store your files with end-to-end encryption.",
+                "Go to Login",
+                frontendUrl + "/login",
+                "Thank you for choosing SecureVault."
+        );
+        send(to, "SecureVault — Welcome!", html, frontendUrl + "/login");
+    }
+
+    public void sendPasswordChangedAlert(String to, String username) {
+        String html = buildTemplate(
+                "Password Changed",
+                "Hello " + username + ", your SecureVault account password was successfully updated. "
+                        + "If you did not make this change, please contact us immediately or use your recovery options.",
+                "Go to SecureVault",
+                frontendUrl + "/login",
+                "This is an automated security alert."
+        );
+        send(to, "SecureVault — password changed alert", html, frontendUrl + "/login");
+    }
+
     // semplice template HTML inline, responsive e con fallback testuale sul link
     private String buildTemplate(String title, String body, String cta, String link, String footer) {
         return """
