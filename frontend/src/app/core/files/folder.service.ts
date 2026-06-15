@@ -97,6 +97,30 @@ export class FolderService {
     await this.loadFolderContent(this.currentFolderId());
   }
 
+  /**
+   * Renames a folder. The new name is encrypted with a fresh IV.
+   */
+  async renameFolder(id: string, newName: string): Promise<void> {
+    const ivBytes = crypto.getRandomValues(new Uint8Array(12));
+    const newIv = this.toBase64(ivBytes);
+    const newEncName = await this.crypto.encryptText(newName, newIv);
+
+    await firstValueFrom(
+      this.http.patch(`${this.baseUrl}/${id}`, { newEncName, newIv })
+    );
+    await this.loadFolderContent(this.currentFolderId());
+  }
+
+  /**
+   * Moves a folder under another folder (null = root).
+   */
+  async moveFolder(id: string, targetFolderId: string | null): Promise<void> {
+    await firstValueFrom(
+      this.http.patch(`${this.baseUrl}/${id}/move`, { targetFolderId })
+    );
+    await this.loadFolderContent(this.currentFolderId());
+  }
+
   private toBase64(bytes: Uint8Array): string {
     let binary = '';
     for (let i = 0; i < bytes.byteLength; i++) {

@@ -77,4 +77,22 @@ export class FileService {
     await firstValueFrom(this.http.delete(`${this.baseUrl}/${id}`));
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
   }
+
+  /**
+   * Renames a file. The new name is encrypted client-side reusing the file's IV,
+   * so the server only ever sees ciphertext.
+   */
+  async rename(meta: StoredFileMeta, newName: string): Promise<void> {
+    const newEncName = await this.crypto.encryptText(newName, meta.iv);
+    await firstValueFrom(this.http.patch(`${this.baseUrl}/${meta.id}`, { newEncName }));
+    await this.folderService.loadFolderContent(this.folderService.currentFolderId());
+  }
+
+  /**
+   * Moves a file into another folder (null = root).
+   */
+  async move(id: string, targetFolderId: string | null): Promise<void> {
+    await firstValueFrom(this.http.patch(`${this.baseUrl}/${id}/move`, { targetFolderId }));
+    await this.folderService.loadFolderContent(this.folderService.currentFolderId());
+  }
 }
