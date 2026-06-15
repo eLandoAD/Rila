@@ -8,4 +8,9 @@ public class RegisterRequest {
     private String username;
     private String email;
     private String password;
+    private String encryptedDek;
+    private String dekIv;
+    private String keySalt;
+    private String recoveryEncryptedDek;
+    private String recoveryDekIv;
 }

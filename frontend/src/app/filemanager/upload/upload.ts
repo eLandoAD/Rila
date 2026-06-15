@@ -4,6 +4,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { SideNavbar } from '../side-navbar/side-navbar';
 import { FileService } from '../../core/files/file.service';
 import { formatBytes } from '../../core/files/format';
+import { FolderService } from '../../core/files/folder.service';
+import { FormsModule } from '@angular/forms';
 
 interface UploadItem {
   file: File;
@@ -14,12 +16,14 @@ interface UploadItem {
 
 @Component({
   selector: 'app-upload',
-  imports: [SideNavbar],
+  standalone: true,
+  imports: [SideNavbar, FormsModule],
   templateUrl: './upload.html',
   styleUrl: './upload.css',
 })
 export class Upload {
   private readonly fileService = inject(FileService);
+  private readonly folderService = inject(FolderService);
   private readonly router = inject(Router);
 
   protected readonly items = signal<UploadItem[]>([]);
@@ -64,13 +68,15 @@ export class Upload {
     }
     this.uploading.set(true);
 
+    const folderId = this.folderService.currentFolderId();
+
     for (const item of this.items()) {
       if (item.status === 'done') {
         continue;
       }
       this.patch(item, { status: 'uploading', progress: 0, error: undefined });
       try {
-        await this.fileService.upload(item.file, (percent) =>
+        await this.fileService.upload(item.file, folderId, (percent) =>
           this.patch(item, { progress: percent }),
         );
         this.patch(item, { status: 'done', progress: 100 });

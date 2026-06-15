@@ -5,10 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class AuthResponse {
-    private String token;
-    private String message;
-    private String encryptedDek;
-    private String dekIv;
+public class ResetInfoResponse {
+    private String recoveryEncryptedDek;
+    private String recoveryDekIv;
     private String keySalt;
 }

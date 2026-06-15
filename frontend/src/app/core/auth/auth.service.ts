@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest } from './auth.models';
+import { AuthResponse, LoginRequest, RegisterRequest, ResetPasswordRequest, ResetInfoResponse } from './auth.models';
 
 const TOKEN_KEY = 'sv_token';
 
@@ -24,9 +24,7 @@ export class AuthService {
   });
 
   register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.baseUrl}/register`, request)
-      .pipe(tap((res) => this.persistToken(res.token)));
+    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
   }
 
   login(request: LoginRequest): Observable<AuthResponse> {
@@ -43,12 +41,16 @@ export class AuthService {
     return this.http.post<void>(`${this.baseUrl}/forgot-password`, { email });
   }
 
-  resetPassword(token: string, password: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/reset-password`, { token, password });
+  getResetInfo(token: string): Observable<ResetInfoResponse> {
+    return this.http.get<ResetInfoResponse>(`${this.baseUrl}/reset-info`, { params: { token } });
+  }
+
+  resetPassword(request: ResetPasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/reset-password`, request);
   }
 
   verifyEmail(token: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/verify-email`, { token });
+    return this.http.get<void>(`${this.baseUrl}/verify`, { params: { token } });
   }
 
   resendVerification(email: string): Observable<void> {

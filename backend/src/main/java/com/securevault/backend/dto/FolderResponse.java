@@ -13,5 +13,6 @@ import java.util.UUID;
 public class FolderResponse {
     private UUID id;
     private String encName;
+    private String iv;
     private UUID parentId;
 }

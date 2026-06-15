@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../core/auth/auth.service';
+import { CryptoService } from '../../core/crypto/crypto.service';
 
 @Component({
   selector: 'app-login',
@@ -15,6 +16,7 @@ export class Login {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly crypto = inject(CryptoService)
 
   usernameOrEmail = '';
   password = '';
@@ -32,11 +34,14 @@ export class Login {
     this.auth
       .login({ usernameOrEmail: this.usernameOrEmail, password: this.password })
       .subscribe({
-        next: () => {
+        next: async (res) => {
           this.loading.set(false);
           const redirect =
             this.route.snapshot.queryParamMap.get('redirect') ?? '/filemanager/dashboard';
           this.router.navigateByUrl(redirect);
+          if (res.encryptedDek && res.dekIv && res.keySalt) { 
+            await this.crypto.setupLoginKeys(this.password, res.encryptedDek, res.dekIv, res.keySalt); 
+          }
         },
         error: (err: HttpErrorResponse) => {
           this.loading.set(false);

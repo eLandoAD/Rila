@@ -14,4 +14,5 @@ public class FileResponse {
     private String encName;
     private Long fileSize;
     private Long createdAt;
+    private String iv;
 }

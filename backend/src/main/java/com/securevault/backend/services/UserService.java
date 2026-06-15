@@ -1,8 +1,10 @@
 package com.securevault.backend.services;
 
+import com.securevault.backend.dto.ResetInfoResponse;
 import com.securevault.backend.entities.User;
 import com.securevault.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +26,7 @@ public class UserService {
      * @param password campo passowrd
      * @return ritorno l'intero oggetto User
      */
-    public User registerUser(String username, String email, String password) {
+    public User registerUser(String username, String email, String password, String encryptedDek, String dekIv, String keySalt, String recoveryEncryptedDek, String recoveryDekIv) {
         // istanzio oggetto user
         User user = new User();
         user.setUsername(username);
@@ -33,6 +35,11 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(password));
         user.setEnabled(false);
         user.setVerificationToken(UUID.randomUUID().toString());
+        user.setEncryptedDek(encryptedDek);
+        user.setDekIv(dekIv);
+        user.setKeySalt(keySalt);
+        user.setRecoveryDekIv(recoveryDekIv);
+        user.setRecoveryEncryptedDek(recoveryEncryptedDek);
         userRepository.save(user);
         System.out.println(">>> Verification link: http://localhost:8080/api/auth/verify?token=" + user.getVerificationToken());
         return user;
@@ -85,7 +92,7 @@ public class UserService {
 
     }
 
-    public void resetPassword(String token, String newPassword, String newEncryptedDek) {
+    public void resetPassword(String token, String newPassword, String newEncryptedDek, String newDekIv) {
         User user = userRepository.findByResetToken(token)
                 .orElseThrow(() -> new RuntimeException("Token not valid"));
 
@@ -101,7 +108,26 @@ public class UserService {
         user.setEncryptedDek(newEncryptedDek);
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
+        user.setDekIv(newDekIv);
         userRepository.save(user);
+    }
+
+
+    public ResetInfoResponse getResetInfo(String token) {
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // verifico che il token non sia scaduto
+        if (System.currentTimeMillis() > user.getResetTokenExpiry()) {
+            throw new RuntimeException("Token expired");
+        }
+
+        // dati per il frontend
+        return new ResetInfoResponse(
+                user.getRecoveryEncryptedDek(),
+                user.getRecoveryDekIv(),
+                user.getKeySalt()
+        );
     }
 
 
