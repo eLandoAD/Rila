@@ -15,9 +15,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
 
-    // inietto i due servizi
+    // inietto i servizi
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     /**
      * Metodo che registra un utente con username, email e password criptata
@@ -41,7 +42,7 @@ public class UserService {
         user.setRecoveryDekIv(recoveryDekIv);
         user.setRecoveryEncryptedDek(recoveryEncryptedDek);
         userRepository.save(user);
-        System.out.println(">>> Verification link: http://localhost:8080/api/auth/verify?token=" + user.getVerificationToken());
+        emailService.sendVerificationEmail(user.getEmail(), user.getVerificationToken());
         return user;
     }
 
@@ -87,9 +88,7 @@ public class UserService {
         user.setResetTokenExpiry(System.currentTimeMillis() + (15*60*1000L));
         userRepository.save(user);
 
-        // sim email
-        System.out.println(">>> LINK RESET PASSWORD: http://localhost:8080/api/auth/reset-password?token=" + token);
-
+        emailService.sendResetPasswordEmail(user.getEmail(), token);
     }
 
     public void resetPassword(String token, String newPassword, String newEncryptedDek, String newDekIv) {

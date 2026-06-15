@@ -37,24 +37,24 @@ export class AuthService {
     this.persistToken(null);
   }
 
-  forgotPassword(email: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/forgot-password`, { email });
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
   }
 
   getResetInfo(token: string): Observable<ResetInfoResponse> {
     return this.http.get<ResetInfoResponse>(`${this.baseUrl}/reset-info`, { params: { token } });
   }
 
-  resetPassword(request: ResetPasswordRequest): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/reset-password`, request);
+  resetPassword(request: ResetPasswordRequest): Observable<string> {
+    return this.http.post(`${this.baseUrl}/reset-password`, request, { responseType: 'text' });
   }
 
-  verifyEmail(token: string): Observable<void> {
-    return this.http.get<void>(`${this.baseUrl}/verify`, { params: { token } });
+  verifyEmail(token: string): Observable<string> {
+    return this.http.get(`${this.baseUrl}/verify`, { params: { token }, responseType: 'text' });
   }
 
-  resendVerification(email: string): Observable<void> {
-    return this.http.post<void>(`${this.baseUrl}/resend-verification`, { email });
+  resendVerification(email: string): Observable<string> {
+    return this.http.post(`${this.baseUrl}/resend-verification`, { email }, { responseType: 'text' });
   }
 
   getToken(): string | null {

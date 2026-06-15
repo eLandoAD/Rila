@@ -35,6 +35,15 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-0123456789-0123456789-0123456789-abcdef}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
+      # SMTP (valori reali in .env, non committato)
+      SPRING_MAIL_HOST: ${SMTP_HOST:-mail.northleap.it}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
+      SPRING_MAIL_USERNAME: ${SMTP_USER:-noreply@northleap.it}
+      SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      APP_MAIL_FROM: ${SMTP_USER:-noreply@northleap.it}
+      APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
     ports:
       - "8080:8080"
 
