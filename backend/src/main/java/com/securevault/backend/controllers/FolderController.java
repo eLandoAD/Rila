@@ -130,6 +130,16 @@ public class FolderController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<Void> renameFolder(@PathVariable UUID id, @RequestBody RenameFolderRequest request) {
+        // username
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        folderService.renameFolder(id, request.getNewEncName(), request.getNewIv(), username);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/{id}/move")
     public ResponseEntity<Void> moveFolder(@PathVariable UUID id, @RequestBody MoveRequest request) {
         // username
