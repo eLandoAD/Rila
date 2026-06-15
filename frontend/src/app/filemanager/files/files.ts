@@ -1,5 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { DomSanitizer } from '@angular/platform-browser';
 import { SideNavbar } from '../side-navbar/side-navbar';
 import { FileService } from '../../core/files/file.service';
 import { FolderService } from '../../core/files/folder.service';
@@ -22,6 +23,7 @@ export class Files implements OnInit {
   private readonly fileService = inject(FileService);
   protected readonly folderService = inject(FolderService);
   private readonly crypto = inject(CryptoService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   protected readonly files = this.folderService.currentFiles;
   protected readonly folders = this.folderService.currentFolders;
@@ -33,6 +35,14 @@ export class Files implements OnInit {
   protected readonly loading = signal(false);
   protected readonly moving = signal<MoveTarget | null>(null);
   protected readonly format = formatBytes;
+
+  // File Preview State
+  protected readonly previewFile = signal<StoredFileMeta | null>(null);
+  protected readonly previewLoading = signal(false);
+  protected readonly previewUrl = signal<any>(null);
+  protected readonly previewTextContent = signal<string | null>(null);
+  protected readonly previewType = signal<'image' | 'pdf' | 'text' | 'unsupported'>('unsupported');
+  private previewRawUrl: string | null = null;
 
   // Drag and Drop / Inline upload state
   protected readonly dragging = signal(false);
@@ -153,6 +163,70 @@ export class Files implements OnInit {
       console.error('Failed to move item via drag and drop', err);
       this.error.set('Failed to move item.');
     }
+  }
+
+  // --- File Previews ---
+
+  async openPreview(file: StoredFileMeta): Promise<void> {
+    this.closePreview();
+    this.previewFile.set(file);
+    this.previewLoading.set(true);
+    this.error.set(null);
+
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    let type: 'image' | 'pdf' | 'text' | 'unsupported' = 'unsupported';
+    let mimeType = 'application/octet-stream';
+
+    if (['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) {
+      type = 'image';
+      mimeType = ext === '.svg' ? 'image/svg+xml' : `image/${ext.substring(1)}`;
+    } else if (ext === '.pdf') {
+      type = 'pdf';
+      mimeType = 'application/pdf';
+    } else if (['.txt', '.md', '.json', '.js', '.ts', '.html', '.css', '.xml', '.csv'].includes(ext)) {
+      type = 'text';
+    }
+
+    this.previewType.set(type);
+
+    try {
+      const decryptedBuffer = await this.fileService.downloadAndDecryptRaw(file.id, file.iv);
+      
+      if (type === 'text') {
+        const text = new TextDecoder().decode(decryptedBuffer);
+        this.previewTextContent.set(text);
+      } else if (type === 'pdf') {
+        const blob = new Blob([decryptedBuffer], { type: mimeType });
+        const rawUrl = URL.createObjectURL(blob);
+        this.previewRawUrl = rawUrl;
+        const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+        this.previewUrl.set(safeUrl);
+      } else if (type === 'image') {
+        const blob = new Blob([decryptedBuffer], { type: mimeType });
+        const rawUrl = URL.createObjectURL(blob);
+        this.previewRawUrl = rawUrl;
+        this.previewUrl.set(rawUrl);
+      }
+    } catch (err) {
+      console.error('Failed to generate preview', err);
+      this.error.set('Failed to decrypt and load file preview.');
+      this.closePreview();
+    } finally {
+      this.previewLoading.set(false);
+    }
+  }
+
+  closePreview(): void {
+    const url = this.previewRawUrl;
+    if (url) {
+      URL.revokeObjectURL(url);
+      this.previewRawUrl = null;
+    }
+    this.previewFile.set(null);
+    this.previewUrl.set(null);
+    this.previewTextContent.set(null);
+    this.previewType.set('unsupported');
+    this.previewLoading.set(false);
   }
 
   // --- Folders ---

@@ -73,6 +73,13 @@ export class FileService {
     URL.revokeObjectURL(url);
   }
 
+  async downloadAndDecryptRaw(id: string, iv: string): Promise<ArrayBuffer> {
+    const cipher = await firstValueFrom(
+      this.http.get(`${this.baseUrl}/download/${id}`, { responseType: 'arraybuffer' })
+    );
+    return this.crypto.decrypt(cipher, iv);
+  }
+
   async delete(id: string): Promise<void> {
     await firstValueFrom(this.http.delete(`${this.baseUrl}/${id}`));
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
