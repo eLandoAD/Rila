@@ -5,6 +5,5 @@ import { SideNavbar } from '../side-navbar/side-navbar';
   selector: 'app-shared',
   imports: [SideNavbar],
   templateUrl: './shared.html',
-  styleUrl: './shared.css',
 })
 export class Shared {}
