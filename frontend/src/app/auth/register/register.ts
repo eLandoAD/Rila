@@ -10,7 +10,6 @@ import { CryptoService } from '../../core/crypto/crypto.service';
   standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './register.html',
-  styleUrl: './register.css',
 })
 export class Register {
   private readonly auth = inject(AuthService);
