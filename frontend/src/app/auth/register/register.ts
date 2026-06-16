@@ -69,6 +69,8 @@ export class Register {
   }
 
   readonly copied = signal(false);
+  readonly downloaded = signal(false);
+  readonly acknowledged = signal(false);
 
   async copyKey(): Promise<void> {
     const key = this.recoveryKey();
@@ -77,6 +79,44 @@ export class Register {
       this.copied.set(true);
       setTimeout(() => this.copied.set(false), 2000);
     }
+  }
+
+  downloadKey(): void {
+    const key = this.recoveryKey();
+    if (!key) return;
+
+    const content = [
+      'SecureVault — Recovery Information',
+      '==================================',
+      '',
+      `Username:      ${this.username}`,
+      `Email:         ${this.email}`,
+      `Generated:     ${new Date().toLocaleString()}`,
+      '',
+      'PASSWORD RECOVERY KEY:',
+      key,
+      '',
+      'IMPORTANT',
+      '---------',
+      '- Keep this file in a safe, private place.',
+      '- It is the ONLY way to reset your password without losing your encrypted files.',
+      '- SecureVault uses zero-knowledge encryption: this key is NEVER stored on the',
+      '  server and cannot be recovered if lost.',
+      '- Anyone with this key can reset your password, so do not share it.',
+      '',
+    ].join('\n');
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `securevault-recovery-${this.username || 'account'}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.downloaded.set(true);
   }
 
   finish(): void {

@@ -41,22 +41,28 @@
 
             <div class="text-left bg-base-200/50 backdrop-blur-md rounded-2xl p-4 border border-base-300/30">
               <p class="text-[10px] font-bold text-base-content/60 uppercase tracking-wider mb-1">Your Password Recovery Key</p>
-              <p class="text-[10px] text-base-content/50 leading-relaxed mb-3">Write this down or save it somewhere safe. You will need it to reset your password if you ever forget it.</p>
-              
+              <p class="text-[10px] text-base-content/50 leading-relaxed mb-3">Save this somewhere safe. It is the <strong>only</strong> way to reset your password without losing your encrypted files, and it is shown only once.</p>
+
               <div class="bg-base-300/50 p-3 rounded-xl font-mono text-xs select-all border border-base-300/80 break-all mb-3 text-center">
                 {{ recoveryKey() }}
               </div>
 
-              <button class="btn btn-outline btn-xs w-full rounded-lg py-2 h-9 text-xs font-semibold hover:bg-base-300" (click)="copyKey()">
-                @if (copied()) {
-                  Copied!
-                } @else {
-                  Copy to Clipboard
-                }
-              </button>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="btn btn-outline btn-xs rounded-lg py-2 h-9 text-xs font-semibold hover:bg-base-300" (click)="copyKey()">
+                  @if (copied()) { Copied! } @else { Copy }
+                </button>
+                <button class="btn btn-primary btn-xs rounded-lg py-2 h-9 text-xs font-semibold" (click)="downloadKey()">
+                  @if (downloaded()) { Downloaded ✓ } @else { Download .txt }
+                </button>
+              </div>
             </div>
 
-            <button class="btn btn-primary border-0 text-primary-content font-bold shadow-sm w-full rounded-xl h-12" (click)="finish()">
+            <label class="flex items-start gap-2 text-left cursor-pointer text-[11px] text-base-content/70">
+              <input type="checkbox" class="checkbox checkbox-xs mt-0.5" [checked]="acknowledged()" (change)="acknowledged.set(!acknowledged())" />
+              <span>I have saved my recovery key. I understand it cannot be recovered if lost.</span>
+            </label>
+
+            <button class="btn btn-primary border-0 text-primary-content font-bold shadow-sm w-full rounded-xl h-12" [disabled]="!acknowledged()" (click)="finish()">
               Proceed to Login
             </button>
           </div>

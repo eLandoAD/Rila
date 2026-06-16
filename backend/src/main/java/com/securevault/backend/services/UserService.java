@@ -4,6 +4,7 @@ import com.securevault.backend.dto.ResetInfoResponse;
 import com.securevault.backend.entities.User;
 import com.securevault.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class UserService {
 
@@ -45,7 +47,13 @@ public class UserService {
         user.setRecoveryDekIv(recoveryDekIv);
         user.setRecoveryEncryptedDek(recoveryEncryptedDek);
         userRepository.save(user);
-        emailService.sendVerificationEmail(user.getEmail(), user.getVerificationToken());
+        // L'invio email è best-effort: se l'SMTP non è raggiungibile la registrazione
+        // non deve fallire (l'utente può sempre richiedere un nuovo invio di verifica).
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), user.getVerificationToken());
+        } catch (Exception e) {
+            log.warn("Verification email could not be sent to {}: {}", user.getEmail(), e.getMessage());
+        }
         return user;
     }
 

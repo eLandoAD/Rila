@@ -40,8 +40,8 @@ services:
       SPRING_MAIL_PORT: ${SMTP_PORT:-587}
       SPRING_MAIL_USERNAME: ${SMTP_USER:-noreply@northleap.it}
       SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "true"
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "${SMTP_AUTH:-true}"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "${SMTP_STARTTLS:-true}"
       APP_MAIL_FROM: ${SMTP_USER:-noreply@northleap.it}
       APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       # Storage persistente: punta esplicitamente al volume montato sotto /storage
