@@ -22,6 +22,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.securevault.backend.dto.ShareFileRequest;
+import com.securevault.backend.dto.SharedFileResponse;
+import com.securevault.backend.entities.SharedFile;
+import com.securevault.backend.repositories.SharedFileRepository;
+import com.securevault.backend.services.EmailService;
+
 
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +42,8 @@ public class FileController {
     private final UserRepository userRepository;
     private final FolderRepository folderRepository;
     private final FolderService folderService;
+    private final SharedFileRepository sharedFileRepository;
+    private final EmailService emailService;
 
     @PostMapping("/upload")
     public ResponseEntity<FileUploadResponse> upload(@RequestParam("file") MultipartFile file, @RequestParam("iv") String iv, @RequestParam("encName") String encName,
@@ -95,9 +103,17 @@ public class FileController {
             StoredFile storedFile = storedFileRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
-            // controllo che il proprietario sia l'utente loggato
-            if (!storedFile.getUser().getUsername().equals(username)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
+            // controllo che il proprietario sia l'utente loggato O che sia condiviso con lui
+            boolean isOwner = storedFile.getUser().getUsername().equals(username);
+            boolean isShared = false;
+            if (!isOwner) {
+                User loggedUser = userRepository.findByUsername(username)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+                isShared = sharedFileRepository.findByFileAndReceiver(storedFile, loggedUser).isPresent();
+            }
+
+            if (!isOwner && !isShared) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you do not have access to this file");
             }
 
             // recupero fisico
@@ -227,6 +243,100 @@ public class FileController {
         }
     }
 
+    @PostMapping("/share")
+    public ResponseEntity<Void> shareFile(@RequestBody ShareFileRequest request) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User sender = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
+            StoredFile storedFile = storedFileRepository.findById(request.getFileId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+
+            if (!storedFile.getUser().getId().equals(sender.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
+            }
+
+            User receiver = userRepository.findByEmail(request.getReceiverEmail())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipient email not registered on SecureVault"));
+
+            if (receiver.getId().equals(sender.getId())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You cannot share a file with yourself");
+            }
+
+            // Check if already shared
+            SharedFile sharedFile = sharedFileRepository.findByFileAndReceiver(storedFile, receiver)
+                    .orElse(new SharedFile());
+
+            sharedFile.setFile(storedFile);
+            sharedFile.setSender(sender);
+            sharedFile.setReceiver(receiver);
+            sharedFile.setDek(request.getDek());
+            sharedFile.setCreatedAt(System.currentTimeMillis());
+
+            sharedFileRepository.save(sharedFile);
+
+            // Send notification email
+            emailService.sendSharedFileEmail(receiver.getEmail(), sender.getUsername());
+
+            return ResponseEntity.ok().build();
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error during file share: " + e.getMessage(), e);
+        }
+    }
+
+    @GetMapping("/shared")
+    public ResponseEntity<List<SharedFileResponse>> listSharedFiles() {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+            List<SharedFile> sharedList = sharedFileRepository.findByReceiver(user);
+
+            List<SharedFileResponse> response = sharedList.stream().map(sf -> {
+                SharedFileResponse dto = new SharedFileResponse();
+                dto.setId(sf.getId());
+                dto.setFileId(sf.getFile().getId());
+                dto.setEncName(sf.getFile().getEncName());
+                dto.setFileSize(sf.getFile().getFileSize());
+                dto.setCreatedAt(sf.getCreatedAt());
+                dto.setIv(sf.getFile().getIv());
+                dto.setSenderEmail(sf.getSender().getEmail());
+                dto.setSenderUsername(sf.getSender().getUsername());
+                dto.setDek(sf.getDek());
+                return dto;
+            }).toList();
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error retrieving shared files: " + e.getMessage(), e);
+        }
+    }
+
+    @DeleteMapping("/shared/{id}")
+    public ResponseEntity<Void> removeSharedFile(@PathVariable UUID id) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+            SharedFile sharedFile = sharedFileRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Shared file record not found"));
+
+            if (!sharedFile.getReceiver().getId().equals(user.getId())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you cannot remove this shared file");
+            }
+
+            sharedFileRepository.delete(sharedFile);
+            return ResponseEntity.noContent().build();
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error removing shared file: " + e.getMessage(), e);
+        }
+    }
 
 }

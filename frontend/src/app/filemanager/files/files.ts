@@ -43,6 +43,12 @@ export class Files implements OnInit {
   protected readonly previewType = signal<'image' | 'pdf' | 'text' | 'unsupported'>('unsupported');
   private previewRawUrl: string | null = null;
 
+  // File Share State
+  protected readonly sharingFile = signal<StoredFileMeta | null>(null);
+  protected readonly sharingLoading = signal(false);
+  protected readonly sharingError = signal<string | null>(null);
+  protected readonly sharingSuccess = signal(false);
+
   // Drag and Drop / Inline upload state
   protected readonly dragging = signal(false);
   protected readonly uploadingFile = signal(false);
@@ -68,6 +74,10 @@ export class Files implements OnInit {
 
   onDragEnter(event: DragEvent): void {
     event.preventDefault();
+    // Ignore internal item moves: only show the upload overlay for external files.
+    if (event.dataTransfer?.types?.includes('application/json')) {
+      return;
+    }
     this.dragCounter++;
     this.dragging.set(true);
   }
@@ -148,6 +158,10 @@ export class Files implements OnInit {
 
   async onItemDrop(event: DragEvent, targetFolderId: string | null): Promise<void> {
     event.preventDefault();
+    // Stop the move drop from bubbling up to the page-level upload handler.
+    event.stopPropagation();
+    this.dragCounter = 0;
+    this.dragging.set(false);
     const dataStr = event.dataTransfer?.getData('application/json');
     if (!dataStr) return;
     try {
@@ -158,6 +172,8 @@ export class Files implements OnInit {
         if (id === targetFolderId) return; // Prevent moving into itself
         await this.folderService.moveFolder(id, targetFolderId);
       }
+      // Refresh so the moved item disappears from the current view immediately.
+      await this.folderService.loadFolderContent(this.currentFolderId());
     } catch (err) {
       console.error('Failed to move item via drag and drop', err);
       this.error.set('Failed to move item.');
@@ -293,15 +309,35 @@ export class Files implements OnInit {
     }
   }
 
-  async shareFile(meta: StoredFileMeta): Promise<void> {
+  shareFile(meta: StoredFileMeta): void {
+    this.sharingFile.set(meta);
+    this.sharingLoading.set(false);
+    this.sharingError.set(null);
+    this.sharingSuccess.set(false);
+  }
+
+  closeShare(): void {
+    this.sharingFile.set(null);
+  }
+
+  async confirmEmailShare(file: StoredFileMeta, email: string): Promise<void> {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) return;
+
+    this.sharingLoading.set(true);
+    this.sharingError.set(null);
+    this.sharingSuccess.set(false);
+
     try {
       const rawDek = await this.crypto.getRawDek();
-      const shareUrl = `${window.location.origin}/share?id=${meta.id}&name=${encodeURIComponent(meta.encName)}&iv=${meta.iv}#${rawDek}`;
-      await navigator.clipboard.writeText(shareUrl);
-      alert(`Secure sharing link copied to clipboard!\n\nThis link contains the decryption key in the hash fragment. The server cannot see it.`);
-    } catch (err) {
-      console.error('Failed to generate sharing link', err);
-      this.error.set('Failed to generate sharing link.');
+      await this.fileService.shareByEmail(file.id, trimmedEmail, rawDek);
+      this.sharingSuccess.set(true);
+    } catch (err: any) {
+      console.error('Failed to share file by email', err);
+      const errMsg = err?.error?.message || 'Failed to share file. Make sure the email is registered.';
+      this.sharingError.set(errMsg);
+    } finally {
+      this.sharingLoading.set(false);
     }
   }
 

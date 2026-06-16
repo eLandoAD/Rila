@@ -195,9 +195,9 @@
                         <!-- Share Button -->
                         <button class="btn btn-ghost btn-xs text-primary font-semibold flex items-center justify-center p-1 rounded-lg"
                                 (click)="shareFile(file)"
-                                title="Copy Secure Share Link">
+                                title="Share File by Email">
                           <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 10.742l4.828-2.414m0 0a3 3 0 10-3.62-1.09l-4.829 2.414m4.829 2.414a3 3 0 11-3.62 1.09l-4.829-2.414m4.829-2.414l-.001.001" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                           </svg>
                         </button>
 
@@ -404,6 +404,56 @@
         </div>
       </div>
       <div class="modal-backdrop bg-black/40 backdrop-blur-xs" (click)="closePreview()"></div>
+    </div>
+  }
+
+  <!-- Share Modal -->
+  @if (sharingFile(); as file) {
+    <div class="modal modal-open">
+      <div class="modal-box rounded-3xl border border-base-300/40 p-6 shadow-2xl bg-base-100/95 backdrop-blur-xl max-w-md w-full">
+        <h3 class="text-xl font-bold text-base-content mb-1">
+          Share "{{ file.name }}"
+        </h3>
+        <p class="text-xs text-base-content/50 mb-4">Enter a registered email address to share this file securely.</p>
+
+        <div class="space-y-4">
+          <div class="p-4 rounded-2xl bg-base-200/50 border border-base-300/40 flex flex-col gap-3">
+            <p class="text-xxs text-base-content/60 leading-relaxed">
+              The recipient will receive an email notification and see this file under their "Shared with me" section.
+            </p>
+            
+            <div class="flex gap-2">
+              <input type="email" 
+                     placeholder="recipient@example.com" 
+                     class="input input-sm input-bordered rounded-xl flex-1 text-xs" 
+                     #emailInput 
+                     [disabled]="sharingLoading()"
+                     (keyup.enter)="confirmEmailShare(file, emailInput.value)"/>
+              <button class="btn btn-sm btn-primary rounded-xl font-semibold px-4 text-xs" 
+                      [disabled]="sharingLoading() || !emailInput.value"
+                      (click)="confirmEmailShare(file, emailInput.value)">
+                @if (sharingLoading()) {
+                  <span class="loading loading-spinner loading-xs"></span>
+                } @else {
+                  Share
+                }
+              </button>
+            </div>
+
+            @if (sharingError()) {
+              <p class="text-xxs text-error font-semibold">{{ sharingError() }}</p>
+            }
+            @if (sharingSuccess()) {
+              <p class="text-xxs text-success font-semibold">✓ File shared successfully!</p>
+            }
+          </div>
+        </div>
+
+        <div class="modal-action mt-6 gap-2">
+          <button class="btn btn-sm btn-ghost rounded-xl px-4" (click)="closeShare()">Close</button>
+        </div>
+      </div>
+      <div class="modal-backdrop bg-black/40 backdrop-blur-xs" (click)="closeShare()"></div>
     </div>
   }
 </div>

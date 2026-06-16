@@ -12,6 +12,11 @@ export class CryptoService {
   // The Data Encryption Key (DEK) kept in memory during the session.
   private currentDek: CryptoKey | null = null;
 
+  // Persisted (raw, base64) DEK so the session survives page reloads / dev server
+  // restarts. Lives in sessionStorage: it persists until the tab is closed and is
+  // never sent to the backend, preserving the zero-knowledge model.
+  private readonly DEK_STORAGE_KEY = 'sv_dek';
+
   /**
    * Encrypts a file's data using the session DEK.
    */
@@ -80,7 +85,8 @@ export class CryptoService {
     const { encryptedDek: recoveryEncDek, iv: recoveryIv } = await this.encryptDEK(dek, emergencyKek);
 
     this.currentDek = dek;
-    
+    await this.persistDek();
+
     return {
       encryptedDek,
       iv,
@@ -98,6 +104,7 @@ export class CryptoService {
     const saltBytes = this.fromBase64(salt);
     const kek = await this.deriveKEK(password, saltBytes);
     this.currentDek = await this.decryptDEK(encryptedDek, iv, kek);
+    await this.persistDek();
   }
 
   /**
@@ -118,6 +125,7 @@ export class CryptoService {
     const { encryptedDek: newEncDek, iv: newIv } = await this.encryptDEK(dek, newKek);
     
     this.currentDek = dek;
+    await this.persistDek();
     return {
       newEncryptedDek: newEncDek,
       newDekIv: newIv
@@ -126,6 +134,56 @@ export class CryptoService {
 
   clearSession(): void {
     this.currentDek = null;
+    if (this.isBrowser) {
+      sessionStorage.removeItem(this.DEK_STORAGE_KEY);
+    }
+  }
+
+  /**
+   * Persists the in-memory DEK (raw) to sessionStorage so a page reload or dev
+   * server restart does not lose the ability to decrypt.
+   */
+  private async persistDek(): Promise<void> {
+    if (!this.isBrowser || !this.currentDek) {
+      return;
+    }
+    try {
+      const raw = await crypto.subtle.exportKey('raw', this.currentDek);
+      sessionStorage.setItem(this.DEK_STORAGE_KEY, this.toBase64(new Uint8Array(raw)));
+    } catch {
+      // exportKey may fail if the key is not extractable; ignore silently.
+    }
+  }
+
+  /**
+   * Restores the DEK from sessionStorage after a reload. Returns true if a usable
+   * key is now in memory. Used by the auth guard to avoid the "logged in but cannot
+   * decrypt" state.
+   */
+  async restoreSession(): Promise<boolean> {
+    if (this.currentDek) {
+      return true;
+    }
+    if (!this.isBrowser) {
+      return false;
+    }
+    const stored = sessionStorage.getItem(this.DEK_STORAGE_KEY);
+    if (!stored) {
+      return false;
+    }
+    try {
+      this.currentDek = await crypto.subtle.importKey(
+        'raw',
+        this.fromBase64(stored) as any,
+        'AES-GCM',
+        true,
+        ['encrypt', 'decrypt']
+      );
+      return true;
+    } catch {
+      sessionStorage.removeItem(this.DEK_STORAGE_KEY);
+      return false;
+    }
   }
 
   /**

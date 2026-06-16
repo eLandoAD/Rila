@@ -44,8 +44,12 @@ services:
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "true"
       APP_MAIL_FROM: ${SMTP_USER:-noreply@northleap.it}
       APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+      # Storage persistente: punta esplicitamente al volume montato sotto /storage
+      APP_STORAGE_PATH: /storage
     ports:
       - "${BACKEND_PORT:-8085}:8080"
+    volumes:
+      - securevault_storage:/storage
 
   frontend:
     build:
@@ -71,3 +75,4 @@ services:
 
 volumes:
   postgres_data:
+  securevault_storage:

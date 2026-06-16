@@ -1,25 +1,204 @@
 <div class="flex min-h-screen bg-base-200">
   <app-side-navbar class="shrink-0"></app-side-navbar>
 
-  <main class="flex-1 p-6 md:p-8 overflow-y-auto">
+  <main class="flex-1 p-6 md:p-8 overflow-y-auto min-w-0 relative">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-3xl font-extrabold tracking-tight text-base-content">Shared with me</h1>
-      <p class="text-xs text-base-content/60 mt-1">Files shared directly with you by other users</p>
+    <div class="mb-6 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-base-content">Shared with me</h1>
+        <p class="text-xs text-base-content/60 mt-1">Files shared directly with you by other users</p>
+      </div>
+      @if (loading()) {
+        <span class="loading loading-spinner text-primary"></span>
+      }
     </div>
 
-    <!-- Empty State / Placeholder -->
-    <div class="mt-16 flex flex-col items-center justify-center text-center max-w-sm mx-auto text-base-content/40 select-none">
-      <div class="w-20 h-20 rounded-full bg-base-100 flex items-center justify-center border border-base-300/60 shadow-xs mb-6 text-base-content/30">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
+    <!-- Error Banner -->
+    @if (error()) {
+      <div class="alert alert-error shadow-lg rounded-2xl mb-6 py-3 px-4 flex items-center justify-between text-xs font-semibold">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5.5 w-5.5" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{{ error() }}</span>
+        </div>
+        <button class="btn btn-ghost btn-xs text-error font-bold" (click)="error.set(null)">Dismiss</button>
       </div>
-      <h3 class="text-xl font-bold mb-2 text-base-content">No shared files yet</h3>
-      <p class="text-xs text-base-content/50 leading-relaxed">
-        When someone shares secure links with you, you can open and decrypt them instantly. 
-        You can share your files with others using the "Share" option in your Files manager.
-      </p>
-    </div>
+    }
+
+    <!-- Empty State -->
+    @if (!loading() && sharedFiles().length === 0) {
+      <div class="mt-16 flex flex-col items-center justify-center text-center max-w-sm mx-auto text-base-content/40 select-none">
+        <div class="w-20 h-20 rounded-full bg-base-100 flex items-center justify-center border border-base-300/60 shadow-xs mb-6 text-base-content/30">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-base-content">No shared files yet</h3>
+        <p class="text-xs text-base-content/50 leading-relaxed">
+          When someone shares secure links or files with you, you can open, decrypt, and download them instantly. 
+          You can share your files with others using the "Share" option in your Files manager.
+        </p>
+      </div>
+    }
+
+    <!-- Shared Files Table -->
+    @if (sharedFiles().length > 0) {
+      <div class="bg-base-100 rounded-3xl border border-base-300/40 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="table w-full">
+            <thead>
+              <tr class="border-b border-base-300/40 bg-base-200/30 text-base-content/70 text-xs uppercase tracking-wider">
+                <th class="pl-6 py-4 font-bold">Name</th>
+                <th class="py-4 font-bold">Size</th>
+                <th class="py-4 font-bold">Shared By</th>
+                <th class="py-4 font-bold">Date Shared</th>
+                <th class="text-right pr-6 py-4 font-bold">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (file of sharedFiles(); track file.id) {
+                <tr class="hover:bg-base-200/50 border-base-300/30 transition-colors group">
+                  <!-- File Icon & Name -->
+                  <td class="pl-6 font-semibold text-base-content flex items-center gap-3 py-3.5">
+                    <div class="p-2 bg-secondary/10 text-secondary rounded-lg shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <span class="truncate max-w-xs md:max-w-md" [title]="file.name">{{ file.name }}</span>
+                  </td>
+                  <!-- File Size -->
+                  <td class="text-sm text-base-content/70">{{ format(file.size) }}</td>
+                  <!-- Sender -->
+                  <td class="text-sm text-base-content/70">
+                    <div class="flex flex-col">
+                      <span class="font-medium text-base-content">{{ file.senderUsername }}</span>
+                      <span class="text-xxs text-base-content/50">{{ file.senderEmail }}</span>
+                    </div>
+                  </td>
+                  <!-- Created/Shared Date -->
+                  <td class="text-sm text-base-content/70">{{ file.uploadedAt | date: 'mediumDate' }}</td>
+                  <!-- Actions -->
+                  <td class="text-right pr-6 py-2">
+                    <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
+                      <!-- Preview Button -->
+                      <button class="btn btn-ghost btn-xs text-secondary font-semibold flex items-center justify-center p-1 rounded-lg"
+                              (click)="openPreview(file)"
+                              title="Preview File">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      </button>
+
+                      <!-- Download Button -->
+                      <button class="btn btn-ghost btn-xs text-primary font-semibold flex items-center justify-center p-1 rounded-lg" 
+                              (click)="download(file)" 
+                              [disabled]="downloadingId() === file.id"
+                              title="Download">
+                        @if (downloadingId() === file.id) {
+                          <span class="loading loading-spinner loading-xs"></span>
+                        } @else {
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                        }
+                      </button>
+
+                      <!-- Remove Share Button -->
+                      <button class="btn btn-ghost btn-xs text-error flex items-center justify-center p-1 rounded-lg hover:bg-error/10"
+                              (click)="removeShared(file)"
+                              title="Remove shared file">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+    <!-- File Preview Modal -->
+    @if (previewFile(); as file) {
+      <div class="modal modal-open animate-fade-in">
+        <div class="modal-box rounded-3xl border border-base-300/45 p-6 shadow-2xl bg-base-100/95 backdrop-blur-xl max-w-4xl w-full flex flex-col max-h-[85vh]">
+          
+          <!-- Modal Header -->
+          <div class="flex items-center justify-between gap-4 border-b border-base-300/40 pb-3 mb-4 shrink-0">
+            <div class="min-w-0">
+              <h3 class="text-xl font-bold text-base-content truncate flex items-center gap-2" [title]="file.name">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                {{ file.name }}
+              </h3>
+              <p class="text-[10px] text-base-content/50 mt-0.5 font-medium">Size: {{ format(file.size) }} | Shared by {{ file.senderUsername }} | Decrypted locally in browser</p>
+            </div>
+            <button class="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200" (click)="closePreview()">
+              ✕
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="flex-1 overflow-auto min-h-0 flex items-center justify-center p-1">
+            @if (previewLoading()) {
+              <div class="flex flex-col items-center justify-center py-12 space-y-4">
+                <span class="loading loading-ring loading-lg text-primary"></span>
+                <p class="text-xs text-base-content/65 animate-pulse">Decrypting content in memory...</p>
+              </div>
+            } @else {
+              @switch (previewType()) {
+                @case ('image') {
+                  <div class="w-full h-full flex items-center justify-center p-2">
+                    <img [src]="previewUrl()" alt="Decrypted Image Preview" class="max-w-full max-h-[55vh] object-contain rounded-2xl shadow-sm border border-base-300/40 bg-base-200/50" />
+                  </div>
+                }
+                @case ('pdf') {
+                  <div class="w-full h-full p-1">
+                    <iframe [src]="previewUrl()" class="w-full h-[55vh] rounded-2xl border border-base-300/40 shadow-sm" frameborder="0"></iframe>
+                  </div>
+                }
+                @case ('text') {
+                  <div class="w-full max-h-[55vh] overflow-y-auto bg-base-200/50 p-5 rounded-2xl font-mono text-xs text-left border border-base-300/40 whitespace-pre-wrap select-text">
+                    {{ previewTextContent() }}
+                  </div>
+                }
+                @default {
+                  <!-- Unsupported Fallback -->
+                  <div class="flex flex-col items-center justify-center text-center py-8 max-w-sm mx-auto">
+                    <div class="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center border border-base-300/60 shadow-xs mb-4 text-base-content/40">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <h4 class="font-bold text-base text-base-content">Preview Unavailable</h4>
+                    <p class="text-xs text-base-content/50 mt-1 leading-relaxed mb-4">
+                      This file format is not supported for in-browser previews. You can download the decrypted file to open it locally.
+                    </p>
+                    <button class="btn btn-primary btn-sm rounded-xl font-bold px-4" (click)="download(file)">
+                      Download Decrypted
+                    </button>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="modal-action mt-4 border-t border-base-300/40 pt-3 shrink-0 flex gap-2">
+            <button class="btn btn-sm btn-outline border-base-300 rounded-xl px-4 font-semibold" (click)="download(file)">Download</button>
+            <button class="btn btn-sm btn-ghost rounded-xl px-4 font-semibold" (click)="closePreview()">Close</button>
+          </div>
+        </div>
+        <div class="modal-backdrop bg-black/40 backdrop-blur-xs" (click)="closePreview()"></div>
+      </div>
+    }
   </main>
 </div>

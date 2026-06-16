@@ -68,6 +68,18 @@ public class EmailService {
         send(to, "SecureVault — password changed alert", html, frontendUrl + "/login");
     }
 
+    public void sendSharedFileEmail(String to, String senderUsername) {
+        String link = frontendUrl + "/filemanager/shared";
+        String html = buildTemplate(
+                "A file has been shared with you!",
+                "Hello, user " + senderUsername + " has shared a secure encrypted file with you. You can view, decrypt, and download it from your Shared files dashboard.",
+                "Go to Shared Files",
+                link,
+                "Log in to SecureVault to access the shared file."
+        );
+        send(to, "SecureVault — new file shared with you", html, link);
+    }
+
     // semplice template HTML inline, responsive e con fallback testuale sul link
     private String buildTemplate(String title, String body, String cta, String link, String footer) {
         return """

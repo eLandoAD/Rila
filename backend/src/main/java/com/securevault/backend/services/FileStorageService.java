@@ -1,5 +1,6 @@
 package com.securevault.backend.services;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -10,8 +11,18 @@ import java.nio.file.Paths;
 @Service
 public class FileStorageService {
 
+    // Directory di storage configurabile via APP_STORAGE_PATH.
+    // In Docker punta al volume persistente (/storage); in locale, di default,
+    // alla cartella ../storage relativa alla working directory del backend.
+    @Value("${app.storage.path:../storage}")
+    private String storagePath;
+
+    private Path storageDirectory() {
+        return Paths.get(storagePath).toAbsolutePath().normalize();
+    }
+
     public void saveFile(byte[] encryptedContent, String fileName) {
-        Path storageDirectory = Paths.get("..", "storage").toAbsolutePath().normalize();
+        Path storageDirectory = storageDirectory();
 
         try {
             Files.createDirectories(storageDirectory);
@@ -24,15 +35,11 @@ public class FileStorageService {
     }
 
     public byte[] loadFile(String fileName) {
-        // prendo il path della cartella
-        Path storageDirectory = Paths.get("..", "storage").toAbsolutePath().normalize();
-
-        // file specifico
-        Path filePath = storageDirectory.resolve(fileName);
+        Path filePath = storageDirectory().resolve(fileName);
 
         // controllo se il file esiste
         if (!Files.exists(filePath)) {
-            throw new RuntimeException("File not found on disk: " + fileName);
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "File not found on disk: " + fileName);
         }
 
         try {
@@ -44,11 +51,7 @@ public class FileStorageService {
     }
 
     public void deleteFile(String fileName) {
-        // prendo il path della cartella
-        Path storageDirectory = Paths.get("..", "storage").toAbsolutePath().normalize();
-
-        // file specifico
-        Path filePath = storageDirectory.resolve(fileName);
+        Path filePath = storageDirectory().resolve(fileName);
 
         // lo elimino se esiste
         try {

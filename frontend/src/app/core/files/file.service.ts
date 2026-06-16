@@ -80,6 +80,12 @@ export class FileService {
     return this.crypto.decrypt(cipher, iv);
   }
 
+  async downloadRaw(id: string): Promise<ArrayBuffer> {
+    return firstValueFrom(
+      this.http.get(`${this.baseUrl}/download/${id}`, { responseType: 'arraybuffer' })
+    );
+  }
+
   async delete(id: string): Promise<void> {
     await firstValueFrom(this.http.delete(`${this.baseUrl}/${id}`));
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
@@ -116,6 +122,24 @@ export class FileService {
         iv: f.iv,
         uploadedAt: f.createdAt
       }))
+    );
+  }
+
+  async shareByEmail(fileId: string, receiverEmail: string, dek: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post(`${this.baseUrl}/share`, { fileId, receiverEmail, dek })
+    );
+  }
+
+  async getSharedFiles(): Promise<any[]> {
+    return firstValueFrom(
+      this.http.get<any[]>(`${this.baseUrl}/shared`)
+    );
+  }
+
+  async removeSharedFile(id: string): Promise<void> {
+    await firstValueFrom(
+      this.http.delete(`${this.baseUrl}/shared/${id}`)
     );
   }
 }
