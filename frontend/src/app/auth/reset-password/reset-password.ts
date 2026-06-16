@@ -1,7 +1,8 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { CryptoService } from '../../core/crypto/crypto.service';
 import { ResetInfoResponse } from '../../core/auth/auth.models';
@@ -16,6 +17,7 @@ export class ResetPassword implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly crypto = inject(CryptoService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   recoveryKey = '';
   newPassword = '';
@@ -29,6 +31,9 @@ export class ResetPassword implements OnInit {
   private token = '';
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
     this.token = this.route.snapshot.queryParamMap.get('token') ?? '';
     if (!this.token) {
       this.error.set('Invalid or missing reset token.');

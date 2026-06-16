@@ -1,7 +1,8 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
@@ -13,8 +14,9 @@ import { AuthService } from '../../core/auth/auth.service';
 export class VerifyEmail implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  readonly emailInput = signal<string>(this.route.snapshot.queryParamMap.get('email') ?? '');
+  emailInput = this.route.snapshot.queryParamMap.get('email') ?? '';
   private readonly token = this.route.snapshot.queryParamMap.get('token');
 
   // 'pending' = waiting for the user to click the email link (no token yet)
@@ -30,6 +32,9 @@ export class VerifyEmail implements OnInit {
   readonly verified = signal(false);
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
     // se arriviamo dal link email (con token) verifichiamo subito, senza azioni utente
     if (this.token) {
       this.verifying.set(true);
@@ -47,7 +52,7 @@ export class VerifyEmail implements OnInit {
   }
 
   resend(): void {
-    const email = this.emailInput().trim();
+    const email = this.emailInput.trim();
     if (this.loading() || !email) {
       return;
     }

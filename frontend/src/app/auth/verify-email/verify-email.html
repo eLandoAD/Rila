@@ -58,7 +58,7 @@
             <button
               class="btn btn-primary w-full"
               (click)="resend()"
-              [disabled]="loading() || !emailInput().trim()"
+              [disabled]="loading() || !emailInput.trim()"
             >
               @if (loading()) {
                 <span class="loading loading-spinner loading-sm"></span>
