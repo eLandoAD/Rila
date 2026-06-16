@@ -66,7 +66,10 @@ services:
 
   # Reverse proxy: unica origin per frontend (/) e backend (/api)
   proxy:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.proxy
+    image: rila-proxy
     container_name: rila-proxy
     restart: unless-stopped
     depends_on:
@@ -74,8 +77,6 @@ services:
       - frontend
     ports:
       - "${PROXY_PORT:-4205}:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
   # Dev SMTP catcher: captures outgoing emails, web UI on http://localhost:8025
   mailhog:
