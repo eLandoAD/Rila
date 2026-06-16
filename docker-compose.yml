@@ -61,8 +61,21 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4200
+    expose:
+      - "4200"
+
+  # Reverse proxy: unica origin per frontend (/) e backend (/api)
+  proxy:
+    image: nginx:alpine
+    container_name: rila-proxy
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
     ports:
-      - "${FRONTEND_PORT:-4205}:4200"
+      - "${PROXY_PORT:-4205}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
 
   # Dev SMTP catcher: captures outgoing emails, web UI on http://localhost:8025
   mailhog:
