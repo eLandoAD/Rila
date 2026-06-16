@@ -12,7 +12,6 @@ import { StoredFileMeta } from '../../core/files/file.models';
   standalone: true,
   imports: [SideNavbar, DonutChart, BarChart, LineChart],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
   private readonly fileService = inject(FileService);

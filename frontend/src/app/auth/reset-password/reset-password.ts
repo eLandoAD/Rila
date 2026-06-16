@@ -11,7 +11,6 @@ import { ResetInfoResponse } from '../../core/auth/auth.models';
   standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './reset-password.html',
-  styleUrl: './reset-password.css',
 })
 export class ResetPassword implements OnInit {
   private readonly auth = inject(AuthService);

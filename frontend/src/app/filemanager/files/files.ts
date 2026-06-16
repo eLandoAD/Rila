@@ -17,7 +17,6 @@ type MoveTarget =
   standalone: true,
   imports: [SideNavbar, DatePipe],
   templateUrl: './files.html',
-  styleUrl: './files.css',
 })
 export class Files implements OnInit {
   private readonly fileService = inject(FileService);

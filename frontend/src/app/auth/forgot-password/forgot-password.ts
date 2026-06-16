@@ -9,7 +9,6 @@ import { AuthService } from '../../core/auth/auth.service';
   standalone: true,
   imports: [FormsModule, RouterLink],
   templateUrl: './forgot-password.html',
-  styleUrl: './forgot-password.css',
 })
 export class ForgotPassword {
   private readonly auth = inject(AuthService);

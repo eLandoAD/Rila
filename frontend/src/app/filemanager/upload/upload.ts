@@ -19,7 +19,6 @@ interface UploadItem {
   standalone: true,
   imports: [SideNavbar, FormsModule],
   templateUrl: './upload.html',
-  styleUrl: './upload.css',
 })
 export class Upload {
   private readonly fileService = inject(FileService);

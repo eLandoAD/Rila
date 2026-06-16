@@ -10,7 +10,6 @@ import { environment } from '../../environments/environment';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './share.html',
-  styleUrl: './share.css',
 })
 export class ShareComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

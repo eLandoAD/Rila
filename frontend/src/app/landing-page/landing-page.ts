@@ -6,7 +6,6 @@ import { RouterLink } from '@angular/router';
   selector: 'app-landing-page',
   imports: [RouterLink, FormsModule],
   templateUrl: './landing-page.html',
-  styleUrl: './landing-page.css',
 })
 export class LandingPage {
   newsletterEmail = '';

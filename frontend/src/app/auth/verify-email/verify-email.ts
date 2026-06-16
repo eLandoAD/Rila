@@ -9,7 +9,6 @@ import { AuthService } from '../../core/auth/auth.service';
   standalone: true,
   imports: [RouterLink, FormsModule],
   templateUrl: './verify-email.html',
-  styleUrl: './verify-email.css',
 })
 export class VerifyEmail implements OnInit {
   private readonly auth = inject(AuthService);
