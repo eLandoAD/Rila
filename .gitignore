@@ -3,3 +3,4 @@ storage/
 .env
 SECURITY_STRATEGY.md
 TODO.md
+k8s/*-secret.yaml
