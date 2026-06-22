@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: 833973656475.dkr.ecr.eu-north-1.amazonaws.com/spring-app:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: backend-secret
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres-db:5432/securevault_db
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: update
+            - name: SPRING_MAIL_HOST
+              value: mailhog
+            - name: SPRING_MAIL_PORT
+              value: "1025"
+            - name: SPRING_MAIL_USERNAME
+              value: noreply@securevault.local
+            - name: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+              value: "false"
+            - name: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+              value: "false"
+            - name: APP_MAIL_FROM
+              value: noreply@securevault.local
+            - name: APP_FRONTEND_URL
+              value: http://localhost
+            - name: APP_STORAGE_PATH
+              value: /storage
+          volumeMounts:
+            - name: storage
+              mountPath: /storage
+      volumes:
+        - name: storage
+          emptyDir: {}
