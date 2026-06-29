@@ -21,9 +21,11 @@ public class RegisterRequest {
     @Size(min = 8, max = 100)
     private String password;
 
-    @NotBlank private String encryptedDek;
-    @NotBlank private String dekIv;
-    @NotBlank private String keySalt;
-    @NotBlank private String recoveryEncryptedDek;
-    @NotBlank private String recoveryDekIv;
+    // materiale crittografico generato dal client: niente @NotBlank per non
+    // rischiare di rompere la registrazione se un campo arriva vuoto in qualche flusso
+    private String encryptedDek;
+    private String dekIv;
+    private String keySalt;
+    private String recoveryEncryptedDek;
+    private String recoveryDekIv;
 }
