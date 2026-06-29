@@ -1,7 +1,7 @@
 <aside
   class="side-navbar bg-base-100 border-base-300 flex select-none shadow-sm transition-all duration-300 ease-in-out
-         w-full flex-row items-center gap-1 border-t px-2 py-1
-         lg:h-full lg:w-auto lg:flex-col lg:items-stretch lg:gap-0 lg:border-t-0 lg:border-r lg:px-0 lg:py-0"
+         fixed inset-x-0 bottom-0 z-40 w-full flex-row items-center gap-1 border-t px-2 py-1
+         lg:static lg:inset-auto lg:z-auto lg:h-full lg:w-auto lg:flex-col lg:items-stretch lg:gap-0 lg:border-t-0 lg:border-r lg:px-0 lg:py-0"
   [ngClass]="collapsed() ? 'lg:w-20' : 'lg:w-64'">
 
   <!-- Brand Header (solo desktop) -->
@@ -52,7 +52,7 @@
         <a routerLink="/filemanager/dashboard" routerLinkActive="menu-active"
           [class.justify-center]="collapsed()"
           [attr.title]="'Dashboard'"
-          class="flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
+          class="flex items-center rounded-2xl gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -65,7 +65,7 @@
         <a routerLink="/filemanager/files" routerLinkActive="menu-active"
           [class.justify-center]="collapsed()"
           [attr.title]="'Files'"
-          class="flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
+          class="flex rounded-2xl items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -78,7 +78,7 @@
         <a routerLink="/filemanager/uploads" routerLinkActive="menu-active"
           [class.justify-center]="collapsed()"
           [attr.title]="'Upload File'"
-          class="flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
+          class="flex rounded-2xl items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -91,7 +91,7 @@
         <a routerLink="/filemanager/shared" routerLinkActive="menu-active"
           [class.justify-center]="collapsed()"
           [attr.title]="'Shared'"
-          class="flex items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
+          class="flex rounded-2xl items-center gap-3 px-3 py-2.5 lg:px-4 lg:py-3">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
