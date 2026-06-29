@@ -8,6 +8,9 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 COPY . .
+# Limita il parallelismo di esbuild: su host con poca RAM (es. 2GB) il build
+# in parallelo su tutte le CPU satura la memoria e viene ucciso (OOM/SIGKILL).
+ENV GOMAXPROCS=2
 RUN npm run build
 
 # --- Stage 2: runtime ---
