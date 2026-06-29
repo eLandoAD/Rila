@@ -4,3 +4,8 @@ storage/
 SECURITY_STRATEGY.md
 TODO.md
 k8s/*-secret.yaml
+
+# config reali con segreti (l'app legge le env in prod; tieni solo application-example.yml nel repo)
+backend/src/main/resources/application.yml
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application.properties

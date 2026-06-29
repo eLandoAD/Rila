@@ -4,7 +4,7 @@ server:
 spring:
   datasource:
     username: postgres
-    password: password
+    password: CHANGE_ME
     # protocol : driver : server : porta / nome_db
     url: jdbc:postgresql://localhost:5432/securevault_db
     driver-class-name: org.postgresql.Driver
@@ -34,7 +34,9 @@ spring:
 
 
 jwt:
-  secret: "LeonardoZappiniValeriaOrtisi1617181920Aura!"
+  # Genera un segreto casuale lungo (min 32 caratteri), es: openssl rand -base64 48
+  # In produzione viene passato via variabile d'ambiente JWT_SECRET (NON committare quello vero).
+  secret: "CHANGE_ME_USE_A_RANDOM_SECRET_AT_LEAST_32_CHARS"
   expiration: 3600000
 
 # parametri applicativi usati nelle email
