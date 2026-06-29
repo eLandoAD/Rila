@@ -31,7 +31,7 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": ["localhost", "127.0.0.1", "securevault.northleap.it"]
+              "allowedHosts": ["localhost", "127.0.0.1", "securevault.northleap.it", "securevault.alessio.hackclub.app"]
             },
             "ssr": {
               "entry": "src/server.ts"
