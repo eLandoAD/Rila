@@ -33,17 +33,18 @@ export class ShareComponent implements OnInit {
       return;
     }
     const params = this.route.snapshot.queryParamMap;
-    const id = params.get('id');
+    // il link pubblico ora usa il "token" di condivisione, non l'id del file
+    const token = params.get('token');
     const name = params.get('name');
     const iv = params.get('iv');
     const hash = window.location.hash ? window.location.hash.substring(1) : null;
 
-    if (!id || !name || !iv || !hash) {
+    if (!token || !name || !iv || !hash) {
       this.error.set('Invalid or incomplete secure sharing link.');
       return;
     }
 
-    this.fileId.set(id);
+    this.fileId.set(token);
     this.encName.set(name);
     this.iv.set(iv);
     this.rawDek.set(hash);

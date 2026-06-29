@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public class AuthController {
 
     // POST /api/auth/register
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         // chiamo userService
         userService.registerUser(
             request.getUsername(), 
@@ -44,31 +45,25 @@ public class AuthController {
 
     // POST /api/auth/login
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         // chiamo userService
         Optional<User> user = userService.findByUsernameOrEmail(loginRequest.getUsernameOrEmail());
 
-        User u = null;
-        if (user.isPresent()) {
-            u = user.get();
+        // stesso messaggio per "utente inesistente" e "password errata":
+        // evita la user enumeration
+        if (user.isEmpty() || !passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
+            return ResponseEntity.status(401).body(new AuthResponse(null, "Invalid credentials"));
         }
 
-        // se non esiste mando errore
-        if (user.isEmpty()) {
-            return ResponseEntity.status(401).body(new AuthResponse(null, "User not found"));
-        }
+        User u = user.get();
 
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
-            return ResponseEntity.status(401).body(new AuthResponse(null, "Wrong password"));
-        }
-
-        if (!user.get().getEnabled()) {
+        if (!u.getEnabled()) {
             return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check your email"));
         }
 
         // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
         return ResponseEntity.ok(
-                new AuthResponse(jwtService.generateToken(user.get().getUsername()), "Login successful", u.getEncryptedDek(), u.getDekIv(), u.getKeySalt()));
+                new AuthResponse(jwtService.generateToken(u.getUsername()), "Login successful", u.getEncryptedDek(), u.getDekIv(), u.getKeySalt()));
     }
 
 

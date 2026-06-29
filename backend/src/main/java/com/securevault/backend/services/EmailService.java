@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +49,7 @@ public class EmailService {
     public void sendWelcomeEmail(String to, String username) {
         String html = buildTemplate(
                 "Welcome to SecureVault!",
-                "Hello " + username + ", your account is verified and ready. You can now log in and store your files with end-to-end encryption.",
+                "Hello " + HtmlUtils.htmlEscape(username) + ", your account is verified and ready. You can now log in and store your files with end-to-end encryption.",
                 "Go to Login",
                 frontendUrl + "/login",
                 "Thank you for choosing SecureVault."
@@ -59,7 +60,7 @@ public class EmailService {
     public void sendPasswordChangedAlert(String to, String username) {
         String html = buildTemplate(
                 "Password Changed",
-                "Hello " + username + ", your SecureVault account password was successfully updated. "
+                "Hello " + HtmlUtils.htmlEscape(username) + ", your SecureVault account password was successfully updated. "
                         + "If you did not make this change, please contact us immediately or use your recovery options.",
                 "Go to SecureVault",
                 frontendUrl + "/login",
@@ -72,7 +73,7 @@ public class EmailService {
         String link = frontendUrl + "/filemanager/shared";
         String html = buildTemplate(
                 "A file has been shared with you!",
-                "Hello, user " + senderUsername + " has shared a secure encrypted file with you. You can view, decrypt, and download it from your Shared files dashboard.",
+                "Hello, user " + HtmlUtils.htmlEscape(senderUsername) + " has shared a secure encrypted file with you. You can view, decrypt, and download it from your Shared files dashboard.",
                 "Go to Shared Files",
                 link,
                 "Log in to SecureVault to access the shared file."
@@ -118,9 +119,8 @@ public class EmailService {
             helper.setText(html, true); // true => HTML
             mailSender.send(message);
         } catch (Exception e) {
-            // fallback: se l'SMTP non è raggiungibile (es. dev), logghiamo il link
-            System.out.println(">>> [EMAIL FALLBACK] Could not send to " + to + " (" + e.getMessage() + ")");
-            System.out.println(">>> [EMAIL FALLBACK] " + subject + ": " + fallbackLink);
+            // NON logghiamo il link (contiene il token di verifica/reset): solo l'avviso di fallimento
+            System.out.println(">>> [EMAIL] Could not send '" + subject + "' to " + to + " (" + e.getMessage() + ")");
         }
     }
 }

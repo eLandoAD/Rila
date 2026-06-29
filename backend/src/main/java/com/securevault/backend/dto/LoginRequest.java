@@ -1,9 +1,10 @@
 package com.securevault.backend.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Data
 public class LoginRequest {
-    private String usernameOrEmail;
-    private String password;
+    @NotBlank private String usernameOrEmail;
+    @NotBlank private String password;
 }

@@ -34,8 +34,8 @@ public class JwtService {
 
         // data emissione e scadenza
         Date now = new Date();
-        // token valido per 1 ora
-        Date expiryDate = new Date(now.getTime() + 3600000);
+        // scadenza presa dalla configurazione (jwt.expiration)
+        Date expiryDate = new Date(now.getTime() + expiration);
 
         // creazione jwt token
         String jwt = Jwts.builder()
@@ -45,7 +45,6 @@ public class JwtService {
                 .signWith(key)
                 .compact();
 
-        System.out.println("Token generated: " + jwt);
         return jwt;
     }
 
@@ -70,7 +69,6 @@ public class JwtService {
 
             // estraggo quello che mi interessa
             username = claims.getSubject();
-            System.out.println("Found username: " + username);
 
 
         } catch (io.jsonwebtoken.ExpiredJwtException e) {

@@ -82,12 +82,12 @@ public class UserService {
     }
 
     public void resendVerification(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email not found"));
-
-        if (user.getEnabled()) {
-            throw new RuntimeException("Account already activated");
-        }
+        // silenzioso se l'email non esiste o l'account è già attivo:
+        // nessuna differenza osservabile dall'esterno (no user enumeration)
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) return;
+        User user = opt.get();
+        if (user.getEnabled()) return;
 
         user.setVerificationToken(UUID.randomUUID().toString());
         userRepository.save(user);
@@ -95,8 +95,10 @@ public class UserService {
     }
 
     public void forgotPassword(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email not found"));
+        // risposta identica anche se l'email non esiste: no user enumeration
+        Optional<User> opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) return;
+        User user = opt.get();
 
         String token = UUID.randomUUID().toString();
         user.setResetToken(token);

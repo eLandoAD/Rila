@@ -1,5 +1,7 @@
 package com.securevault.backend.filters;
 
+import com.securevault.backend.entities.User;
+import com.securevault.backend.repositories.UserRepository;
 import com.securevault.backend.services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,13 +9,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 
 
 @Component
@@ -21,6 +25,7 @@ import java.util.Collections;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     // override obbligatorio del metodo
     @Override
@@ -29,32 +34,41 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // controllo prima che non sia valido
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            // salto filtro e vado avanti
             filterChain.doFilter(request, response);
             return;
         }
 
-        // estraggo il token, rimuovendo bearer e lo spazio (7 chars)
+        // estraggo il token, rimuovendo "Bearer " (7 chars)
         String jwtToken = authHeader.substring(7);
 
-
         try {
-            // verifico token ed estraggo username
             String username = jwtService.extractUsername(jwtToken);
-            // se username è valido
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                if (jwtService.isTokenValid(jwtToken)) {
-                    // oggetto per autenticazione spring security
+
+            if (username != null
+                    && SecurityContextHolder.getContext().getAuthentication() == null
+                    && jwtService.isTokenValid(jwtToken)) {
+
+                User user = userRepository.findByUsername(username).orElse(null);
+
+                // autentico SOLO se l'utente esiste ed è ancora abilitato:
+                // un account disabilitato dopo il login non passa più, anche con token valido
+                if (user != null && Boolean.TRUE.equals(user.getEnabled())) {
+
+                    // carico i ruoli reali dal DB come authorities (es. ROLE_USER, ROLE_ADMIN)
+                    String rolesRaw = user.getRoles() == null ? "" : user.getRoles();
+                    List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesRaw.split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .map(SimpleGrantedAuthority::new)
+                            .toList();
+
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             username,
                             null,
-                            Collections.emptyList()
+                            authorities
                     );
-                    // associo dettagli http
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    // autenticazione utente
                     SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("User " + username + " authenticated successfully");
                 }
             }
         } catch (Exception e) {

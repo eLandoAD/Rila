@@ -1,5 +1,6 @@
 package com.securevault.backend.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -32,6 +33,7 @@ public class User {
     private String email;
 
     // password hashata
+    @JsonIgnore
     @Column(nullable = false, length = 255)
     private String password;
 
@@ -63,13 +65,16 @@ public class User {
     }
 
     // token univoco per la verifica
+    @JsonIgnore
     @Column(name = "verification_token", length = 255)
     private String verificationToken;
 
     // per reset password
+    @JsonIgnore
     @Column(name = "reset_token", length = 255)
     private String resetToken;
 
+    @JsonIgnore
     @Column(name = "reset_token_expiry")
     private Long resetTokenExpiry;
 
@@ -84,9 +89,11 @@ public class User {
     private String keySalt;
 
 
+    @JsonIgnore
     @Column(name = "recovery_encrypted_dek", length = 512)
     private String recoveryEncryptedDek;
 
+    @JsonIgnore
     @Column(name = "recovery_dek_iv", length = 255)
     private String recoveryDekIv;
 

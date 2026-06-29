@@ -14,6 +14,7 @@ import com.securevault.backend.services.FileStorageService;
 import com.securevault.backend.services.FolderService;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +57,15 @@ public class FileController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
+            // quota di storage per utente: blocco se si supera il limite
+            long QUOTA_BYTES = 1L * 1024 * 1024 * 1024; // 1 GB
+            long used = storedFileRepository.findByUser(user).stream()
+                    .mapToLong(f -> f.getFileSize() == null ? 0L : f.getFileSize())
+                    .sum();
+            if (used + file.getSize() > QUOTA_BYTES) {
+                throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Storage quota exceeded (1 GB limit)");
+            }
+
             // genero nome univoco, ho scelto UUID
             String physicalName = UUID.randomUUID().toString();
             fileStorageService.saveFile(file.getBytes(), physicalName);
@@ -88,6 +98,9 @@ public class FileController {
             storedFileRepository.save(storedFile);
 
             return ResponseEntity.ok(new FileUploadResponse(storedFile.getId().toString(), encName, "Upload successful!"));
+        } catch (ResponseStatusException e) {
+            // preserva gli status espliciti (es. quota superata = 413)
+            throw e;
         } catch(Exception e) {
             throw new RuntimeException("Error while uploading the file: ", e);
         }
@@ -120,7 +133,7 @@ public class FileController {
             byte[] fileContent = fileStorageService.loadFile(storedFile.getStoragePath());
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + storedFile.getEncName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(storedFile.getEncName()).build().toString())
                     .header("x-iv", storedFile.getIv())
                     .header("x-enc-name", storedFile.getEncName())
                     .body(fileContent);
@@ -223,16 +236,18 @@ public class FileController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/public/{id}")
-    public ResponseEntity<byte[]> downloadFilePublic(@PathVariable UUID id) {
+    @GetMapping("/public/{token}")
+    public ResponseEntity<byte[]> downloadFilePublic(@PathVariable String token) {
         try {
-            StoredFile storedFile = storedFileRepository.findById(id)
+            // serve SOLO i file esplicitamente pubblicati: lookup per share token,
+            // non per id. I file non pubblicati non sono raggiungibili pubblicamente.
+            StoredFile storedFile = storedFileRepository.findByShareToken(token)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
             byte[] fileContent = fileStorageService.loadFile(storedFile.getStoragePath());
 
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + storedFile.getEncName() + "\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(storedFile.getEncName()).build().toString())
                     .header("x-iv", storedFile.getIv())
                     .header("x-enc-name", storedFile.getEncName())
                     .body(fileContent);
@@ -337,6 +352,47 @@ public class FileController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error removing shared file: " + e.getMessage(), e);
         }
+    }
+
+    // Pubblica un file: genera (una sola volta) un token di condivisione non
+    // indovinabile e lo restituisce. Solo il proprietario puo' farlo.
+    @PostMapping("/{id}/publish")
+    public ResponseEntity<String> publish(@PathVariable UUID id) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        StoredFile storedFile = storedFileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+
+        // controllo proprietario: senza, chiunque potrebbe pubblicare i file altrui
+        if (!storedFile.getUser().getUsername().equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
+        }
+
+        // riuso il token se gia' presente, altrimenti ne genero uno (64 hex, ~244 bit)
+        if (storedFile.getShareToken() == null) {
+            storedFile.setShareToken(
+                    UUID.randomUUID().toString().replace("-", "")
+                  + UUID.randomUUID().toString().replace("-", ""));
+            storedFileRepository.save(storedFile);
+        }
+        return ResponseEntity.ok(storedFile.getShareToken());
+    }
+
+    // Revoca la condivisione pubblica: azzera il token. Solo il proprietario.
+    @PostMapping("/{id}/unpublish")
+    public ResponseEntity<Void> unpublish(@PathVariable UUID id) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        StoredFile storedFile = storedFileRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+
+        if (!storedFile.getUser().getUsername().equals(username)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
+        }
+
+        storedFile.setShareToken(null);
+        storedFileRepository.save(storedFile);
+        return ResponseEntity.noContent().build();
     }
 
 }

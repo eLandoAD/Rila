@@ -32,6 +32,10 @@ public class StoredFile {
     @Column(name = "enc_name", nullable = false)
     private String encName;
 
+    // token non condiviso
+    @Column(name = "share_token", unique = true, length = 64)
+    private String shareToken;
+
     // path su disco
     @Column(name = "storage_path", nullable = false, unique = true)
     private String storagePath;
@@ -55,4 +59,6 @@ public class StoredFile {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id")
-    private Folder folder;}
+    private Folder folder;
+
+}
