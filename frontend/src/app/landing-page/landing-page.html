@@ -16,7 +16,7 @@
         zero-knowledge architecture. Your files, your keys, your privacy.
       </p>
 
-      <a routerLink="/register" class="btn btn-primary">
+      <a routerLink="/register" class="btn btn-primary rounded-xl">
         Get Started
       </a>
     </div>
@@ -647,7 +647,7 @@
     } @else {
       <form class="join w-full max-w-xl mx-auto mb-6" (ngSubmit)="subscribe()" #newsletterForm="ngForm">
         <input
-          class="input input-bordered join-item w-full"
+          class="input input-bordered join-item w-full rounded-xl"
           placeholder="Enter your email"
           type="email"
           name="newsletterEmail"
@@ -656,13 +656,13 @@
           [(ngModel)]="newsletterEmail"
         />
 
-        <button type="submit" class="btn btn-primary join-item" [disabled]="newsletterForm.invalid">
+        <button type="submit" class="btn btn-primary join-item ml-1 mr-1 rounded-xl" [disabled]="newsletterForm.invalid">
           Subscribe
         </button>
       </form>
     }
 
-    <a routerLink="/register" class="btn bg-white text-blue-500 border-white hover:bg-blue-100 hover:border-blue-100">
+    <a routerLink="/register" class="btn bg-white rounded-xl text-blue-500 border-white hover:bg-blue-100 hover:border-blue-100">
       Get Started
     </a>
   </div>
