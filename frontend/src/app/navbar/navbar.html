@@ -15,13 +15,13 @@
   </div>
   <!-- Navbar Center -->
   <div class="navbar-center">
-    <a routerLink="/" class="btn btn-ghost text-xl text-bold">SecureVault</a>
+    <a routerLink="/" class="btn btn-ghost rounded-xl text-xl text-bold">SecureVault</a>
   </div>
   <!-- Navbar End -->
   <div class="navbar-end">
     @if (!isAuthenticated()) {
       <!-- Login/Sign In Button -->
-      <a routerLink="/login" class="btn">Login</a>
+      <a routerLink="/login" class="btn rounded-xl">Login</a>
     } @else {
       <!-- Notification Button -->
       <button class="btn btn-ghost btn-circle">
