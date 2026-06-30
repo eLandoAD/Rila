@@ -5,6 +5,7 @@ import com.securevault.backend.entities.User;
 import com.securevault.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+
+    // Solo per la demo: se true l'account nasce già attivo (enabled=true) così
+    // anche un estraneo che si registra può loggarsi subito senza dover aprire la
+    // mail di verifica. Default false => in produzione la verifica resta obbligatoria.
+    @Value("${app.demo.auto-verify:false}")
+    private boolean demoAutoVerify;
 
     /**
      * Registra un utente con username, email, password hashata e il materiale di
@@ -39,7 +46,8 @@ public class UserService {
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
-        user.setEnabled(false);
+        // in demo l'account è già attivo; in prod resta da verificare via email
+        user.setEnabled(demoAutoVerify);
         user.setVerificationToken(UUID.randomUUID().toString());
         user.setEncryptedDek(encryptedDek);
         user.setDekIv(dekIv);

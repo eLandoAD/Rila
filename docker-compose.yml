@@ -44,6 +44,9 @@ services:
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "${SMTP_STARTTLS:-true}"
       APP_MAIL_FROM: ${SMTP_USER:-noreply@northleap.it}
       APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
+      # DEMO: se true gli account nascono già verificati (utile per far provare
+      # l'app a estranei senza accesso a Mailpit). In prod lascialo a false.
+      APP_DEMO_AUTO_VERIFY: ${DEMO_AUTO_VERIFY:-false}
       # Storage persistente: punta esplicitamente al volume montato sotto /storage
       APP_STORAGE_PATH: /storage
     ports:
@@ -78,14 +81,16 @@ services:
     ports:
       - "${PROXY_PORT:-4205}:80"
 
-  # Dev SMTP catcher: captures outgoing emails, web UI on http://localhost:8025
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: securevault_mailhog
+  # SMTP catcher: cattura le mail in uscita e le mostra in una web UI.
+  # Per dirottare il backend qui, nel .env: SMTP_HOST=mailpit SMTP_PORT=1025
+  # SMTP_AUTH=false SMTP_STARTTLS=false. Web UI su http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: securevault_mailpit
     restart: unless-stopped
     ports:
-      - "${MAILHOG_SMTP_PORT:-1025}:1025"
-      - "${MAILHOG_PORT:-8025}:8025"
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_PORT:-8025}:8025"
 
 volumes:
   postgres_data:

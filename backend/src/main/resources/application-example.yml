@@ -19,7 +19,7 @@ spring:
           dialect: org.hibernate.dialect.PostgreSQLDialect
           jdbc:
             time_zone: UTC
-  # SMTP — in locale punta al catcher MailHog (docker-compose), in prod usa SMTP reale
+  # SMTP — in locale punta al catcher Mailpit (docker-compose), in prod usa SMTP reale
   mail:
     host: localhost
     port: 1025
@@ -46,4 +46,8 @@ app:
     from: noreply@securevault.local
   # base URL del frontend per i link in email (verifica / reset)
   frontend-url: http://localhost:4200
+  # DEMO: se true gli account nascono già verificati (enabled=true) così anche un
+  # estraneo può loggarsi subito senza aprire la mail. In prod lasciare false.
+  demo:
+    auto-verify: false
 
