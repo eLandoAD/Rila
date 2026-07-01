@@ -15,7 +15,7 @@ public class EmailService {
     private final JavaMailSender mailSender;
 
     // mittente e base url del frontend, configurabili da env
-    @Value("${app.mail.from:noreply@northleap.it}")
+    @Value("${app.mail.from:noreply@securevault.app}")
     private String from;
 
     @Value("${app.frontend-url:http://localhost:4200}")

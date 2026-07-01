@@ -22,24 +22,31 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    @Value("${app.demo.reveal-token:false}")
+    private boolean revealToken;
+
 
     // POST /api/auth/register
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        // chiamo userService
-        userService.registerUser(
+        // chiamo userService, e lo passo a oggetto di tipo user, utile per la verification token per l'email
+        User user = userService.registerUser(
             request.getUsername(), 
             request.getEmail(), 
             request.getPassword(), 
             request.getEncryptedDek(), 
             request.getDekIv(), 
             request.getKeySalt(),
-            request.getRecoveryEncryptedDek(), // Aggiunto
-            request.getRecoveryDekIv()        // Aggiunto
+            request.getRecoveryEncryptedDek(),
+            request.getRecoveryDekIv()
         );
 
-        // nessun token: l'account va prima verificato via email
-        return ResponseEntity.ok(new AuthResponse(null, "Registration successful, check your email to verify your account"));
+        AuthResponse res = new AuthResponse(null, "Registration successful, check your email to verify your account");
+        if (revealToken) {
+            res.setVerificationToken(user.getVerificationToken());
+        }
+
+        return ResponseEntity.ok(res);
     }
 
 
