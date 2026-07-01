@@ -18,7 +18,7 @@ public class AuthResponse {
 
     // costruttore a 2 argomenti
     public AuthResponse(String token, String message) {
-        this(token, message, null, null,fammi te null);
+        this(token, message, null, null, null);
     }
 
     // costruttore a 5 argomenti (senza verificationToken) per login e dati E2EE
