@@ -35,18 +35,19 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-0123456789-0123456789-0123456789-abcdef}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
-      # SMTP (valori reali in .env, non committato)
-      SPRING_MAIL_HOST: ${SMTP_HOST:-mail.northleap.it}
-      SPRING_MAIL_PORT: ${SMTP_PORT:-587}
-      SPRING_MAIL_USERNAME: ${SMTP_USER:-noreply@northleap.it}
+      # SMTP — default sul catcher Mailpit; valori reali (SMTP reale) via .env
+      SPRING_MAIL_HOST: ${SMTP_HOST:-mailpit}
+      SPRING_MAIL_PORT: ${SMTP_PORT:-1025}
+      SPRING_MAIL_USERNAME: ${SMTP_USER:-noreply@securevault.app}
       SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "${SMTP_AUTH:-true}"
-      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "${SMTP_STARTTLS:-true}"
-      APP_MAIL_FROM: ${SMTP_USER:-noreply@northleap.it}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "${SMTP_AUTH:-false}"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "${SMTP_STARTTLS:-false}"
+      APP_MAIL_FROM: ${SMTP_USER:-noreply@securevault.app}
       APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       # DEMO: se true gli account nascono già verificati (utile per far provare
       # l'app a estranei senza accesso a Mailpit). In prod lascialo a false.
       APP_DEMO_AUTO_VERIFY: ${DEMO_AUTO_VERIFY:-false}
+      APP_DEMO_REVEAL_TOKEN: ${DEMO_REVEAL_TOKEN:-false}
       # Storage persistente: punta esplicitamente al volume montato sotto /storage
       APP_STORAGE_PATH: /storage
     ports:
