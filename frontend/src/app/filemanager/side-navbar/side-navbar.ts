@@ -23,4 +23,8 @@ export class SideNavbar {
     this.auth.logout();
     this.router.navigateByUrl('/login');
   }
+
+  toHome(): void {
+    this.router.navigateByUrl('/home');
+  }
 }
