@@ -2,56 +2,70 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 /**
- * Client-side AES-GCM encryption. The encryption key (DEK) is derived from the user's
- * password or a recovery key and stored only in memory during the session.
+ * encryption AES-GCM client-side. La dek viene derivata dalla password dell'utente
+ * o da una recovery key e viene salvata in memoria solo durante la sessione
  */
 @Injectable({ providedIn: 'root' })
 export class CryptoService {
+  // verifico sia un browser
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   
-  // The Data Encryption Key (DEK) kept in memory during the session.
+  // dek, tenuto in memoria solo durante la sessione
   private currentDek: CryptoKey | null = null;
 
-  // Persisted (raw, base64) DEK so the session survives page reloads / dev server
-  // restarts. Lives in sessionStorage: it persists until the tab is closed and is
-  // never sent to the backend, preserving the zero-knowledge model.
+  /**
+   * dek persistente (raw, base64) così la sessione sopravvive ai ricaricamenti della pagina
+   * o a problemi vari, come riavvi del server.
+   * sta in sessionStorage, vive con la scheda, e non viene mai inviata al backend
+   */
   private readonly DEK_STORAGE_KEY = 'sv_dek';
 
   /**
-   * Encrypts a file's data using the session DEK.
+   * encripta dei dati usando la chiave dek
    */
   async encrypt(data: ArrayBuffer): Promise<{ cipher: ArrayBuffer; iv: string }> {
+    // uso il metodo wrapper per prendermi la dek attuale
     const key = this.getRequiredKey();
+    // genero l'iv casuale
     const ivBytes = crypto.getRandomValues(new Uint8Array(12));
+    // applico cifratura
     const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivBytes }, key, data);
+    // ritorno cipher, iv + dek che ce l'ho sempre
     return { cipher, iv: this.toBase64(ivBytes) };
   }
 
   /**
-   * Encrypts a small string (like a filename) using the session DEK.
+   * encripta una piccola stringa usando dek, utile per il filename
    */
   async encryptText(text: string, iv: string): Promise<string> {
+    // mi prendo la dek
     const key = this.getRequiredKey();
+    // rispetto all'altro prendo l'iv come parametro
+    // quindi genero direttamente cripto
     const cipher = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
       key,
       new TextEncoder().encode(text)
     );
+    // qua ritorno solo stringa, tanto ho gia l'iv
     return this.toBase64(new Uint8Array(cipher));
   }
 
   /**
-   * Decrypts a file's data using the session DEK.
+   * decripta un file usando la dek
    */
   async decrypt(cipher: ArrayBuffer, iv: string): Promise<ArrayBuffer> {
+    // prende la dek attuale
     const key = this.getRequiredKey();
+    // ritorna il risultato decriptato, passando anche la dek e il testo
     return crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.fromBase64(iv) as any }, key, cipher);
   }
 
   /**
-   * Decrypts a small string (like a filename) using the session DEK.
+   * decripta una piccola stringa (filename) usando la dek
    */
   async decryptText(encText: string, iv: string): Promise<string> {
+    // solito 
     const key = this.getRequiredKey();
     const plain = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
@@ -62,7 +76,8 @@ export class CryptoService {
   }
 
   /**
-   * Support for Registration: Generates everything needed including a Recovery Key.
+   * supporto per la registrazione: genera tutto il necessario, compresa la recovery key everything 
+   * ritorna una promise ocntenente le varie chiavi + iv
    */
   async setupRegistrationKeys(password: string): Promise<{
     encryptedDek: string;
@@ -72,16 +87,23 @@ export class CryptoService {
     recoveryEncryptedDek: string;
     recoveryDekIv: string;
   }> {
+    // genero salt casuale, che viene poi mixato con la password
     const salt = crypto.getRandomValues(new Uint8Array(16));
+    // genero un dek casuale
     const dek = await this.generateDEK();
     
-    // 1. Password-based KEK
+    // kek, derivata da password e salt
+    // obiettivo salt --> aumentare casualità
+    // password + saltA -> key a
+    // password + saltB -> key b
     const kek = await this.deriveKEK(password, salt);
+    // mi prendo pure iv e dek criptato
     const { encryptedDek, iv } = await this.encryptDEK(dek, kek);
     
-    // 2. Recovery Key-based KEK
+    // preparo la recovery key, basata sulla kek
     const recoveryKey = this.generateRecoveryKeyString();
-    const emergencyKek = await this.deriveKEK(recoveryKey, salt); // same salt for simplicity
+    // uso lo stesso salt per semplicità
+    const emergencyKek = await this.deriveKEK(recoveryKey, salt); 
     const { encryptedDek: recoveryEncDek, iv: recoveryIv } = await this.encryptDEK(dek, emergencyKek);
 
     this.currentDek = dek;
@@ -217,13 +239,22 @@ export class CryptoService {
     return new TextDecoder().decode(plain);
   }
 
+  /**
+   * Metodo wrapper di supporto
+   * @returns la chiave dek
+   */
   private getRequiredKey(): CryptoKey {
+    // controlla che la dek ci sia, e che quindi l'user sia loggato
     if (!this.currentDek) {
       throw new Error('Encryption key not initialized. Please log in.');
     }
+    // ritorna la dek 
     return this.currentDek;
   }
 
+  /**
+   * 
+   */
   private async generateDEK(): Promise<CryptoKey> {
     return crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },

@@ -8,12 +8,15 @@ import { AuthService } from '../core/auth/auth.service';
   templateUrl: './navbar.html',
 })
 export class Navbar {
+  // servizi per autenticazione e routing delle pagine
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
+  // riuso i computed
   readonly isAuthenticated = this.auth.isAuthenticated;
   readonly username = this.auth.username;
 
+  // metodo per uscire
   logout(): void {
     this.auth.logout();
     this.router.navigateByUrl('/login');

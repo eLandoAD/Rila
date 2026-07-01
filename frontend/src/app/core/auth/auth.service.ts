@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, WritableSignal, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
@@ -9,34 +9,46 @@ const TOKEN_KEY = 'sv_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+
+  // injection dei due servizi necessari
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
+  // verifico sia browser e prendo l'url base dall'.env
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly baseUrl = `${environment.apiBaseUrl}/auth`;
 
-  private readonly tokenSignal = signal<string | null>(this.readToken());
+  private readonly tokenSignal: WritableSignal<string | null> = signal<string | null>(this.readToken());
 
+  // mi salvo il token come readonly
   readonly token = this.tokenSignal.asReadonly();
+  // computed per gestire autenticazione, usato poi nel resto del codice
   readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
+
+  // computed per gestire username di utente autenticato
+  // usato nel resto del codice
   readonly username = computed(() => {
     const token = this.tokenSignal();
     return token ? this.extractSubject(token) : null;
   });
 
+  // metodo per registrarsi, che punta all'endpoint register dell'api
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
   }
 
+  // metodo per loggarsi, che punta all'endpoint login dell'api
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/login`, request)
       .pipe(tap((res) => this.persistToken(res.token)));
   }
 
+  // metodo per effettuare il logout
   logout(): void {
     this.persistToken(null);
   }
 
+  // vari metodi per reset password, verifica, e via dicendo
   forgotPassword(email: string): Observable<string> {
     return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
   }
