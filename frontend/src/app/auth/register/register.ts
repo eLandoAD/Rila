@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -21,9 +21,10 @@ export class Register {
   password = '';
   confirmPassword = '';
 
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
-  readonly recoveryKey = signal<string | null>(null);
+  readonly loading: WritableSignal<boolean> = signal(false);
+  readonly error: WritableSignal<string | null> = signal<string | null>(null);
+  readonly recoveryKey: WritableSignal<string | null> = signal<string | null>(null);
+  readonly verificationToken: WritableSignal<string | null> = signal<string | null>(null);
 
   async submit(): Promise<void> {
     if (this.loading()) return;
@@ -52,9 +53,10 @@ export class Register {
           recoveryDekIv: keys.recoveryDekIv
         })
         .subscribe({
-          next: () => {
+          next: (res) => {
             this.loading.set(false);
-            // Instead of redirecting immediately, show the recovery key
+            this.verificationToken.set(res.verificationToken ?? null);
+            // invece di fare il redirect, mostro la recovery key
             this.recoveryKey.set(keys.recoveryKey);
           },
           error: (err: HttpErrorResponse) => {
@@ -119,7 +121,14 @@ export class Register {
     this.downloaded.set(true);
   }
 
+  // vado alla fake inbox
   finish(): void {
-    this.router.navigateByUrl('/login?registered=true');
+    const token = this.verificationToken();
+    if (token) {
+      this.router.navigate(['/mail'], { queryParams: { email: this.email, token } });
+    } else {
+      // x fallback
+      this.router.navigateByUrl('/login?registered=true');
+    }
   }
 }

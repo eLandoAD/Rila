@@ -21,5 +21,6 @@ export const routes: Routes = [
   { path: 'filemanager/shared', canActivate: [authGuard], loadComponent: () => import('./filemanager/shared/shared').then(m => m.Shared)},
   { path: 'filemanager', redirectTo: 'filemanager/dashboard', pathMatch: 'full' },
   { path: 'share', loadComponent: () => import('./share/share').then(m => m.ShareComponent) },
+  { path: 'mail', loadComponent: () => import('./auth/fake-inbox/fake-inbox').then(m => m.FakeInbox) },
   { path: '**', loadComponent: () => import('./not-found/not-found').then(m => m.NotFound)},
 ];

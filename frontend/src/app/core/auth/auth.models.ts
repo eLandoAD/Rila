@@ -1,3 +1,5 @@
+// ogni interfaccia, che descrive i vari dto
+
 export interface RegisterRequest {
   username: string;
   email: string;
@@ -20,6 +22,7 @@ export interface AuthResponse {
   encryptedDek?: string;
   dekIv?: string;
   keySalt?: string;
+  verificationToken?: string;
 }
 
 export interface ResetPasswordRequest {

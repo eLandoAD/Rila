@@ -1,0 +1,134 @@
+<div class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+  <div class="w-full max-w-3xl">
+
+    <!-- Mail client card -->
+    <div class="card bg-base-100/40 backdrop-blur-xl border border-base-300/40 shadow-2xl rounded-3xl overflow-hidden">
+
+      <!-- Top bar (finestra) -->
+      <div class="flex items-center justify-between gap-3 px-5 py-3 border-b border-base-300/40 bg-base-100/30">
+        <div class="flex items-center gap-3">
+          <!-- traffic lights -->
+          <div class="flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-error/80"></span>
+            <span class="w-3 h-3 rounded-full bg-warning/80"></span>
+            <span class="w-3 h-3 rounded-full bg-success/80"></span>
+          </div>
+          <div class="flex items-center gap-2 pl-2">
+            <div class="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-primary-content text-xs font-black">SV</div>
+            <span class="text-sm font-bold text-base-content">SecureVault Mail</span>
+          </div>
+        </div>
+        <div class="badge badge-ghost gap-1.5 text-xs font-medium max-w-[55%] truncate">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          <span class="truncate">{{ email() ?? 'you@securevault.app' }}</span>
+        </div>
+      </div>
+
+      <!-- Body: sidebar + main -->
+      <div class="flex min-h-[440px]">
+
+        <!-- Sidebar decorativa (nascosta su mobile) -->
+        <aside class="hidden md:flex flex-col w-44 shrink-0 border-r border-base-300/40 p-3 gap-1">
+          <button type="button" class="btn btn-sm btn-ghost justify-start gap-2 bg-primary/10 text-primary font-semibold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+            Inbox
+            <span class="badge badge-primary badge-sm ml-auto">1</span>
+          </button>
+          <button type="button" class="btn btn-sm btn-ghost justify-start gap-2 opacity-40 pointer-events-none">★ Starred</button>
+          <button type="button" class="btn btn-sm btn-ghost justify-start gap-2 opacity-40 pointer-events-none">✈ Sent</button>
+          <button type="button" class="btn btn-sm btn-ghost justify-start gap-2 opacity-40 pointer-events-none">✎ Drafts</button>
+          <button type="button" class="btn btn-sm btn-ghost justify-start gap-2 opacity-40 pointer-events-none">🗑 Trash</button>
+        </aside>
+
+        <!-- Main -->
+        <main class="flex-1 min-w-0 flex flex-col">
+
+          <!-- Header lista -->
+          <div class="flex items-center justify-between px-5 py-3 border-b border-base-300/40">
+            <h1 class="text-base font-bold">Inbox</h1>
+            <span class="text-xs opacity-50">1 new message</span>
+          </div>
+
+          <!-- Zona contenuto -->
+          <div class="relative flex-1">
+
+            <!-- Stato di attesa -->
+            @if (!arrived()) {
+              <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
+                <span class="loading loading-dots loading-lg text-primary"></span>
+                <p class="text-sm opacity-60">Waiting for new mail…</p>
+              </div>
+            }
+
+            <!-- Mail (entra con fade + slide) -->
+            <div
+              class="transition-all duration-700 ease-out"
+              [class.opacity-0]="!arrived()"
+              [class.translate-y-3]="!arrived()"
+              [class.pointer-events-none]="!arrived()"
+            >
+              <!-- Riga in lista (cliccabile per aprire) -->
+              <button
+                type="button"
+                (click)="open()"
+                class="w-full flex items-center gap-3 px-5 py-4 text-left border-b border-base-300/40 hover:bg-base-content/5 transition-colors"
+              >
+                <span class="w-2 h-2 rounded-full shrink-0 transition-colors" [class.bg-primary]="!opened()" [class.bg-transparent]="opened()"></span>
+                <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-primary-content text-xs font-black shrink-0">SV</div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm truncate" [class.font-bold]="!opened()">SecureVault</span>
+                    <span class="text-xs opacity-50 shrink-0">now</span>
+                  </div>
+                  <div class="text-sm truncate" [class.font-semibold]="!opened()">Confirm your account</div>
+                  <div class="text-xs opacity-50 truncate">Welcome to SecureVault! Confirm your account to start storing…</div>
+                </div>
+              </button>
+
+              <!-- Anteprima/lettura (compare all'apertura) -->
+              @if (opened()) {
+                <div class="p-5 sm:p-6">
+                  <h2 class="text-lg font-bold mb-4">Confirm your account</h2>
+
+                  <div class="flex items-center gap-3 mb-5">
+                    <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-content font-black shrink-0">SV</div>
+                    <div class="min-w-0">
+                      <div class="text-sm font-semibold truncate">
+                        SecureVault <span class="opacity-50 font-normal">&lt;noreply@securevault.app&gt;</span>
+                      </div>
+                      <div class="text-xs opacity-60 flex items-center gap-1.5">
+                        to <span class="badge badge-ghost badge-sm max-w-[60%] truncate">{{ email() ?? 'you' }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="text-sm leading-relaxed opacity-80 mb-2">Welcome to SecureVault! 🔒</p>
+                  <p class="text-sm leading-relaxed opacity-80 mb-6">
+                    Confirm your account to start storing your files with end-to-end encryption.
+                    Click the button below to activate your account.
+                  </p>
+
+                  <a
+                    [routerLink]="['/verify-email']"
+                    [queryParams]="{ token: token() }"
+                    class="btn btn-primary border-0 text-primary-content font-bold shadow-sm rounded-xl h-12 px-8 gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                    Verify my account
+                  </a>
+
+                  <p class="text-xs opacity-40 mt-6">If you did not create this account, you can safely ignore this email.</p>
+                </div>
+              }
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <!-- Footer nota demo -->
+      <div class="px-5 py-2.5 border-t border-base-300/40 bg-base-100/30 text-center">
+        <span class="text-[11px] opacity-50">🔒 Demo inbox — this mailbox is simulated for the SecureVault demo. No real email is sent.</span>
+      </div>
+    </div>
+  </div>
+</div>
