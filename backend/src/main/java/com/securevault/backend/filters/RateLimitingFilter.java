@@ -26,6 +26,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             "/api/auth/register",
             "/api/auth/forgot-password",
             "/api/auth/resend-verification"
+            "/api/auth/verify"
+            "/api/auth/reset-password"
+            "/api/auth/reset-info"
+
     );
 
     private static final int MAX_REQUESTS = 10;     // richieste consentite
@@ -38,7 +42,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        if (!LIMITED_PATHS.contains(path)) {
+        // accetto sia il match che il prefisso
+        boolean limited = LIMITED_PATHS.contains(path) || path.startsWith("/api/files/public");
+        if (!limited) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -56,6 +62,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private synchronized boolean allow(String key) {
         long now = System.currentTimeMillis();
+        // pulizia -> butto via bucket con finestra scaduta
+        buckets.entrySet().removeIf(e -> now - e.getValue().windowStart >= WINDOW_MS);
         Window w = buckets.computeIfAbsent(key, k -> new Window(now));
         if (now - w.windowStart >= WINDOW_MS) {
             w.windowStart = now;
@@ -65,12 +73,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return w.count <= MAX_REQUESTS;
     }
 
-    // IP reale del client: primo valore di X-Forwarded-For (impostato da nginx),
+    // IP reale del client: penultimo di X-Forwarded-For (impostato da nginx),
     // con fallback all'indirizzo della connessione.
     private String clientIp(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
+            String[] parts = xff.split(",");
+            // prendo il penultimo, dato che [client, ingress]
+            int i = parts.length >= 2 ? parts.length - 2 : 0;
+            return parts[i].trim();
         }
         return request.getRemoteAddr();
     }
