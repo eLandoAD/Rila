@@ -75,10 +75,10 @@ public class UserService {
 
     public void verifyEmail(String token) {
         User user = userRepository.findByVerificationToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not valid"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid"));
 
         if (user.getEnabled()) {
-            throw new RuntimeException("Account already activated");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Account already activated");
         }
 
         user.setEnabled(true);
@@ -118,13 +118,13 @@ public class UserService {
 
     public void resetPassword(String token, String newPassword, String newEncryptedDek, String newDekIv) {
         User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not valid"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid");
 
         if (System.currentTimeMillis() > user.getResetTokenExpiry()) {
             user.setResetToken(null);
             user.setResetTokenExpiry(null);
             userRepository.save(user);
-            throw new RuntimeException("Token expired");
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -140,10 +140,10 @@ public class UserService {
 
     public ResetInfoResponse getResetInfo(String token) {
         User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid");
 
         if (System.currentTimeMillis() > user.getResetTokenExpiry()) {
-            throw new RuntimeException("Token expired");
+            throw new new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
         }
 
         return new ResetInfoResponse(
