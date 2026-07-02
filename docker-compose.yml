@@ -50,6 +50,9 @@ services:
       APP_DEMO_REVEAL_TOKEN: ${DEMO_REVEAL_TOKEN:-false}
       # Storage persistente: punta esplicitamente al volume montato sotto /storage
       APP_STORAGE_PATH: /storage
+      # Per uplodare fino a 40 mb
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 40MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 40MB
     ports:
       - "127.0.0.1:8085:8080"
     volumes:
