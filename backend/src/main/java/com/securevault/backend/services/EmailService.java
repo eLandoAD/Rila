@@ -7,12 +7,15 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class)
 
     // mittente e base url del frontend, configurabili da env
     @Value("${app.mail.from:noreply@securevault.app}")
@@ -119,8 +122,7 @@ public class EmailService {
             helper.setText(html, true); // true => HTML
             mailSender.send(message);
         } catch (Exception e) {
-            // NON logghiamo il link (contiene il token di verifica/reset): solo l'avviso di fallimento
-            System.out.println(">>> [EMAIL] Could not send '" + subject + "' to " + to + " (" + e.getMessage() + ")");
+            log.warn(">>> [EMAIL] Could not send '{}' ({})", subject, e.getMessage()):
         }
     }
 }
