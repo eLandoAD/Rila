@@ -42,7 +42,7 @@ public class AuthController {
             request.getRecoveryDekIv()
         );
 
-        AuthResponse res = new AuthResponse(null, "Registration successful, check your email to verify your account");
+        AuthResponse res = new AuthResponse(null, "Registration successful");
         if (revealToken) {
             res.setVerificationToken(user.getVerificationToken());
         }
@@ -66,7 +66,7 @@ public class AuthController {
         User u = user.get();
 
         if (!u.getEnabled()) {
-            return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified, check your email"));
+            return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified. Please verify your account before logging in."));
         }
 
         // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo

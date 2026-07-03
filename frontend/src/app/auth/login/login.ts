@@ -24,7 +24,7 @@ export class Login {
   readonly error = signal<string | null>(null);
   readonly infoMessage = signal<string | null>(
     this.route.snapshot.queryParamMap.get('registered') === 'true'
-      ? 'Registration successful! Please check your email to verify your account before logging in.'
+      ? 'Registration successful! You can now log in.'
       : null
   );
 
