@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.Map;
 
@@ -46,5 +47,15 @@ public class GlobalExceptionHandler {
         log.error("Unhandled runtime exception", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Unexpected error."));
+    }
+
+    // per normalizzare il messaggio per il frontend
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
+        String msg = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(fe -> fe.getDefaultMessage())
+                .orElse("Validation failed");
+        return ResponseEntity.badRequest().body(Map.of("message", msg));
     }
 }
