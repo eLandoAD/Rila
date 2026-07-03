@@ -118,7 +118,7 @@ public class UserService {
 
     public void resetPassword(String token, String newPassword, String newEncryptedDek, String newDekIv) {
         User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid");
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid"));
 
         if (System.currentTimeMillis() > user.getResetTokenExpiry()) {
             user.setResetToken(null);
@@ -140,10 +140,10 @@ public class UserService {
 
     public ResetInfoResponse getResetInfo(String token) {
         User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid");
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token not valid"));
 
         if (System.currentTimeMillis() > user.getResetTokenExpiry()) {
-            throw new new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expired");
         }
 
         return new ResetInfoResponse(

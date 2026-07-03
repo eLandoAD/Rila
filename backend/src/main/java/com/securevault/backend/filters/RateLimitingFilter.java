@@ -25,11 +25,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/forgot-password",
-            "/api/auth/resend-verification"
-            "/api/auth/verify"
-            "/api/auth/reset-password"
+            "/api/auth/resend-verification",
+            "/api/auth/verify",
+            "/api/auth/reset-password",
             "/api/auth/reset-info"
-
     );
 
     private static final int MAX_REQUESTS = 10;     // richieste consentite

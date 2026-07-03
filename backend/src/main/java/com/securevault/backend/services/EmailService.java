@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class EmailService {
 
     private final JavaMailSender mailSender;
-    private static final Logger log = LoggerFactory.getLogger(EmailService.class)
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
 
     // mittente e base url del frontend, configurabili da env
     @Value("${app.mail.from:noreply@securevault.app}")
@@ -122,7 +122,7 @@ public class EmailService {
             helper.setText(html, true); // true => HTML
             mailSender.send(message);
         } catch (Exception e) {
-            log.warn(">>> [EMAIL] Could not send '{}' ({})", subject, e.getMessage()):
+            log.warn(">>> [EMAIL] Could not send '{}' ({})", subject, e.getMessage());
         }
     }
 }
