@@ -14,6 +14,7 @@ import com.securevault.backend.services.FileStorageService;
 import com.securevault.backend.services.FolderService;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -68,7 +69,7 @@ public class FileController {
 
             // genero nome univoco, ho scelto UUID
             String physicalName = UUID.randomUUID().toString();
-            fileStorageService.saveFile(file.getBytes(), physicalName);
+            fileStorageService.saveFile(file.getInputStream(), physicalName);
 
             // cerco la cartella
             Folder folder = null;
@@ -107,7 +108,7 @@ public class FileController {
     }
 
     @GetMapping("/download/{id}")
-    public ResponseEntity<byte[]> downloadFile(@PathVariable UUID id) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable UUID id) {
         try {
             // prendo lo username attuale
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -130,14 +131,14 @@ public class FileController {
             }
 
             // recupero fisico
-            byte[] fileContent = fileStorageService.loadFile(storedFile.getStoragePath());
+            Resource fileContent = fileStorageService.loadFileAsResource(storedFile.getStoragePath());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(storedFile.getEncName()).build().toString())
                     .header("x-iv", storedFile.getIv())
                     .header("x-enc-name", storedFile.getEncName())
                     .body(fileContent);
-
+            
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
@@ -237,14 +238,14 @@ public class FileController {
     }
 
     @GetMapping("/public/{token}")
-    public ResponseEntity<byte[]> downloadFilePublic(@PathVariable String token) {
+    public ResponseEntity<Resource> downloadFilePublic(@PathVariable String token) {
         try {
             // serve SOLO i file esplicitamente pubblicati: lookup per share token,
             // non per id. I file non pubblicati non sono raggiungibili pubblicamente.
             StoredFile storedFile = storedFileRepository.findByShareToken(token)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
-            byte[] fileContent = fileStorageService.loadFile(storedFile.getStoragePath());
+            Resource fileContent = fileStorageService.loadFileAsResource(storedFile.getStoragePath());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(storedFile.getEncName()).build().toString())

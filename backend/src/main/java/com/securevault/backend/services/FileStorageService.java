@@ -1,12 +1,18 @@
 package com.securevault.backend.services;
 
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 @Service
 public class FileStorageService {
@@ -21,33 +27,28 @@ public class FileStorageService {
         return Paths.get(storagePath).toAbsolutePath().normalize();
     }
 
-    public void saveFile(byte[] encryptedContent, String fileName) {
+    // salva lo stream cifrato su disco senza bufferizzare il file intero in RAM
+    public void saveFile(InputStream in, String fileName) {
         Path storageDirectory = storageDirectory();
 
         try {
             Files.createDirectories(storageDirectory);
             Path targetPath = storageDirectory.resolve(fileName);
-            // Scriviamo i byte direttamente (sono già stati cifrati dal frontend)
-            Files.write(targetPath, encryptedContent);
-        } catch (IOException e) {
-            throw new RuntimeException("Errore durante il salvataggio fisico del file: " + e.getMessage(), e);
+            // stream diretto su disco, a blocchi -> non carico in RAM interamente
+            Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch(IOException ioe) {
+            throw new RuntimeException("Error while saving the file" + ioe.getMessage(), ioe);
         }
     }
 
-    public byte[] loadFile(String fileName) {
+
+
+    public Resource loadFileAsResource(String fileName) {
         Path filePath = storageDirectory().resolve(fileName);
-
-        // controllo se il file esiste
         if (!Files.exists(filePath)) {
-            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "File not found on disk: " + fileName);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found on disk: " + fileName);
         }
-
-        try {
-            // leggo i byte dal file specifico
-            return Files.readAllBytes(filePath);
-        } catch (IOException e) {
-            throw new RuntimeException("Error while reading the file: " + e.getMessage(), e);
-        }
+        return new FileSystemResource(filePath);
     }
 
     public void deleteFile(String fileName) {
