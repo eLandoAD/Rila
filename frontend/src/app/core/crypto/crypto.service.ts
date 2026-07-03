@@ -279,7 +279,7 @@ export class CryptoService {
       {
         name: 'PBKDF2',
         salt: salt as any,
-        iterations: 100000,
+        iterations: 600000,
         hash: 'SHA-256',
       },
       keyMaterial,

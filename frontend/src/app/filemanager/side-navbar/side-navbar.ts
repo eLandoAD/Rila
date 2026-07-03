@@ -24,7 +24,4 @@ export class SideNavbar {
     this.router.navigateByUrl('/login');
   }
 
-  toHome(): void {
-    this.router.navigateByUrl('/home');
-  }
 }
