@@ -40,7 +40,7 @@ export class Login {
       .subscribe({
         next: async (res) => {
           if (res.encryptedDek && res.dekIv && res.keySalt) {
-            await this.crypto.setupLoginKeys(this.password, res.encryptedDek, res.dekIv, res.keySalt);
+            await this.crypto.setupLoginKeys(this.password, res.encryptedDek, res.dekIv, res.keySalt, res.encryptedPrivateKey, res.privateKeyIv);
           }
           this.loading.set(false);
           const redirect =

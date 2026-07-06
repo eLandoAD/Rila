@@ -9,6 +9,9 @@ export interface RegisterRequest {
   keySalt?: string;
   recoveryEncryptedDek?: string;
   recoveryDekIv?: string;
+  publicKey?: string;
+  encryptedPrivateKey?: string;
+  privateKeyIv?: string;
 }
 
 export interface LoginRequest {
@@ -23,6 +26,8 @@ export interface AuthResponse {
   dekIv?: string;
   keySalt?: string;
   verificationToken?: string;
+  encryptedPrivateKey?: string;
+  privateKeyIv?: string;
 }
 
 export interface ResetPasswordRequest {

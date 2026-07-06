@@ -50,7 +50,10 @@ export class Register {
           dekIv: keys.iv,
           keySalt: keys.salt,
           recoveryEncryptedDek: keys.recoveryEncryptedDek,
-          recoveryDekIv: keys.recoveryDekIv
+          recoveryDekIv: keys.recoveryDekIv,
+          publicKey: keys.publicKey,
+          encryptedPrivateKey: keys.encryptedPrivateKey,
+          privateKeyIv: keys.privateKeyIv
         })
         .subscribe({
           next: (res) => {

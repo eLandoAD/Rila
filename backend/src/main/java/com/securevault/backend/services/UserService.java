@@ -34,7 +34,7 @@ public class UserService {
      * cifratura envelope (encryptedDek, dekIv, keySalt) generato dal client.
      * @return l'intero oggetto User
      */
-    public User registerUser(String username, String email, String password, String encryptedDek, String dekIv, String keySalt, String recoveryEncryptedDek, String recoveryDekIv) {
+    public User registerUser(String username, String email, String password, String encryptedDek, String dekIv, String keySalt, String recoveryEncryptedDek, String recoveryDekIv, String publicKey, String encryptedPrivateKey, String privateKeyIv) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
         }
@@ -54,6 +54,9 @@ public class UserService {
         user.setKeySalt(keySalt);
         user.setRecoveryDekIv(recoveryDekIv);
         user.setRecoveryEncryptedDek(recoveryEncryptedDek);
+        user.setPublicKey(publicKey);
+        user.setEncryptedPrivateKey(encryptedPrivateKey);
+        user.setPrivateKeyIv(privateKeyIv);
         userRepository.save(user);
         // L'invio email è best-effort: se l'SMTP non è raggiungibile la registrazione
         // non deve fallire (l'utente può sempre richiedere un nuovo invio di verifica).

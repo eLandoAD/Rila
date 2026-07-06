@@ -39,7 +39,10 @@ public class AuthController {
             request.getDekIv(), 
             request.getKeySalt(),
             request.getRecoveryEncryptedDek(),
-            request.getRecoveryDekIv()
+            request.getRecoveryDekIv(),
+            request.getPublicKey(),
+            request.getEncryptedPrivateKey(),
+            request.getPrivateKeyIv()
         );
 
         AuthResponse res = new AuthResponse(null, "Registration successful");
@@ -69,9 +72,10 @@ public class AuthController {
             return ResponseEntity.status(403).body(new AuthResponse(null, "Account not verified. Please verify your account before logging in."));
         }
 
-        // ritorno response entity, che gestisce anche vari errori http, 400, 200 e via dicendo
-        return ResponseEntity.ok(
-                new AuthResponse(jwtService.generateToken(u.getUsername()), "Login successful", u.getEncryptedDek(), u.getDekIv(), u.getKeySalt()));
+        AuthResponse res = new AuthResponse(jwtService.generateToken(u.getUsername()), "Login successful", u.getEncryptedDek(), u.getDekIv(), u.getKeySalt());
+        res.setEncryptedPrivateKey(u.getEncryptedPrivateKey());
+        res.setPrivateKeyIv(u.getPrivateKeyIv());
+        return ResponseEntity.ok(res);
     }
 
 
