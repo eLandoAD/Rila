@@ -205,7 +205,7 @@ export class Files implements OnInit {
     this.previewType.set(type);
 
     try {
-      const decryptedBuffer = await this.fileService.downloadAndDecryptRaw(file.id, file.iv);
+      const decryptedBuffer = await this.fileService.downloadAndDecryptRaw(file.id, file.iv, file.wrappedDek, file.dekIv);
       
       if (type === 'text') {
         const text = new TextDecoder().decode(decryptedBuffer);
@@ -329,8 +329,13 @@ export class Files implements OnInit {
     this.sharingSuccess.set(false);
 
     try {
-      const rawDek = await this.crypto.getRawDek();
-      await this.fileService.shareByEmail(file.id, trimmedEmail, rawDek);
+      // prendo la chaive pubblica del dest
+      const publicKey = await this.fileService.getPublicKey(trimmedEmail);
+      // sblocco la chiave del file e la cifro solo x il destinatario
+      const fileKey = await this.crypto.unwrapFileKey(file.wrappedDek, file.dekIv)
+      const encryptedKey = await this.crypto.encryptKeyForRecipient(fileKey, publicKey)
+      // condivido
+      await this.fileService.shareByEmail(file.id, trimmedEmail, encryptedKey)
       this.sharingSuccess.set(true);
     } catch (err: any) {
       console.error('Failed to share file by email', err);

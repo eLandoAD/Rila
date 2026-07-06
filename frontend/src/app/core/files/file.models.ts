@@ -1,10 +1,12 @@
 export interface StoredFileMeta {
   id: string;
-  name: string;      // Decrypted name
-  encName: string;   // Encrypted name from server
+  name: string;      
+  encName: string;   
   size: number;
   iv: string;
   uploadedAt: number;
+  wrappedDek: string;
+  dekIv: string;
 }
 
 export interface FileUploadResponse {
@@ -19,6 +21,8 @@ export interface FileListResponse {
   fileSize: number;
   createdAt: number;
   iv: string;
+  wrappedDek: string;
+  dekIv: string;
 }
 
 export interface FolderResponse {

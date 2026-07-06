@@ -38,15 +38,21 @@ export class FolderService {
       );
 
       // 2. Decrypt file names
+      // ogni file ha la sua chiave (avvolta): la sblocco e decifro il nome con quella
       const decryptedFiles: StoredFileMeta[] = await Promise.all(
-        res.files.map(async (f) => ({
-          id: f.id,
-          name: await this.crypto.decryptText(f.encName, f.iv),
-          encName: f.encName,
-          size: f.fileSize,
-          iv: f.iv,
-          uploadedAt: f.createdAt
-        }))
+        res.files.map(async (f) => {
+          const fileKey = await this.crypto.unwrapFileKey(f.wrappedDek, f.dekIv);
+          return {
+            id: f.id,
+            name: await this.crypto.decryptNameWithKey(f.encName, fileKey),
+            encName: f.encName,
+            size: f.fileSize,
+            iv: f.iv,
+            uploadedAt: f.createdAt,
+            wrappedDek: f.wrappedDek,
+            dekIv: f.dekIv,
+          };
+        })
       );
 
       // 3. Decrypt breadcrumb names

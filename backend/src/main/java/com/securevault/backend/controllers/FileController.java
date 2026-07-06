@@ -49,6 +49,7 @@ public class FileController {
 
     @PostMapping("/upload")
     public ResponseEntity<FileUploadResponse> upload(@RequestParam("file") MultipartFile file, @RequestParam("iv") String iv, @RequestParam("encName") String encName,
+                                                     @RequestParam("wrappedDek") String wrappedDek, @RequestParam("dekIv") String dekIv,
                                                      @RequestParam(value = "folder_id", required = false) UUID folderId) {
 
         try {
@@ -88,6 +89,8 @@ public class FileController {
             StoredFile storedFile = new StoredFile();
             storedFile.setEncName(encName);
             storedFile.setIv(iv);
+            storedFile.setWrappedDek(wrappedDek);
+            storedFile.setDekIv(dekIv);
             storedFile.setStoragePath(physicalName);
             storedFile.setUser(user);
             // associo la cartella padre o null se root
@@ -166,6 +169,8 @@ public class FileController {
                 dto.setFileSize(file.getFileSize());
                 dto.setCreatedAt(file.getCreatedAt());
                 dto.setIv(file.getIv());
+                dto.setWrappedDek(file.getWrappedDek());
+                dto.setDekIv(file.getDekIv());
                 return dto;
             }).toList();
 

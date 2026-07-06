@@ -101,6 +101,8 @@ public class FolderController {
                     dto.setFileSize(f.getFileSize());
                     dto.setCreatedAt(f.getCreatedAt());
                     dto.setIv(f.getIv());
+                    dto.setWrappedDek(f.getWrappedDek());
+                    dto.setDekIv(f.getDekIv());
                     return dto;
                 }).toList();
 

@@ -20,20 +20,24 @@ export class FileService {
   async upload(file: File, folderId: string | null = null, onProgress?: (percent: number) => void): Promise<void> {
     const buffer = await file.arrayBuffer();
     
-    // 1. E2EE Encryption
-    const { cipher, iv } = await this.crypto.encrypt(buffer);
-    const encName = await this.crypto.encryptText(file.name, iv);
+    // e2ee -> chaive dedicata al file, avvolta con la master dek
+    const fileKey = await this.crypto.generateFileKey()
+    const { cipher, iv } = await this.crypto.encryptWithKey(buffer, fileKey);
+    const encName = await this.crypto.encryptNameWithKey(file.name, fileKey);
+    const { wrappedDek, dekIv } = await this.crypto.wrapFileKey(fileKey)
 
-    // 2. Prepare FormData
+    // prepara formData
     const form = new FormData();
     form.append('file', new Blob([cipher]), 'blob');
     form.append('iv', iv);
     form.append('encName', encName);
+    form.append('wrappedDek', wrappedDek);
+    form.append('dekIv', dekIv);
     if (folderId) {
       form.append('folder_id', folderId);
     }
 
-    // 3. Execute Upload
+    // uploado effettivamente
     await new Promise<void>((resolve, reject) => {
       this.http
         .post<FileUploadResponse>(`${this.baseUrl}/upload`, form, {
@@ -52,7 +56,7 @@ export class FileService {
         });
     });
 
-    // 4. Refresh folder content if we are in a view that needs it
+    // se siamo in una cartella, ricarico il contenuto, per mostrare il nuovo file
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
   }
 
@@ -61,9 +65,10 @@ export class FileService {
       this.http.get(`${this.baseUrl}/download/${meta.id}`, { responseType: 'arraybuffer' })
     );
 
-    // Decrypt with in-memory DEK
-    const plain = await this.crypto.decrypt(cipher, meta.iv);
-    
+    // sblocco la chiave del file e decifro il contenuto con quella
+    const fileKey = await this.crypto.unwrapFileKey(meta.wrappedDek, meta.dekIv);
+    const plain = await this.crypto.decryptWithKey(cipher, meta.iv, fileKey);
+
     // Trigger browser download
     const url = URL.createObjectURL(new Blob([plain]));
     const anchor = document.createElement('a');
@@ -73,11 +78,13 @@ export class FileService {
     URL.revokeObjectURL(url);
   }
 
-  async downloadAndDecryptRaw(id: string, iv: string): Promise<ArrayBuffer> {
+  // serve anche wrappedDek+dekIv per sbloccare la chiave del file
+  async downloadAndDecryptRaw(id: string, iv: string, wrappedDek: string, dekIv: string): Promise<ArrayBuffer> {
     const cipher = await firstValueFrom(
       this.http.get(`${this.baseUrl}/download/${id}`, { responseType: 'arraybuffer' })
     );
-    return this.crypto.decrypt(cipher, iv);
+    const fileKey = await this.crypto.unwrapFileKey(wrappedDek, dekIv);
+    return this.crypto.decryptWithKey(cipher, iv, fileKey);
   }
 
   async downloadRaw(id: string): Promise<ArrayBuffer> {
@@ -96,7 +103,9 @@ export class FileService {
    * so the server only ever sees ciphertext.
    */
   async rename(meta: StoredFileMeta, newName: string): Promise<void> {
-    const newEncName = await this.crypto.encryptText(newName, meta.iv);
+    // sblocco la chiave del file e cifro il nuovo nome con quella (iv nuovo dentro encName)
+    const fileKey = await this.crypto.unwrapFileKey(meta.wrappedDek, meta.dekIv);
+    const newEncName = await this.crypto.encryptNameWithKey(newName, fileKey);
     await firstValueFrom(this.http.patch(`${this.baseUrl}/${meta.id}`, { newEncName }));
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
   }
@@ -114,14 +123,20 @@ export class FileService {
       this.http.get<FileListResponse[]>(this.baseUrl)
     );
     return Promise.all(
-      res.map(async (f) => ({
-        id: f.id,
-        name: await this.crypto.decryptText(f.encName, f.iv),
-        encName: f.encName,
-        size: f.fileSize,
-        iv: f.iv,
-        uploadedAt: f.createdAt
-      }))
+      res.map(async (f) => {
+        // sblocco la chiave del file per decifrare il nome
+        const fileKey = await this.crypto.unwrapFileKey(f.wrappedDek, f.dekIv);
+        return {
+          id: f.id,
+          name: await this.crypto.decryptNameWithKey(f.encName, fileKey),
+          encName: f.encName,
+          size: f.fileSize,
+          iv: f.iv,
+          uploadedAt: f.createdAt,
+          wrappedDek: f.wrappedDek,
+          dekIv: f.dekIv,
+        };
+      })
     );
   }
 
@@ -141,5 +156,13 @@ export class FileService {
     await firstValueFrom(
       this.http.delete(`${this.baseUrl}/shared/${id}`)
     );
+  }
+
+  // ottiene la public key di un determinato utente
+  async getPublicKey(email: string): Promise<string> {
+    const res = await firstValueFrom(
+      this.http.get<{ publicKey: string }>(`${environment.apiBaseUrl}/users/public-key`, { params: { email } })
+    );
+    return res.publicKey;
   }
 }
