@@ -5,7 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { CryptoService } from '../../core/crypto/crypto.service';
-import { ResetInfoResponse } from '../../core/auth/auth.models';
+import { IResetInfoResponse } from '../../core/interfaces/IResetInfoResponse';
 
 @Component({
   selector: 'app-reset-password',
@@ -27,7 +27,7 @@ export class ResetPassword implements OnInit {
   readonly done = signal(false);
   readonly error = signal<string | null>(null);
   
-  private resetInfo: ResetInfoResponse | null = null;
+  private resetInfo: IResetInfoResponse | null = null;
   private token = '';
 
   ngOnInit(): void {

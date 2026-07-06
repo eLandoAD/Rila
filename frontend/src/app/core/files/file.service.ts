@@ -3,7 +3,9 @@ import { HttpClient, HttpEventType } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CryptoService } from '../crypto/crypto.service';
 import { FolderService } from './folder.service';
-import { FileUploadResponse, StoredFileMeta, FileListResponse } from './file.models';
+import { IFileUploadResponse } from '../interfaces/IFileUploadResponse';
+import { IStoredFileMeta } from '../interfaces/IStoredFileMeta';
+import { IFileListResponse } from '../interfaces/IFileListResponse';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -40,7 +42,7 @@ export class FileService {
     // uploado effettivamente
     await new Promise<void>((resolve, reject) => {
       this.http
-        .post<FileUploadResponse>(`${this.baseUrl}/upload`, form, {
+        .post<IFileUploadResponse>(`${this.baseUrl}/upload`, form, {
           observe: 'events',
           reportProgress: true,
         })
@@ -60,7 +62,7 @@ export class FileService {
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
   }
 
-  async download(meta: StoredFileMeta): Promise<void> {
+  async download(meta: IStoredFileMeta): Promise<void> {
     const cipher = await firstValueFrom(
       this.http.get(`${this.baseUrl}/download/${meta.id}`, { responseType: 'arraybuffer' })
     );
@@ -102,7 +104,7 @@ export class FileService {
    * Renames a file. The new name is encrypted client-side reusing the file's IV,
    * so the server only ever sees ciphertext.
    */
-  async rename(meta: StoredFileMeta, newName: string): Promise<void> {
+  async rename(meta: IStoredFileMeta, newName: string): Promise<void> {
     // sblocco la chiave del file e cifro il nuovo nome con quella (iv nuovo dentro encName)
     const fileKey = await this.crypto.unwrapFileKey(meta.wrappedDek, meta.dekIv);
     const newEncName = await this.crypto.encryptNameWithKey(newName, fileKey);
@@ -118,9 +120,9 @@ export class FileService {
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
   }
 
-  async getAllFiles(): Promise<StoredFileMeta[]> {
+  async getAllFiles(): Promise<IStoredFileMeta[]> {
     const res = await firstValueFrom(
-      this.http.get<FileListResponse[]>(this.baseUrl)
+      this.http.get<IFileListResponse[]>(this.baseUrl)
     );
     return Promise.all(
       res.map(async (f) => {

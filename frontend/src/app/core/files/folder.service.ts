@@ -2,7 +2,9 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { CryptoService } from '../crypto/crypto.service';
-import { FolderResponse, FolderContentResponse, StoredFileMeta } from './file.models';
+import { IFolderResponse } from '../interfaces/IFolderResponse';
+import { IFolderContentResponse } from '../interfaces/IFolderContentResponse';
+import { IStoredFileMeta } from '../interfaces/IStoredFileMeta';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -12,9 +14,9 @@ export class FolderService {
   private readonly baseUrl = `${environment.apiBaseUrl}/folders`;
 
   // Current navigation state
-  readonly currentFolders = signal<FolderResponse[]>([]);
-  readonly currentFiles = signal<StoredFileMeta[]>([]);
-  readonly breadcrumbs = signal<FolderResponse[]>([]);
+  readonly currentFolders = signal<IFolderResponse[]>([]);
+  readonly currentFiles = signal<IStoredFileMeta[]>([]);
+  readonly breadcrumbs = signal<IFolderResponse[]>([]);
   readonly currentFolderId = signal<string | null>(null);
 
   /**
@@ -26,7 +28,7 @@ export class FolderService {
       if (folderId) params.folderId = folderId;
 
       const res = await firstValueFrom(
-        this.http.get<FolderContentResponse>(`${this.baseUrl}/content`, { params })
+        this.http.get<IFolderContentResponse>(`${this.baseUrl}/content`, { params })
       );
 
       // 1. Decrypt folder names
@@ -39,7 +41,7 @@ export class FolderService {
 
       // 2. Decrypt file names
       // ogni file ha la sua chiave (avvolta): la sblocco e decifro il nome con quella
-      const decryptedFiles: StoredFileMeta[] = await Promise.all(
+      const decryptedFiles: IStoredFileMeta[] = await Promise.all(
         res.files.map(async (f) => {
           const fileKey = await this.crypto.unwrapFileKey(f.wrappedDek, f.dekIv);
           return {

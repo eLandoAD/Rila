@@ -5,7 +5,7 @@ import { BarChart } from '../charts/bar-chart/bar-chart';
 import { LineChart } from '../charts/line-chart/line-chart';
 import { BarDatum, DonutSegment, LinePoint } from '../charts/chart.types';
 import { FileService } from '../../core/files/file.service';
-import { StoredFileMeta } from '../../core/files/file.models';
+import { IStoredFileMeta } from '../../core/interfaces/IStoredFileMeta';
 
 @Component({
   selector: 'app-dashboard',
@@ -63,7 +63,7 @@ export class Dashboard implements OnInit {
     }
   }
 
-  private calculateStats(files: StoredFileMeta[]): void {
+  private calculateStats(files: IStoredFileMeta[]): void {
     // 1. Storage Used
     const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
     const gbValue = totalBytes / (1024 * 1024 * 1024);

@@ -3,7 +3,11 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegisterRequest, ResetPasswordRequest, ResetInfoResponse } from './auth.models';
+import { IAuthResponse } from '../interfaces/IAuthResponse';
+import { ILoginRequest } from '../interfaces/ILoginRequest';
+import { IRegisterRequest } from '../interfaces/IRegisterRequest';
+import { IResetPasswordRequest } from '../interfaces/IResetPasswordRequest';
+import { IResetInfoResponse } from '../interfaces/IResetInfoResponse';
 
 const TOKEN_KEY = 'sv_token';
 
@@ -32,14 +36,14 @@ export class AuthService {
   });
 
   // metodo per registrarsi, che punta all'endpoint register dell'api
-  register(request: RegisterRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, request);
+  register(request: IRegisterRequest): Observable<IAuthResponse> {
+    return this.http.post<IAuthResponse>(`${this.baseUrl}/register`, request);
   }
 
   // metodo per loggarsi, che punta all'endpoint login dell'api
-  login(request: LoginRequest): Observable<AuthResponse> {
+  login(request: ILoginRequest): Observable<IAuthResponse> {
     return this.http
-      .post<AuthResponse>(`${this.baseUrl}/login`, request)
+      .post<IAuthResponse>(`${this.baseUrl}/login`, request)
       .pipe(tap((res) => this.persistToken(res.token)));
   }
 
@@ -53,11 +57,11 @@ export class AuthService {
     return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
   }
 
-  getResetInfo(token: string): Observable<ResetInfoResponse> {
-    return this.http.get<ResetInfoResponse>(`${this.baseUrl}/reset-info`, { params: { token } });
+  getResetInfo(token: string): Observable<IResetInfoResponse> {
+    return this.http.get<IResetInfoResponse>(`${this.baseUrl}/reset-info`, { params: { token } });
   }
 
-  resetPassword(request: ResetPasswordRequest): Observable<string> {
+  resetPassword(request: IResetPasswordRequest): Observable<string> {
     return this.http.post(`${this.baseUrl}/reset-password`, request, { responseType: 'text' });
   }
 

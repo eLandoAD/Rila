@@ -4,13 +4,14 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { SideNavbar } from '../side-navbar/side-navbar';
 import { FileService } from '../../core/files/file.service';
 import { FolderService } from '../../core/files/folder.service';
-import { StoredFileMeta, FolderResponse } from '../../core/files/file.models';
+import { IStoredFileMeta } from '../../core/interfaces/IStoredFileMeta';
+import { IFolderResponse } from '../../core/interfaces/IFolderResponse';
 import { formatBytes } from '../../core/files/format';
 import { CryptoService } from '../../core/crypto/crypto.service';
 
 type MoveTarget =
-  | { kind: 'file'; meta: StoredFileMeta }
-  | { kind: 'folder'; folder: FolderResponse };
+  | { kind: 'file'; meta: IStoredFileMeta }
+  | { kind: 'folder'; folder: IFolderResponse };
 
 @Component({
   selector: 'app-files',
@@ -36,7 +37,7 @@ export class Files implements OnInit {
   protected readonly format = formatBytes;
 
   // File Preview State
-  protected readonly previewFile = signal<StoredFileMeta | null>(null);
+  protected readonly previewFile = signal<IStoredFileMeta | null>(null);
   protected readonly previewLoading = signal(false);
   protected readonly previewUrl = signal<any>(null);
   protected readonly previewTextContent = signal<string | null>(null);
@@ -44,7 +45,7 @@ export class Files implements OnInit {
   private previewRawUrl: string | null = null;
 
   // File Share State
-  protected readonly sharingFile = signal<StoredFileMeta | null>(null);
+  protected readonly sharingFile = signal<IStoredFileMeta | null>(null);
   protected readonly sharingLoading = signal(false);
   protected readonly sharingError = signal<string | null>(null);
   protected readonly sharingSuccess = signal(false);
@@ -182,7 +183,7 @@ export class Files implements OnInit {
 
   // --- File Previews ---
 
-  async openPreview(file: StoredFileMeta): Promise<void> {
+  async openPreview(file: IStoredFileMeta): Promise<void> {
     this.closePreview();
     this.previewFile.set(file);
     this.previewLoading.set(true);
@@ -256,7 +257,7 @@ export class Files implements OnInit {
     }
   }
 
-  async renameFolder(folder: FolderResponse): Promise<void> {
+  async renameFolder(folder: IFolderResponse): Promise<void> {
     const name = prompt('New folder name:', folder.name)?.trim();
     if (!name || name === folder.name) return;
     try {
@@ -266,7 +267,7 @@ export class Files implements OnInit {
     }
   }
 
-  async deleteFolder(folder: FolderResponse): Promise<void> {
+  async deleteFolder(folder: IFolderResponse): Promise<void> {
     if (!confirm(`Delete folder "${folder.name}" and all its content?`)) return;
     try {
       await this.folderService.deleteFolder(folder.id);
@@ -277,7 +278,7 @@ export class Files implements OnInit {
 
   // --- Files ---
 
-  async download(meta: StoredFileMeta): Promise<void> {
+  async download(meta: IStoredFileMeta): Promise<void> {
     if (this.downloadingId()) return;
     this.error.set(null);
     this.downloadingId.set(meta.id);
@@ -290,7 +291,7 @@ export class Files implements OnInit {
     }
   }
 
-  async renameFile(meta: StoredFileMeta): Promise<void> {
+  async renameFile(meta: IStoredFileMeta): Promise<void> {
     const name = prompt('New file name:', meta.name)?.trim();
     if (!name || name === meta.name) return;
     try {
@@ -300,7 +301,7 @@ export class Files implements OnInit {
     }
   }
 
-  async removeFile(meta: StoredFileMeta): Promise<void> {
+  async removeFile(meta: IStoredFileMeta): Promise<void> {
     if (!confirm(`Delete "${meta.name}"?`)) return;
     try {
       await this.fileService.delete(meta.id);
@@ -309,7 +310,7 @@ export class Files implements OnInit {
     }
   }
 
-  shareFile(meta: StoredFileMeta): void {
+  shareFile(meta: IStoredFileMeta): void {
     this.sharingFile.set(meta);
     this.sharingLoading.set(false);
     this.sharingError.set(null);
@@ -320,7 +321,7 @@ export class Files implements OnInit {
     this.sharingFile.set(null);
   }
 
-  async confirmEmailShare(file: StoredFileMeta, email: string): Promise<void> {
+  async confirmEmailShare(file: IStoredFileMeta, email: string): Promise<void> {
     const trimmedEmail = email.trim();
     if (!trimmedEmail) return;
 
@@ -357,7 +358,7 @@ export class Files implements OnInit {
   }
 
   /** Folders shown as destinations: subfolders of the current view, minus the one being moved. */
-  protected moveDestinations(): FolderResponse[] {
+  protected moveDestinations(): IFolderResponse[] {
     const t = this.moving();
     return this.folders().filter((f) => !(t?.kind === 'folder' && f.id === t.folder.id));
   }
