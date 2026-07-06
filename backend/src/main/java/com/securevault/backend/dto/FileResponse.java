@@ -15,4 +15,6 @@ public class FileResponse {
     private Long fileSize;
     private Long createdAt;
     private String iv;
+    private String wrappedDek;
+    private String dekIv;
 }

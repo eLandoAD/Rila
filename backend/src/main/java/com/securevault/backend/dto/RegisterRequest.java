@@ -28,4 +28,9 @@ public class RegisterRequest {
     private String keySalt;
     private String recoveryEncryptedDek;
     private String recoveryDekIv;
+
+    // sempre not blank
+    private String publicKey;
+    private String encryptedPrivateKey;
+    private String privateKeyIv;
 }

@@ -44,6 +44,13 @@ public class StoredFile {
     @Column(nullable = false)
     private String iv;
 
+    // dek del file, avvolta con la master dek del proprietario
+    @Column(name = "wrapped_dek", length = 512)
+    private String wrappedDek;
+
+    @Column(name = "dek_iv", length = 255)
+    private String dekIv;
+
     // dimensione del file, comodo da avere
     @Column(name = "file_size")
     private Long fileSize;

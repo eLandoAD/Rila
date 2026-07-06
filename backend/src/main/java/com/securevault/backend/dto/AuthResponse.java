@@ -15,14 +15,18 @@ public class AuthResponse {
     private String keySalt;
     // per l'email
     private String verificationToken;
+    // rsa
+    private String encryptedPrivateKey;
+    private String privateKeyIv;
 
     // costruttore a 2 argomenti
     public AuthResponse(String token, String message) {
         this(token, message, null, null, null);
     }
 
-    // costruttore a 5 argomenti (senza verificationToken) per login e dati E2EE
+    // costruttore a 5 argomenti - i campi extra restano null e
+    // vengono valorizzati coi setter dove servono
     public AuthResponse(String token, String message, String encryptedDek, String dekIv, String keySalt) {
-        this(token, message, encryptedDek, dekIv, keySalt, null);
+        this(token, message, encryptedDek, dekIv, keySalt, null, null, null);
     }
 }

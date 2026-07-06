@@ -97,4 +97,17 @@ public class User {
     @Column(name = "recovery_dek_iv", length = 255)
     private String recoveryDekIv;
 
+    // rsa per sharing dei file (deve essere visibile)
+    @Column(name = "public_key", length = 1024)
+    private String publicKey;
+
+    // rsa private ky, avvolta con la master dek dell'utente
+    @JsonIgnore
+    @Column(name = "private_key", length = 4096)
+    private String encryptedPrivateKey;
+
+    @JsonIgnore
+    @Column(name = "private_key_iv", length = 255)
+    private String privateKeyIv;
+
 }
