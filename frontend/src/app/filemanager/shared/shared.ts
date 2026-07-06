@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, WritableSignal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { DomSanitizer } from '@angular/platform-browser';
 import { SideNavbar } from '../side-navbar/side-navbar';
@@ -17,19 +17,19 @@ export class Shared implements OnInit {
   private readonly crypto = inject(CryptoService);
   private readonly sanitizer = inject(DomSanitizer);
 
-  protected readonly sharedFiles = signal<any[]>([]);
-  protected readonly loading = signal(false);
-  protected readonly error = signal<string | null>(null);
+  protected readonly sharedFiles: WritableSignal<any[]> = signal([]);
+  protected readonly loading: WritableSignal<boolean> = signal(false);
+  protected readonly error: WritableSignal<string | null> = signal(null);
   protected readonly format = formatBytes;
 
-  protected readonly downloadingId = signal<string | null>(null);
+  protected readonly downloadingId: WritableSignal<string | null> = signal(null);
 
-  // File Preview State
-  protected readonly previewFile = signal<any | null>(null);
-  protected readonly previewLoading = signal(false);
-  protected readonly previewUrl = signal<any>(null);
-  protected readonly previewTextContent = signal<string | null>(null);
-  protected readonly previewType = signal<'image' | 'pdf' | 'text' | 'unsupported'>('unsupported');
+  // stati preview 
+  protected readonly previewFile: WritableSignal<any | null> = signal(null);
+  protected readonly previewLoading: WritableSignal<boolean> = signal(false);
+  protected readonly previewUrl: WritableSignal<any> = signal(null);
+  protected readonly previewTextContent: WritableSignal<string | null> = signal(null);
+  protected readonly previewType: WritableSignal<'image' | 'pdf' | 'text' | 'unsupported'> = signal('unsupported');
   private previewRawUrl: string | null = null;
 
   ngOnInit(): void {
@@ -44,11 +44,13 @@ export class Shared implements OnInit {
       const files = await Promise.all(
         res.map(async (sf) => {
           let decName = 'Decryption Failed';
+          let fileKey: CryptoKey | null = null;
           try {
-            const key = await this.crypto.importRawDek(sf.dek);
-            decName = await this.crypto.decryptTextWithKey(sf.encName, sf.iv, key);
+            // decifro la chiave del file con la mia privata, 1 volta
+            fileKey = await this.crypto.decryptSharedKey(sf.dek)
+            decName = await this.crypto.decryptNameWithKey(sf.encName, fileKey);
           } catch (err) {
-            console.error('Failed to decrypt filename', err);
+            console.error('Failed to decrypt shared file key/name', err);
           }
           return {
             id: sf.id,
@@ -59,7 +61,7 @@ export class Shared implements OnInit {
             iv: sf.iv,
             senderEmail: sf.senderEmail,
             senderUsername: sf.senderUsername,
-            dek: sf.dek,
+            fileKey,   
           };
         })
       );
@@ -78,8 +80,8 @@ export class Shared implements OnInit {
     this.downloadingId.set(file.id);
     try {
       const cipher = await this.fileService.downloadRaw(file.fileId);
-      const key = await this.crypto.importRawDek(file.dek);
-      const plain = await this.crypto.decryptWithKey(cipher, file.iv, key);
+      if (!file.fileKey) throw new Error('Chiave del file non disponibile');
+      const plain = await this.crypto.decryptWithKey(cipher, file.iv, file.fileKey);
 
       const url = URL.createObjectURL(new Blob([plain]));
       const anchor = document.createElement('a');
@@ -131,8 +133,8 @@ export class Shared implements OnInit {
 
     try {
       const cipher = await this.fileService.downloadRaw(file.fileId);
-      const key = await this.crypto.importRawDek(file.dek);
-      const decryptedBuffer = await this.crypto.decryptWithKey(cipher, file.iv, key);
+      if (!file.fileKey) throw new Error('Chiave del file non disponibile');
+      const decryptedBuffer = await this.crypto.decryptWithKey(cipher, file.iv, file.fileKey);
 
       if (type === 'text') {
         const text = new TextDecoder().decode(decryptedBuffer);
