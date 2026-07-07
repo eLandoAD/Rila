@@ -201,6 +201,24 @@
                           </svg>
                         </button>
 
+                        <!-- Public Link Button -->
+                        <button class="btn btn-ghost btn-xs text-info font-semibold flex items-center justify-center p-1 rounded-lg"
+                                (click)="publishFile(file)"
+                                title="Copy public link">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m8.656-1.828a4 4 0 000-5.656l-.5-.5a4 4 0 00-5.656 0l-3 3a4 4 0 000 5.656" />
+                          </svg>
+                        </button>
+
+                        <!-- Revoke Public Link Button -->
+                        <button class="btn btn-ghost btn-xs text-base-content/40 flex items-center justify-center p-1 rounded-lg"
+                                (click)="unpublishFile(file)"
+                                title="Revoke public link">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                          </svg>
+                        </button>
+
                         <!-- Rename Button -->
                         <button class="btn btn-ghost btn-xs text-base-content/60 flex items-center justify-center p-1 rounded-lg"
                                 (click)="renameFile(file)"
@@ -454,6 +472,15 @@
         </div>
       </div>
       <div class="modal-backdrop bg-black/40 backdrop-blur-xs" (click)="closeShare()"></div>
+    </div>
+  }
+
+  <!-- Toast: link pubblico copiato -->
+  @if (linkCopied()) {
+    <div class="toast toast-end z-50">
+      <div class="alert alert-success shadow-lg">
+        <span>Public link copied to clipboard</span>
+      </div>
     </div>
   }
 </div>

@@ -167,4 +167,15 @@ export class FileService {
     );
     return res.publicKey;
   }
+
+  async publish(id: string): Promise<string> {
+    // backend risponde con token 
+    return firstValueFrom(
+      this.http.post(`${this.baseUrl}/${id}/publish`, {}, { responseType: 'text' })
+    )
+  }
+
+  async unpublish(id: string): Promise<void> {
+    await firstValueFrom(this.http.post(`${this.baseUrl}/${id}/unpublish`, {}));
+  }
 }

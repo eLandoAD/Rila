@@ -57,6 +57,9 @@ export class Files implements OnInit {
   protected readonly uploadFileName = signal('');
   private dragCounter = 0;
 
+  // sharing
+  protected readonly linkCopied = signal(false);
+
   ngOnInit(): void {
     this.navigateTo(null);
   }
@@ -375,6 +378,31 @@ export class Files implements OnInit {
       }
     } catch {
       this.error.set('Move failed.');
+    }
+  }
+
+  async publishFile(meta: IStoredFileMeta): Promise<void> {
+    try {
+      const token = await this.fileService.publish(meta.id)
+      const rawKey = await this.crypto.getFileKeyBase64(meta.wrappedDek, meta.dekIv)
+      const link = `${window.location.origin}/share?token=${token}`
+        + `&name=${encodeURIComponent(meta.encName)}`
+        + `&iv=${encodeURIComponent(meta.iv)}`
+        + `#${rawKey}`;
+        // feedback
+      await navigator.clipboard.writeText(link);
+      this.linkCopied.set(true)
+      setTimeout(() => this.linkCopied.set(false), 2000)
+    } catch (error) {
+      this.error.set('Failed to create public link')
+    }
+  }
+
+  async unpublishFile(meta: IStoredFileMeta): Promise<void> {
+    try {
+      await this.fileService.unpublish(meta.id)
+    } catch (error) {
+      this.error.set('Failed to remove public link')
     }
   }
 }

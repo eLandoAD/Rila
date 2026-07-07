@@ -519,5 +519,12 @@ export class CryptoService {
     const raw = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, this.currentPrivateKey, this.fromBase64(ciphertext) as any)
     return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
   }
+
+  // esporta la dek di un file in base64
+  async getFileKeyBase64(wrappedDek: string, dekIv: string): Promise<string> {
+    const fileKey = await this.unwrapFileKey(wrappedDek, dekIv);
+    const raw = await crypto.subtle.exportKey('raw', fileKey)
+    return this.toBase64(new Uint8Array(raw))
+  }
   
 }
