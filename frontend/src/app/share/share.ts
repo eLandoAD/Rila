@@ -60,7 +60,7 @@ export class ShareComponent implements OnInit {
       if (!name || !iv || !rawDek) return;
 
       const key = await this.crypto.importRawDek(rawDek);
-      const decName = await this.crypto.decryptTextWithKey(name, iv, key);
+      const decName = await this.crypto.decryptNameWithKey(name, key);
       this.fileName.set(decName);
     } catch (err) {
       console.error('Failed to decrypt filename', err);
