@@ -1,10 +1,32 @@
 # SecureVault — Encrypted File Storage
 
 End-to-end encrypted file storage. Files and their names are encrypted in the browser; the
-server only ever stores ciphertext. See **[SECURITY.md](./SECURITY.md)** for the encryption and
-key-management design.
+server only ever stores ciphertext.
+With SecureVault you can store your files securely, organize them in folders, and share them
+with other users, all while keeping absolute privacy.
 
-**Stack:** Spring Boot (Java) · Angular (SSR) · PostgreSQL · local filesystem blob storage.
+**🔗 Live demo:** https://securevault.alessio.hackclub.app
+_Register with any email → verify via the in-app fake inbox → log in._
+
+## Features
+- JWT auth
+- Email verification (real, via a demo fake-inbox)
+- E2EE files & folders
+- sharing user → user (asymmetric, per-file key)
+- public share links
+- folders (nested) + breadcrumbs
+- previews (images, PDF, text)
+- storage quota
+- drag & drop
+
+## Stack
+- Java Spring Boot
+- Angular (SSR)
+- PostgreSQL
+- local filesystem blob storage
+- TailwindCSS + DaisyUI
+- nginx (reverse proxy)
+- Mailpit (dev SMTP catcher)
 
 ## Running the project
 
@@ -14,22 +36,15 @@ key-management design.
 docker compose up -d --build
 ```
 
-This starts everything:
+This starts everything behind a single reverse proxy:
 
 | Service | URL | Notes |
 |---------|-----|-------|
-| Frontend (Angular SSR) | http://localhost:4200 | the app |
-| Backend (Spring Boot) | http://localhost:8080 | REST API under `/api` |
-| PostgreSQL | localhost:5432 | `securevault_db` |
-| MailHog (dev SMTP) | http://localhost:8025 | catches verification / reset emails |
+| App (nginx proxy) | http://localhost:4205 | frontend + API under `/api` |
+| Mailpit (dev SMTP) | http://localhost:8025 | optional — inspect reset/share emails locally |
 
-Open http://localhost:4200, register, then open **MailHog** (http://localhost:8025) to click the
-verification link. After verifying, log in and start uploading.
-
-Configuration is via environment variables (see `docker-compose.yml`): database credentials,
-`JWT_SECRET`, and SMTP settings (`SMTP_HOST`, `MAIL_FROM`, `FRONTEND_URL`, …). To use a real SMTP
-server instead of MailHog, override `SMTP_HOST`/`SMTP_PORT`/`SMTP_USERNAME`/`SMTP_PASSWORD` and
-set `SMTP_AUTH=true`, `SMTP_STARTTLS=true`.
+Open http://localhost:4205 and register. After registration the app takes you to an in-app
+**fake inbox**, where you can "verify" your email; then you can log in.
 
 ### Running locally without Docker
 
@@ -39,196 +54,37 @@ set `SMTP_AUTH=true`, `SMTP_STARTTLS=true`.
 - **Frontend:** `cd frontend && npm install && npm start` (dev server on http://localhost:4200).
   The API base URL is configured in `frontend/src/environments/environment.ts`.
 
----
+## Configuration
 
-> **Intern Project Brief.** This is a competitive build. Three teams are building the same
-> specification. The strongest implementation wins. Read this entire document before writing
-> any code.
+Set via environment variables (see `docker-compose.yml`):
 
----
+| Var | Purpose |
+|-----|---------|
+| `JWT_SECRET` | secret for signing JWTs (use a long random value) |
+| `DB_PASSWORD` | PostgreSQL password |
+| `FRONTEND_URL` | base URL used in email links |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | mail relay (Mailpit in dev; a real SMTP relay in prod) |
+| `SMTP_AUTH` / `SMTP_STARTTLS` | set to `true` for a real SMTP server |
+| `DEMO_REVEAL_TOKEN` | demo: reveal the verification token for the in-app fake inbox |
 
-## 1. What you are building
+For production email (verification, password reset, share notifications), point the `SMTP_*`
+variables at a real relay — the code is already wired for it.
 
-A web application for **storing files securely with end-to-end encryption (E2EE)**.
+## Security
 
-The core idea: a user can upload files and organize them into folders, but the server can
-**never** read the contents of those files. Files are encrypted *before* they leave the
-browser and decrypted *only* after they are downloaded back into the browser. Even someone
-with full access to your database and disk should see nothing but ciphertext.
+SecureVault is genuinely end-to-end encrypted: encryption and decryption happen in the browser,
+and the server only ever stores ciphertext and wrapped keys it cannot unwrap. Each file has its
+own random key; sharing wraps that key to the recipient's RSA public key, so the server never
+sees a key in cleartext and a shared file exposes only itself.
 
-This is a real, non-trivial engineering problem. Getting encryption *subtly* wrong is worse
-than not having it, because it creates a false sense of security. A large part of how you
-will be judged is whether your encryption is **actually** end-to-end.
+See **[SECURITY.md](./SECURITY.md)** for the full key-management design (envelope encryption,
+per-file keys, RSA sharing, recovery key, and password reset).
 
----
+## Status
 
-## 2. Tech stack
+**Done:** auth + email verification, E2EE for file contents and names, per-file keys wrapped by a
+master key, user → user sharing (RSA) and public share links, previews, storage quota, and
+password reset via a recovery key (no data loss).
 
-| Layer | Technology | Choice |
-|-------|-----------|--------|
-| Backend | **Java + Spring Boot** | Fixed — required for all teams |
-| Frontend | **React or Angular** | Your team's choice |
-| Database | Your choice (PostgreSQL, MySQL, H2, etc.) | Your team's choice |
-| File blob storage | Local filesystem or object storage | Your team's choice |
-
-The backend is fixed so that all teams can be compared fairly. The frontend is your call —
-choose the one your team is strongest in and be ready to justify the decision.
-
----
-
-## 3. Core requirements
-
-These are the **must-have** features. Aim to have all of them working by the end of the
-sprint.
-
-### 3.1 Authentication
-- **Email sign-up** with a username/email and password.
-- **Email verification** — a new account must confirm via a link or code sent to their email
-  before it becomes active. (For local development you may "send" the email by logging the
-  link to the console or writing it to a file — but the *flow* must exist.)
-- **Login / logout** with proper session handling (JWT or server-side sessions).
-- **Password reset** flow. ⚠️ Read section 4 carefully — password reset interacts badly with
-  encryption if you are not careful.
-
-### 3.2 File storage
-- **Upload** a file.
-- **Download** a file (and successfully decrypt it back to its original contents).
-- **Rename** a file.
-- **Delete** a file.
-- The server must store **only ciphertext** — never the original file bytes, never the
-  plaintext encryption key.
-
-### 3.3 End-to-end encryption (the heart of the project)
-- Encryption and decryption happen **client-side**, in the browser.
-- The server stores encrypted blobs and has no ability to decrypt them.
-- Your team must **document your key-management design** (see section 4) in a file called
-  `SECURITY.md` in your repo. This document is part of your score.
-
-### 3.4 Folders
-- **Create, rename, and delete** folders.
-- Folders can be **nested** (a folder inside a folder).
-- **Move** a file from one folder to another.
-- **Breadcrumb navigation** so the user can see and click their way back up the folder path.
-
-### 3.5 Basic UX
-- A clear file list or grid view.
-- Upload progress feedback.
-- Sensible empty states ("This folder is empty").
-- Error handling — the app should not crash or hang on a failed upload, wrong password, etc.
-
----
-
-## 4. The hard part: key management
-
-This is where teams will separate. Read this section slowly.
-
-**The goal:** the server must never be able to decrypt a user's files. That means the
-encryption key cannot simply live on the server in plaintext.
-
-**The standard approach** (you are free to improve on it, but understand it first):
-
-1. When a user signs up, derive a **key-encryption key (KEK)** from their password using a
-   slow password-hashing function — **Argon2** or **PBKDF2**, never a plain hash like SHA-256.
-2. Generate a random **data key (DEK)** for the user. This is the key that actually encrypts
-   their files.
-3. Encrypt the DEK using the KEK. Store **only the encrypted DEK** on the server.
-4. To work with files: the browser takes the password → derives the KEK → decrypts the DEK →
-   uses the DEK to encrypt/decrypt files. The server never sees the password-derived KEK or
-   the plaintext DEK.
-5. Use a well-established symmetric cipher for the files themselves — **AES-GCM** is the
-   expected choice. Do not invent your own.
-
-**⚠️ The password-reset trap.** If your encryption key is derived from the password, then
-changing the password naively changes the key — and now every previously uploaded file is
-**permanently unrecoverable**. This is a real consequence of real E2EE. A strong solution
-re-encrypts the stored DEK under the new password (you do *not* re-encrypt every file — only
-the small DEK). How you handle this is a key differentiator. Think it through before you
-build the reset flow.
-
-**Do not:**
-- Send the password or any derived key to the server in a way the server could store or log.
-- Encrypt files on the server "for convenience." That defeats the entire project.
-- Roll your own cipher. Use vetted libraries (Web Crypto API in the browser is your friend).
-
-You do **not** have to use the exact scheme above. If your team has a better, well-reasoned
-design, document it in `SECURITY.md` and defend it. Originality with sound reasoning scores
-well.
-
----
-
-## 5. Suggested build order (milestones)
-
-You have limited time. Build in this order so that you always have something working to demo.
-
-1. **Project skeleton** — Spring Boot backend runs, frontend runs, they talk to each other.
-2. **Authentication** — sign-up, email verification, login, logout.
-3. **File storage (unencrypted first)** — get upload / download / rename / delete working
-   end-to-end. Prove the plumbing works *before* adding encryption.
-4. **Encryption** — add client-side encryption/decryption on top of working storage.
-5. **Folders** — create/rename/delete/nest, move files, breadcrumbs.
-6. **Password reset** — including the key re-encryption handling from section 4.
-7. **Polish** — UX, error handling, empty states, progress indicators.
-8. **Stretch goals** — only after everything above works.
-
-> **Tip:** Get step 3 fully working before step 4. Debugging a broken upload *and* broken
-> encryption at the same time is painful. Add encryption only once plain storage is solid.
-
----
-
-## 6. Stretch goals (for extra credit)
-
-Attempt these **only after every core requirement works.**
-
-- **True client-side E2EE with device-key recovery** — let a user log in on a second device
-  and still decrypt their files.
-- **File sharing** — share an encrypted file with another user (this is genuinely hard with
-  E2EE — think about how the recipient gets the key).
-- **Search** across file and folder names.
-- **File previews** (images, text) — decrypted in-browser.
-- **Drag-and-drop** uploads and moves.
-- **Storage quota** per user.
-
----
-
-## 7. How you will be judged
-
-| Criterion | Weight | What we look for |
-|-----------|--------|------------------|
-| **Security correctness** | 35% | Is the E2EE real? Is the server truly blind to plaintext? Sound key derivation? Sensible password-reset handling? |
-| **Functionality** | 25% | Do auth, folders, and file operations all work end-to-end? |
-| **Code quality** | 15% | Structure, readability, tests, sensible commits, clean Git history. |
-| **UX & polish** | 15% | Is it usable? Clean? Does it handle errors gracefully? |
-| **Design defense** | 10% | Can your team explain your key-management design and the tradeoffs you made? |
-
-A working app with **real** encryption beats a fancy-looking app with fake encryption. Spend
-your effort accordingly.
-
----
-
-## 8. Working agreement & logistics
-
-- **Daily standup** — 15 minutes each morning. Say what you did, what you're doing, and what's
-  blocking you.
-- **Git hygiene** — work on branches, open pull requests, review each other's code before
-  merging. **No direct commits to `main`** without a review.
-- **Ask early** — if you are stuck for more than ~30 minutes, ask your covering mentor. Being
-  stuck silently helps no one.
-- **Document as you go** — your `README.md` (how to run it) and `SECURITY.md` (how encryption
-  works) are part of your deliverable, not an afterthought.
-
----
-
-## 9. Deliverables
-
-By the end of the sprint, your repo should contain:
-
-1. The working application (backend + frontend).
-2. A **`README.md`** with clear setup instructions — how to run the backend, the frontend, and
-   any database setup. A reviewer should be able to clone and run it.
-3. A **`SECURITY.md`** explaining your encryption and key-management design, and how you handle
-   password reset.
-4. A short list of what's done, what's partial, and what you'd do with more time.
-
----
-
-Good luck. Build something you'd trust with your own files.
+**Partial / future:** Content-Security-Policy (currently report-only, to be enforced), a real SMTP
+relay for production email, and automated crypto tests.
