@@ -6,7 +6,6 @@ import com.securevault.backend.repositories.UserRepository;
 import com.securevault.backend.services.JwtService;
 import com.securevault.backend.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -23,15 +22,12 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
-    @Value("${app.demo.reveal-token:false}")
-    private boolean revealToken;
-
 
     // POST /api/auth/register
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        // chiamo userService, e lo passo a oggetto di tipo user, utile per la verification token per l'email
-        User user = userService.registerUser(
+        // registro l'utente; la mail di verifica viene inviata dal service
+        userService.registerUser(
             request.getUsername(), 
             request.getEmail(), 
             request.getPassword(), 
@@ -46,10 +42,6 @@ public class AuthController {
         );
 
         AuthResponse res = new AuthResponse(null, "Registration successful");
-        if (revealToken) {
-            res.setVerificationToken(user.getVerificationToken());
-        }
-
         return ResponseEntity.ok(res);
     }
 

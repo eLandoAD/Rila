@@ -13,8 +13,6 @@ public class AuthResponse {
     private String encryptedDek;
     private String dekIv;
     private String keySalt;
-    // per l'email
-    private String verificationToken;
     // rsa
     private String encryptedPrivateKey;
     private String privateKeyIv;
@@ -24,9 +22,9 @@ public class AuthResponse {
         this(token, message, null, null, null);
     }
 
-    // costruttore a 5 argomenti - i campi extra restano null e
+    // costruttore a 5 argomenti - i campi rsa restano null e
     // vengono valorizzati coi setter dove servono
     public AuthResponse(String token, String message, String encryptedDek, String dekIv, String keySalt) {
-        this(token, message, encryptedDek, dekIv, keySalt, null, null, null);
+        this(token, message, encryptedDek, dekIv, keySalt, null, null);
     }
 }

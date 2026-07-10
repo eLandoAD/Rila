@@ -46,10 +46,5 @@ app:
     from: noreply@securevault.app
   # base URL del frontend per i link in email (verifica / reset)
   frontend-url: http://localhost:4200
-  # DEMO: se true gli account nascono già verificati (enabled=true) così anche un
-  # estraneo può loggarsi subito senza aprire la mail. In prod lasciare false.
-  demo:
-    auto-verify: false
-    reveal-token: false
 
 

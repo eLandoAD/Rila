@@ -6,11 +6,11 @@ With SecureVault you can store your files securely, organize them in folders, an
 with other users, all while keeping absolute privacy.
 
 **🔗 Live demo:** https://securevault.alessio.hackclub.app
-_Register with any email → verify via the in-app fake inbox → log in._
+_Register with your email → click the verification link we send you → log in._
 
 ## Features
 - JWT auth
-- Email verification (real, via a demo fake-inbox)
+- Email verification (real, via SMTP)
 - E2EE files & folders
 - sharing user → user (asymmetric, per-file key)
 - public share links
@@ -43,8 +43,8 @@ This starts everything behind a single reverse proxy:
 | App (nginx proxy) | http://localhost:4205 | frontend + API under `/api` |
 | Mailpit (dev SMTP) | http://localhost:8025 | optional — inspect reset/share emails locally |
 
-Open http://localhost:4205 and register. After registration the app takes you to an in-app
-**fake inbox**, where you can "verify" your email; then you can log in.
+Open http://localhost:4205 and register. You'll receive a verification email — in the default dev
+setup it's caught by Mailpit at http://localhost:8025; click the link, then log in.
 
 ### Running locally without Docker
 
@@ -65,7 +65,6 @@ Set via environment variables (see `docker-compose.yml`):
 | `FRONTEND_URL` | base URL used in email links |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | mail relay (Mailpit in dev; a real SMTP relay in prod) |
 | `SMTP_AUTH` / `SMTP_STARTTLS` | set to `true` for a real SMTP server |
-| `DEMO_REVEAL_TOKEN` | demo: reveal the verification token for the in-app fake inbox |
 
 For production email (verification, password reset, share notifications), point the `SMTP_*`
 variables at a real relay — the code is already wired for it.

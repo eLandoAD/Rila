@@ -24,7 +24,6 @@ export class Register {
   readonly loading: WritableSignal<boolean> = signal(false);
   readonly error: WritableSignal<string | null> = signal<string | null>(null);
   readonly recoveryKey: WritableSignal<string | null> = signal<string | null>(null);
-  readonly verificationToken: WritableSignal<string | null> = signal<string | null>(null);
 
   async submit(): Promise<void> {
     if (this.loading()) return;
@@ -56,9 +55,8 @@ export class Register {
           privateKeyIv: keys.privateKeyIv
         })
         .subscribe({
-          next: (res) => {
+          next: () => {
             this.loading.set(false);
-            this.verificationToken.set(res.verificationToken ?? null);
             // invece di fare il redirect, mostro la recovery key
             this.recoveryKey.set(keys.recoveryKey);
           },
@@ -124,14 +122,8 @@ export class Register {
     this.downloaded.set(true);
   }
 
-  // vado alla fake inbox
+  // dopo aver salvato la recovery key vado al login; la verifica avviene via email
   finish(): void {
-    const token = this.verificationToken();
-    if (token) {
-      this.router.navigate(['/mail'], { queryParams: { email: this.email, token } });
-    } else {
-      // x fallback
-      this.router.navigateByUrl('/login?registered=true');
-    }
+    this.router.navigateByUrl('/login?registered=true');
   }
 }

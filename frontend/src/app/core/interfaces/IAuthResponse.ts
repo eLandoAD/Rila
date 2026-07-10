@@ -4,7 +4,6 @@ export interface IAuthResponse {
   encryptedDek?: string;
   dekIv?: string;
   keySalt?: string;
-  verificationToken?: string;
   encryptedPrivateKey?: string;
   privateKeyIv?: string;
 }
