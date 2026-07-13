@@ -38,10 +38,10 @@
           </p>
 
           <div class="w-full mt-4">
-            <label class="label text-xs opacity-60">Email Address</label>
+            <label class="label text-xs opacity-60 mb-2">Email Address</label>
             <input
               type="email"
-              class="input input-bordered w-full text-center"
+              class="input input-bordered w-full text-center rounded-xl"
               placeholder="Enter your email"
               [(ngModel)]="emailInput"
               [disabled]="loading() || resent()"
@@ -56,7 +56,7 @@
 
           <div class="card-actions flex-col w-full mt-6">
             <button
-              class="btn btn-primary w-full"
+              class="btn btn-primary w-full rounded-xl"
               (click)="resend()"
               [disabled]="loading() || !emailInput.trim()"
             >
@@ -66,7 +66,7 @@
               Resend Verification Email
             </button>
 
-            <a routerLink="/login" class="btn btn-ghost w-full">Back to Login</a>
+            <a routerLink="/login" class="btn btn-link w-full rounded-xl">Back to Login</a>
           </div>
 
           <p class="text-xs opacity-60 mt-4">

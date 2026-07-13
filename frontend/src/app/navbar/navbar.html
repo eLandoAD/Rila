@@ -1,4 +1,4 @@
-<div class="navbar bg-base-100 shadow-sm">
+<!-- <div class="navbar bg-base-100 shadow-sm">
   <div class="navbar-start">
     <div class="dropdown">
       <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
@@ -13,24 +13,19 @@
       </ul>
     </div>
   </div>
-  <!-- Navbar Center -->
   <div class="navbar-center">
     <a routerLink="/" class="btn btn-ghost rounded-xl text-xl text-bold">SecureVault</a>
   </div>
-  <!-- Navbar End -->
   <div class="navbar-end">
     @if (!isAuthenticated()) {
-      <!-- Login/Sign In Button -->
       <a routerLink="/login" class="btn rounded-xl">Login</a>
     } @else {
-      <!-- Notification Button -->
       <button class="btn btn-ghost btn-circle">
         <div class="indicator">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /> </svg>
           <span class="badge badge-xs badge-error indicator-item"></span>
         </div>
       </button>
-      <!-- User Avatar -->
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
           <div class="w-10 rounded-full">
@@ -50,4 +45,42 @@
       </div>
     }
   </div>
-</div>
+</div> -->
+
+
+@if(isLogin()) {
+  <nav class="bg-[#0B0E17] fixed w-full z-20 top-0 start-0 border-b border-white/10">
+    <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+      <a (click)="toHome()" class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer">
+        <img src="icon.png" class="h-7" alt="Logo">
+        <span class="self-center text-xl text-white font-semibold">SecureVault</span>
+      </a>
+      <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+        <button (click)="toLogin()" class="btn rounded-lg border border-white/15 bg-white/10 text-white shadow-none hover:bg-white/15 hover:border-white/25">Login</button>
+      </div>
+    </div>
+
+  </nav>
+} @else {
+  <!-- mobile: navbar in basso (border-t) · da md in su: in alto (border-b) -->
+  <nav class="bg-[#0B0E17] fixed w-full z-20 start-0 bottom-0 border-t md:bottom-auto md:top-0 md:border-t-0 md:border-b border-white/10">
+    <div class="w-full flex flex-wrap items-center justify-between px-7 py-4">
+      <a (click)="toHome()" class="flex items-center space-x-3 rtl:space-x-reverse cursor-pointer">
+        <img src="icon.png" class="h-7" alt="Logo">
+        <span class="self-center text-xl text-white font-semibold">SecureVault</span>
+      </a>
+      <div class="navbar-center hidden md:flex">
+        <ul class="flex items-center gap-15">
+          <li><a routerLink="/" fragment="features" class="cursor-pointer text-white/70 no-underline hover:text-white hover:bg-transparent">Features</a></li>
+          <li><a routerLink="/" fragment="pricing" class="cursor-pointer text-white/70 no-underline hover:text-white hover:bg-transparent">Pricing</a></li>
+          <li><a routerLink="/" fragment="security" class="cursor-pointer text-white/70 no-underline hover:text-white hover:bg-transparent">Security</a></li>
+          <li><a routerLink="/" fragment="support" class="cursor-pointer text-white/70 no-underline hover:text-white hover:bg-transparent">Support</a></li>
+        </ul>
+      </div>
+      <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
+        <button (click)="toLogin()" class="btn rounded-lg border border-white/15 bg-white/10 text-white shadow-none hover:bg-white/15 hover:border-white/25">Login</button>
+      </div>
+    </div>
+
+  </nav>
+}

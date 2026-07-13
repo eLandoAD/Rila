@@ -1,110 +1,100 @@
 <!-- Landing Page / Hero -->
-<div
-  class="hero min-h-screen"
-  style="background-image: url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp);"
+<section
+  id="home"
+  class="relative min-h-screen bg-[#0B0E17] bg-cover bg-center bg-no-repeat text-white max-xl:min-h-0"
+  style="background-image: url('Landing_background.png');"
 >
-  <div class="hero-overlay"></div>
+  <!-- gradiente scuro a sinistra: rende leggibile il testo, lascia intravedere il pattern a destra -->
+  <div class="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B0E17] via-[#0B0E17]/85 to-[#0B0E17]/20"></div>
 
-  <div class="hero-content text-neutral-content text-center">
-    <div class="max-w-md">
-      <h1 class="mb-5 text-5xl font-bold">
-        SecureVault
+  <div class="relative mx-auto flex min-h-screen max-w-7xl items-center px-12 pt-24 max-xl:min-h-0 max-xl:items-start max-xl:px-8 max-xl:pt-32 max-xl:pb-16 max-md:px-6">
+    <div class="max-w-2xl">
+      <h1 class="text-7xl font-black leading-[1.05] tracking-tight max-xl:text-6xl max-md:text-4xl">
+        Your files. Your keys.<br />Your privacy.
       </h1>
 
-      <p class="mb-5">
-        The most secure file storage solution on the market. Protect your data with end-to-end encryption and
-        zero-knowledge architecture. Your files, your keys, your privacy.
+      <p class="mt-6 max-w-md text-lg text-white/60 leading-relaxed max-md:text-base">
+        Zero-knowledge end-to-end encryption cloud storage. Your keys never leave your device, so we never see your files.
       </p>
 
-      <a routerLink="/register" class="btn btn-primary rounded-xl">
-        Get Started
-      </a>
+      <div class="mt-9 flex flex-wrap gap-4">
+        <a routerLink="/register" class="btn btn-primary rounded-xl border-0 px-6 font-semibold shadow-lg shadow-primary/20">
+          Get Started
+        </a>
+        <a routerLink="/" fragment="how-it-works" class="btn rounded-xl border border-white/15 bg-white/5 text-white shadow-none hover:bg-white/10 hover:border-white/25">
+          See how it works
+        </a>
+      </div>
     </div>
   </div>
-</div>
+
+  <!-- badge verde "End-to-end encrypted", sopra il pattern a destra -->
+  <div class="absolute right-[18%] top-1/2 hidden -translate-y-1/2 items-center gap-2 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-medium text-white shadow-xl shadow-emerald-500/20 md:flex max-xl:right-[26%] max-xl:top-[46%]">
+    <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+    End-to-end encrypted
+  </div>
+</section>
 
 <!-- Features -->
-<section class="px-5 py-12">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold mb-3">
-        Features
-      </h2>
+<section id="features" class="bg-[#0B0E17] px-12 pt-20 pb-10 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="text-3xl font-bold">
+      Features
+    </h2>
 
-      <p class="text-base-content/70 max-w-2xl mx-auto">
-        Everything you need to keep your files safe, organized and easy to share.
-      </p>
-    </div>
+    <div class="mt-10 grid grid-cols-3 gap-6 max-md:grid-cols-1">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-7 items-stretch">
-
-      <!-- Feature 1 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full min-h-36 transition duration-300 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl">
-        <div class="card-body h-full">
-          <div class="flex items-start gap-4 h-full">
-            <div class="text-primary shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
-              </svg>
-            </div>
-
-            <div>
-              <h3 class="card-title justify-start">
-                Share
-              </h3>
-
-              <p class="text-base-content/70">
-                Easily share files and folders with friends, family or colleagues. Control access and permissions with a few clicks.
-              </p>
-            </div>
-          </div>
+      <!-- Feature 1: Share -->
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+          </svg>
         </div>
+
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Share
+        </h3>
+
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Share files and folders with friends or colleagues, end-to-end encrypted the whole way.
+        </p>
       </div>
 
-      <!-- Feature 2 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full min-h-36 transition duration-300 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl">
-        <div class="card-body h-full">
-          <div class="flex items-start gap-4 h-full">
-            <div class="text-primary shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
-              </svg>
-            </div>
-
-            <div>
-              <h3 class="card-title justify-start">
-                Easy
-              </h3>
-
-              <p class="text-base-content/70">
-                A user-friendly interface makes it simple for anyone to use, regardless of technical expertise.
-              </p>
-            </div>
-          </div>
+      <!-- Feature 2: Easy -->
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
         </div>
+
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Easy
+        </h3>
+
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          A clean, user-friendly interface makes it simple for anyone to use, no technical expertise required.
+        </p>
       </div>
 
-      <!-- Feature 3 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full min-h-36 transition duration-300 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl">
-        <div class="card-body h-full">
-          <div class="flex items-start gap-4 h-full">
-            <div class="text-primary shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
-              </svg>
-            </div>
-
-            <div>
-              <h3 class="card-title justify-start">
-                Reliable
-              </h3>
-
-              <p class="text-base-content/70">
-                A solid structure keeps the experience stable, professional and ready to grow.
-              </p>
-            </div>
-          </div>
+      <!-- Feature 3: Reliable -->
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
         </div>
+
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Reliable
+        </h3>
+
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          A solid, battle-tested architecture keeps the experience stable, professional and ready to grow.
+        </p>
       </div>
 
     </div>
@@ -112,69 +102,51 @@
 </section>
 
 <!-- How It Works -->
-<section class="px-5 py-12 bg-base-200">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold mb-3">
-        How It Works
-      </h2>
+<section id="how-it-works" class="bg-[#0B0E17] px-12 pt-8 pb-20 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-7xl">
+    <h2 class="text-3xl font-bold">
+      How It Works
+    </h2>
 
-      <p class="text-base-content/70 max-w-2xl mx-auto">
-        Upload, protect and share your files in just a few simple steps.
-      </p>
-    </div>
+    <div class="mt-10 grid grid-cols-3 gap-6 max-md:grid-cols-1">
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
+      <!-- upload -->
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="text-4xl font-bold text-primary">1</div>
 
-      <!-- Step 1 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body text-center">
-          <div class="text-4xl font-bold text-primary mb-2">
-            1
-          </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Upload
+        </h3>
 
-          <h3 class="card-title justify-center">
-            Upload
-          </h3>
-
-          <p class="text-base-content/70">
-            Choose your files and upload them securely to your personal vault.
-          </p>
-        </div>
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Choose your files and upload them securely to your personal vault.
+        </p>
       </div>
 
-      <!-- Step 2 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body text-center">
-          <div class="text-4xl font-bold text-primary mb-2">
-            2
-          </div>
+      <!-- encrypt -->
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="text-4xl font-bold text-primary">2</div>
 
-          <h3 class="card-title justify-center">
-            Encrypt
-          </h3>
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Encrypt
+        </h3>
 
-          <p class="text-base-content/70">
-            Your files are protected with strong encryption before they are stored.
-          </p>
-        </div>
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Your files are protected with strong encryption before they are stored.
+        </p>
       </div>
 
-      <!-- Step 3 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body text-center">
-          <div class="text-4xl font-bold text-primary mb-2">
-            3
-          </div>
+      <!-- Feature 3: Reliable -->
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="text-4xl font-bold text-primary">3</div>
 
-          <h3 class="card-title justify-center">
-            Share
-          </h3>
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Share
+        </h3>
 
-          <p class="text-base-content/70">
-            Share files safely with other people while keeping full control.
-          </p>
-        </div>
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Share files safely with other people while keeping full control.
+        </p>
       </div>
 
     </div>
@@ -182,57 +154,62 @@
 </section>
 
 <!-- Why Choose Us -->
-<section class="px-5 py-12">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold mb-3">
+<section id="security" class="bg-[#0B0E17] px-12 py-16 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-7xl">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold">
         Why Choose Us?
       </h2>
-
-      <p class="text-base-content/70 max-w-2xl mx-auto">
-        SecureVault is built for people and teams who care about security, privacy and simplicity.
+      <p class="mt-3 text-white/50">
+        Discover why thousands rely on SecureVault for their privacy needs.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-7 items-stretch">
+    <div class="mt-10 grid grid-cols-3 gap-6 max-md:grid-cols-1">
 
       <!-- Reason 1 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body">
-          <h3 class="card-title">
-            End-to-End Encryption
-          </h3>
-
-          <p class="text-base-content/70">
-            Your files are encrypted on your device before they are uploaded, ensuring that only you have access to your data.
-          </p>
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
         </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          End-to-End Encryption
+        </h3>
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Your data is encrypted on your device, ensuring only you can access it. Not even we can read your files.
+        </p>
       </div>
 
       <!-- Reason 2 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body">
-          <h3 class="card-title">
-            Cloud Storage
-          </h3>
-
-          <p class="text-base-content/70">
-            Store your files in the cloud with reliable and secure infrastructure, so they are always accessible and protected.
-          </p>
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z" />
+          </svg>
         </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Cloud Storage
+        </h3>
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Reliable, scalable cloud infrastructure designed for speed and accessibility, wherever you are.
+        </p>
       </div>
 
       <!-- Reason 3 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body">
-          <h3 class="card-title">
-            Easy to Use
-          </h3>
-
-          <p class="text-base-content/70">
-            Manage your files, collaborate with others and get the most out of your storage without complicated tools.
-          </p>
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+          </svg>
         </div>
+        <h3 class="mt-5 text-lg font-semibold text-white">
+          Easy to Use
+        </h3>
+        <p class="mt-2 text-sm leading-relaxed text-white/50">
+          Intuitive apps and seamless integration make securing your digital life effortless.
+        </p>
       </div>
 
     </div>
@@ -240,50 +217,27 @@
 </section>
 
 <!-- Stats -->
-<section class="px-5 py-12 bg-base-200">
-  <div class="max-w-6xl mx-auto">
-    <div class="stats stats-vertical md:stats-horizontal shadow w-full bg-base-100">
+<section class="bg-[#0B0E17] px-12 py-16 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-7xl">
+    <p class="text-center text-sm font-semibold uppercase tracking-widest text-white/40">
+      Stats
+    </p>
 
-      <div class="stat">
-        <div class="stat-title">
-          Files protected
-        </div>
+    <div class="mt-6 grid grid-cols-3 gap-6 rounded-2xl border border-white/10 bg-white/[0.03] p-10 text-center max-md:grid-cols-1 max-md:gap-8">
 
-        <div class="stat-value text-primary">
-          2M+
-        </div>
-
-        <div class="stat-desc">
-          Secure uploads every month
-        </div>
+      <div>
+        <div class="text-4xl font-bold text-primary">2M+</div>
+        <p class="mt-2 text-sm text-white/50">Secure uploads every month</p>
       </div>
 
-      <div class="stat">
-        <div class="stat-title">
-          Uptime
-        </div>
-
-        <div class="stat-value text-primary">
-          99.9%
-        </div>
-
-        <div class="stat-desc">
-          Reliable cloud infrastructure
-        </div>
+      <div>
+        <div class="text-4xl font-bold text-primary">99.9%</div>
+        <p class="mt-2 text-sm text-white/50">Uptime reliable infrastructure</p>
       </div>
 
-      <div class="stat">
-        <div class="stat-title">
-          Users
-        </div>
-
-        <div class="stat-value text-primary">
-          50K+
-        </div>
-
-        <div class="stat-desc">
-          People trust SecureVault
-        </div>
+      <div>
+        <div class="text-4xl font-bold text-primary">50K+</div>
+        <p class="mt-2 text-sm text-white/50">Users trust SecureVault</p>
       </div>
 
     </div>
@@ -291,166 +245,100 @@
 </section>
 
 <!-- Testimonials -->
-<section class="px-5 py-12">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold mb-3">
+<section class="bg-[#0B0E17] px-12 py-16 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-7xl">
+    <div class="text-center">
+      <p class="text-sm font-semibold uppercase tracking-widest text-white/40">
+        Testimonials
+      </p>
+      <h2 class="mt-2 text-3xl font-bold">
         Testimonials
       </h2>
-      <p class="text-sm opacity-60 italic mb-6 text-center">
+      <p class="mt-2 text-sm italic text-white/40">
         The testimonials below are fictional and shown for demonstration purposes only.
-      </p>
-      <p class="text-base-content/70 max-w-2xl mx-auto">
-        See what people say about our platform and how it helps them every day.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-7 items-stretch">
+    <div class="mt-10 grid grid-cols-3 gap-6 max-md:grid-cols-1">
 
       <!-- Testimonial 1 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="avatar">
-              <div class="w-14 rounded-full">
-                <img
-                  src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
-                  alt="User avatar"
-                />
-              </div>
-            </div>
-
-            <div>
-              <h3 class="font-bold">
-                John Doe
-              </h3>
-
-              <p class="text-sm text-base-content/60">
-                Business Owner
-              </p>
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="flex items-center gap-4">
+          <div class="avatar">
+            <div class="w-12 rounded-full">
+              <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" alt="User avatar" />
             </div>
           </div>
-
-          <p class="text-base-content/70">
-            “The platform is simple, fast and very easy to use. It helped us manage our files with less stress and more clarity.”
-          </p>
-
-          <div class="rating rating-half rating-sm mt-4 pointer-events-none">
-            <input type="radio" name="rating-1" class="rating-hidden" />
-
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="0.5 star" />
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="1 star" />
-
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="1.5 stars" />
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="2 stars" />
-
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="2.5 stars" />
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="3 stars" />
-
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="3.5 stars" />
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="4 stars" />
-
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="4.5 stars" />
-            <input type="radio" name="rating-1" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="5 stars" checked />
+          <div>
+            <h3 class="font-semibold text-white">Sarah Chen</h3>
+            <p class="text-sm text-white/50">CTO, Innovate Inc.</p>
           </div>
+        </div>
+
+        <p class="mt-4 text-sm leading-relaxed text-white/60">
+          “SecureVault provides the peace of mind we need for sensitive client data. Implementation was seamless.”
+        </p>
+
+        <div class="rating rating-sm mt-4 pointer-events-none">
+          <input type="radio" name="rating-1" class="mask mask-star-2 bg-green-500" aria-label="1 star" />
+          <input type="radio" name="rating-1" class="mask mask-star-2 bg-green-500" aria-label="2 star" />
+          <input type="radio" name="rating-1" class="mask mask-star-2 bg-green-500" aria-label="3 star" />
+          <input type="radio" name="rating-1" class="mask mask-star-2 bg-green-500" aria-label="4 star" />
+          <input type="radio" name="rating-1" class="mask mask-star-2 bg-green-500" aria-label="5 star" checked />
         </div>
       </div>
 
       <!-- Testimonial 2 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="avatar">
-              <div class="w-14 rounded-full">
-                <img
-                  src="https://img.daisyui.com/images/profile/demo/batperson@192.webp"
-                  alt="User avatar"
-                />
-              </div>
-            </div>
-
-            <div>
-              <h3 class="font-bold">
-                Jane Smith
-              </h3>
-
-              <p class="text-sm text-base-content/60">
-                Project Manager
-              </p>
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="flex items-center gap-4">
+          <div class="avatar">
+            <div class="w-12 rounded-full">
+              <img src="https://img.daisyui.com/images/profile/demo/batperson@192.webp" alt="User avatar" />
             </div>
           </div>
-
-          <p class="text-base-content/70">
-            “I really liked the clean interface. Everything feels professional and organized, without making things complicated.”
-          </p>
-
-          <div class="rating rating-half rating-sm mt-4 pointer-events-none">
-            <input type="radio" name="rating-2" class="rating-hidden" />
-
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="0.5 star" />
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="1 star" />
-
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="1.5 stars" />
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="2 stars" />
-
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="2.5 stars" />
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="3 stars" />
-
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="3.5 stars" />
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="4 stars" />
-
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="4.5 stars" checked />
-            <input type="radio" name="rating-2" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="5 stars" />
+          <div>
+            <h3 class="font-semibold text-white">Alex Rivera</h3>
+            <p class="text-sm text-white/50">Freelance Creative</p>
           </div>
+        </div>
+
+        <p class="mt-4 text-sm leading-relaxed text-white/60">
+          “Finally, a cloud storage solution that prioritizes privacy without sacrificing usability. Highly recommended.”
+        </p>
+
+        <div class="rating rating-sm mt-4 pointer-events-none">
+          <input type="radio" name="rating-2" class="mask mask-star-2 bg-green-500" aria-label="1 star" />
+          <input type="radio" name="rating-2" class="mask mask-star-2 bg-green-500" aria-label="2 star" />
+          <input type="radio" name="rating-2" class="mask mask-star-2 bg-green-500" aria-label="3 star" />
+          <input type="radio" name="rating-2" class="mask mask-star-2 bg-green-500" aria-label="4 star" />
+          <input type="radio" name="rating-2" class="mask mask-star-2 bg-green-500" aria-label="5 star" checked />
         </div>
       </div>
 
       <!-- Testimonial 3 -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
-        <div class="card-body">
-          <div class="flex items-center gap-4 mb-4">
-            <div class="avatar">
-              <div class="w-14 rounded-full">
-                <img
-                  src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp"
-                  alt="User avatar"
-                />
-              </div>
-            </div>
-
-            <div>
-              <h3 class="font-bold">
-                Alex Carter
-              </h3>
-
-              <p class="text-sm text-base-content/60">
-                Developer
-              </p>
+      <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.05]">
+        <div class="flex items-center gap-4">
+          <div class="avatar">
+            <div class="w-12 rounded-full">
+              <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" alt="User avatar" />
             </div>
           </div>
-
-          <p class="text-base-content/70">
-            “Reliable, modern and smooth. It gives a great first impression and works well on both desktop and mobile.”
-          </p>
-
-          <div class="rating rating-half rating-sm mt-4 pointer-events-none">
-            <input type="radio" name="rating-3" class="rating-hidden" />
-
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="0.5 star" />
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="1 star" />
-
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="1.5 stars" />
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="2 stars" />
-
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="2.5 stars" />
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="3 stars" />
-
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="3.5 stars" />
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="4 stars" checked />
-
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-1 bg-green-500" aria-label="4.5 stars" />
-            <input type="radio" name="rating-3" class="mask mask-star-2 mask-half-2 bg-green-500" aria-label="5 stars" />
+          <div>
+            <h3 class="font-semibold text-white">David Kim</h3>
+            <p class="text-sm text-white/50">Security Lead, TechCorp</p>
           </div>
+        </div>
+
+        <p class="mt-4 text-sm leading-relaxed text-white/60">
+          “The E2EE implementation is robust and transparent. It's the only storage I trust with my projects.”
+        </p>
+
+        <div class="rating rating-sm mt-4 pointer-events-none">
+          <input type="radio" name="rating-3" class="mask mask-star-2 bg-green-500" aria-label="1 star" />
+          <input type="radio" name="rating-3" class="mask mask-star-2 bg-green-500" aria-label="2 star" />
+          <input type="radio" name="rating-3" class="mask mask-star-2 bg-green-500" aria-label="3 star" />
+          <input type="radio" name="rating-3" class="mask mask-star-2 bg-green-500" aria-label="4 star" />
+          <input type="radio" name="rating-3" class="mask mask-star-2 bg-green-500" aria-label="5 star" checked />
         </div>
       </div>
 
@@ -459,109 +347,103 @@
 </section>
 
 <!-- Pricing -->
-<section class="px-5 py-12 bg-base-200">
-  <div class="max-w-6xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold mb-3">
+<section id="pricing" class="bg-[#0B0E17] px-12 py-16 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-7xl">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold">
         Pricing
       </h2>
-
-      <p class="text-sm opacity-60 italic mb-6 text-center">
+      <p class="mt-2 text-sm italic text-white/40">
         The prices below are fictional and shown for demonstration purposes only.
-      </p>
-      
-      <p class="text-base-content/70 max-w-2xl mx-auto">
-        Choose the plan that fits your storage and security needs.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-7 items-stretch">
+    <div class="mt-10 grid grid-cols-3 items-stretch gap-6 max-md:grid-cols-1">
 
       <!-- Free Plan -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full">
-        <div class="card-body">
-          <h3 class="card-title">
-            Free
-          </h3>
+      <div class="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
+        <h3 class="text-2xl font-semibold text-white">Free</h3>
+        <p class="mt-4 text-4xl font-bold text-white">€0</p>
 
-          <p class="text-4xl font-bold">
-            €0
-          </p>
+        <ul class="mt-8 mb-8 space-y-3 text-left text-sm text-white/70">
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Up to 10GB Storage
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Basic Sync
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Mobile Access
+          </li>
+        </ul>
 
-          <p class="text-base-content/70">
-            Perfect for personal testing.
-          </p>
-
-          <ul class="space-y-2 mt-4 text-base-content/70">
-            <li>✓ 2 GB storage</li>
-            <li>✓ Basic encryption</li>
-            <li>✓ File sharing</li>
-          </ul>
-
-          <a routerLink="/register" class="btn btn-outline mt-6">
-            Start Free
-          </a>
-        </div>
+        <a routerLink="/register" class="btn mt-auto w-full rounded-lg border border-white/15 bg-white/5 text-white shadow-none hover:bg-white/10 hover:border-white/25">
+          Start Free
+        </a>
       </div>
 
-      <!-- Pro Plan -->
-      <div class="card bg-base-100 shadow-2xl rounded-2xl border-2 border-primary h-full">
-        <div class="card-body">
-          <div class="badge badge-primary mb-2">
-            Popular
-          </div>
+      <!-- Pro Plan (highlighted) -->
+      <div class="relative flex flex-col rounded-2xl border-2 border-primary bg-primary/[0.06] p-8 text-center shadow-xl shadow-primary/10">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-content">
+          Popular
+        </span>
+        <h3 class="text-2xl font-semibold text-white">Pro</h3>
+        <p class="mt-4 text-4xl font-bold text-white">€9<span class="text-base font-normal text-white/50">/mo</span></p>
 
-          <h3 class="card-title">
-            Pro
-          </h3>
+        <ul class="mt-8 mb-8 space-y-3 text-left text-sm text-white/70">
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Up to 500GB Storage
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Advanced Sync
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Priority Support
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            E2EE Vault
+          </li>
+        </ul>
 
-          <p class="text-4xl font-bold">
-            €9<span class="text-base font-normal">/mo</span>
-          </p>
-
-          <p class="text-base-content/70">
-            For users who need more space and control.
-          </p>
-
-          <ul class="space-y-2 mt-4 text-base-content/70">
-            <li>✓ 1 TB storage</li>
-            <li>✓ End-to-end encryption</li>
-            <li>✓ Advanced sharing</li>
-            <li>✓ Priority support</li>
-          </ul>
-
-          <a routerLink="/register" class="btn btn-primary mt-6">
-            Get Pro
-          </a>
-        </div>
+        <a routerLink="/register" class="btn btn-primary mt-auto w-full rounded-lg border-0 font-semibold">
+          Get Pro
+        </a>
       </div>
 
       <!-- Business Plan -->
-      <div class="card bg-base-100 shadow-xl rounded-2xl h-full">
-        <div class="card-body">
-          <h3 class="card-title">
-            Business
-          </h3>
+      <div class="flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-8 text-center">
+        <h3 class="text-2xl font-semibold text-white">Business</h3>
+        <p class="mt-4 text-4xl font-bold text-white">€29<span class="text-base font-normal text-white/50">/mo</span></p>
 
-          <p class="text-4xl font-bold">
-            €29<span class="text-base font-normal">/mo</span>
-          </p>
+        <ul class="mt-8 mb-8 space-y-3 text-left text-sm text-white/70">
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Up to 5TB Storage
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Team Management
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            SSO Integration
+          </li>
+          <li class="flex items-center gap-2">
+            <svg class="size-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+            Dedicated Manager
+          </li>
+        </ul>
 
-          <p class="text-base-content/70">
-            For teams and companies.
-          </p>
-
-          <ul class="space-y-2 mt-4 text-base-content/70">
-            <li>✓ 5 TB storage</li>
-            <li>✓ Team management</li>
-            <li>✓ Admin dashboard</li>
-            <li>✓ Dedicated support</li>
-          </ul>
-
-          <a href="mailto:giacomo.masiero@marconirovereto.it" class="btn btn-outline mt-6">
-            Contact Sales
-          </a>
-        </div>
+        <a href="mailto:giacomo.masiero@marconirovereto.it" class="btn mt-auto w-full rounded-lg border border-white/15 bg-white/5 text-white shadow-none hover:bg-white/10 hover:border-white/25">
+          Contact Sales
+        </a>
       </div>
 
     </div>
@@ -569,58 +451,46 @@
 </section>
 
 <!-- FAQ -->
-<section class="px-5 py-12">
-  <div class="max-w-4xl mx-auto">
-    <div class="text-center mb-10">
-      <h2 class="text-3xl font-bold mb-3">
-        Frequently Asked Questions
-      </h2>
+<section id="support" class="bg-[#0B0E17] px-12 py-16 text-white max-lg:px-8 max-md:px-6">
+  <div class="mx-auto max-w-4xl">
+    <h2 class="text-center text-3xl font-bold">
+      Frequently Asked Questions
+    </h2>
 
-      <p class="text-base-content/70">
-        Everything you need to know before getting started.
-      </p>
-    </div>
+    <div class="mt-10 space-y-4">
 
-    <div class="space-y-4">
-
-      <div class="collapse collapse-arrow bg-base-200">
+      <div class="collapse collapse-arrow rounded-2xl border border-white/10 bg-white/[0.03]">
         <input type="radio" name="faq-accordion" checked />
-
-        <div class="collapse-title text-xl font-medium">
-          Are my files really private?
+        <div class="collapse-title text-base font-medium text-white">
+          How does SecureVault ensure E2EE?
         </div>
-
-        <div class="collapse-content">
+        <div class="collapse-content text-sm text-white/60">
           <p>
-            Yes. Your files are encrypted and only you control access to them.
+            Client-side encryption happens before data leaves the device: your files are encrypted in your browser with a key derived from your password, so plaintext never reaches our servers.
           </p>
         </div>
       </div>
 
-      <div class="collapse collapse-arrow bg-base-200">
+      <div class="collapse collapse-arrow rounded-2xl border border-white/10 bg-white/[0.03]">
         <input type="radio" name="faq-accordion" />
-
-        <div class="collapse-title text-xl font-medium">
-          Can I share files with other people?
+        <div class="collapse-title text-base font-medium text-white">
+          Can I upgrade or downgrade my plan anytime?
         </div>
-
-        <div class="collapse-content">
+        <div class="collapse-content text-sm text-white/60">
           <p>
-            Yes. You can create secure sharing links and manage permissions.
+            Yes. You can switch plan at any time and the change applies from your next billing cycle.
           </p>
         </div>
       </div>
 
-      <div class="collapse collapse-arrow bg-base-200">
+      <div class="collapse collapse-arrow rounded-2xl border border-white/10 bg-white/[0.03]">
         <input type="radio" name="faq-accordion" />
-
-        <div class="collapse-title text-xl font-medium">
-          Can I use it for my company?
+        <div class="collapse-title text-base font-medium text-white">
+          What payment methods do you accept?
         </div>
-
-        <div class="collapse-content">
+        <div class="collapse-content text-sm text-white/60">
           <p>
-            Yes. SecureVault can be used by individuals, teams and businesses.
+            All major credit and debit cards, plus common digital wallets.
           </p>
         </div>
       </div>
@@ -630,24 +500,26 @@
 </section>
 
 <!-- Final CTA / Newsletter -->
-<section class="px-5 py-16 bg-gradient-to-r from-blue-500 to-purple-600">
-  <div class="max-w-3xl mx-auto text-center">
-    <h2 class="text-3xl font-bold text-white mb-4">
-      Ready to get started?
-    </h2>
+<section class="relative overflow-hidden border-t border-white/10 bg-[#090C14] px-12 py-20 text-white max-lg:px-8 max-md:px-6">
+  <!-- effetto blu soft dietro -->
+  <div class="pointer-events-none absolute left-1/2 top-1/2 h-72 w-[40rem] max-w-full -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-3xl"></div>
 
-    <p class="text-lg text-blue-100 mb-8">
-      Join thousands of satisfied users and experience secure file storage today.
+  <div class="relative mx-auto max-w-2xl text-center">
+    <h2 class="text-3xl font-bold">
+      Ready to get started? Secure your data today.
+    </h2>
+    <p class="mt-3 text-white/50">
+      Join thousands of users and experience secure, zero-knowledge file storage.
     </p>
 
     @if (subscribed()) {
-      <div role="alert" class="alert alert-success max-w-xl mx-auto mb-6">
+      <div role="alert" class="alert alert-success mx-auto mt-8 max-w-xl rounded-xl">
         <span>Thanks for subscribing! We'll keep you posted.</span>
       </div>
     } @else {
-      <form class="join w-full max-w-xl mx-auto mb-6" (ngSubmit)="subscribe()" #newsletterForm="ngForm">
+      <form class="mx-auto mt-8 flex w-full max-w-xl items-center gap-3 max-md:flex-col" (ngSubmit)="subscribe()" #newsletterForm="ngForm">
         <input
-          class="input input-bordered join-item w-full rounded-xl"
+          class="input w-full rounded-lg border border-white/15 bg-white/5 text-white placeholder:text-white/40 focus:border-primary focus:outline-primary"
           placeholder="Enter your email"
           type="email"
           name="newsletterEmail"
@@ -655,15 +527,10 @@
           email
           [(ngModel)]="newsletterEmail"
         />
-
-        <button type="submit" class="btn btn-primary join-item ml-1 mr-1 rounded-xl" [disabled]="newsletterForm.invalid">
-          Subscribe
+        <button type="submit" class="btn btn-primary shrink-0 rounded-lg border-0 font-semibold shadow-lg shadow-primary/30 max-md:w-full" [disabled]="newsletterForm.invalid">
+          Get Started
         </button>
       </form>
     }
-
-    <a routerLink="/register" class="btn bg-white rounded-xl text-blue-500 border-white hover:bg-blue-100 hover:border-blue-100">
-      Get Started
-    </a>
   </div>
 </section>

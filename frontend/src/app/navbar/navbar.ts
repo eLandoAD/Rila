@@ -21,4 +21,17 @@ export class Navbar {
     this.auth.logout();
     this.router.navigateByUrl('/login');
   }
+
+  isLogin(): boolean {
+    return this.router.url === '/login';
+  }
+
+  toLogin(): void {
+    this.router.navigateByUrl('/login')
+  }
+
+  // brand SecureVault -> home
+  toHome(): void {
+    this.router.navigateByUrl('/')
+  }
 }

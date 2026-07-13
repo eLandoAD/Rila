@@ -14,7 +14,7 @@
         <p class="text-xs text-base-content/60 mt-1">Manage and access your end-to-end encrypted storage</p>
       </div>
       <div class="flex items-center gap-2.5">
-        <button class="btn btn-outline btn-sm rounded-xl font-bold border-base-300 hover:bg-base-300 transition-colors" (click)="createNewFolder()">
+        <button class="btn btn-outline btn-sm rounded-xl font-bold border-primary/40 text-primary hover:bg-primary/10 hover:border-primary transition-colors" (click)="createNewFolder()">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
           </svg>
@@ -24,7 +24,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
           </svg>
-          Upload Files
+          Upload
         </button>
         <input type="file" #fileInput class="hidden" multiple (change)="onFileSelected($event)" />
       </div>
@@ -75,183 +75,103 @@
         <p class="text-sm text-base-content/60 animate-pulse">Decrypting folder index...</p>
       </div>
     } @else {
-      <!-- Folders Grid -->
+      <!-- Cartelle (lista card) -->
       @if (folders().length > 0) {
-        <div class="mb-8">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-3 px-1">Folders</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            @for (folder of folders(); track folder.id) {
-              <!-- Folder Card (Draggable and Drop Target) -->
-              <div class="card bg-base-100 border border-base-300/40 shadow-xs hover:shadow-md rounded-2xl transition-all duration-300 group hover:border-primary/20"
-                   draggable="true"
-                   (dragstart)="onItemDragStart($event, 'folder', folder.id)"
-                   (dragover)="onFolderDragOver($event)"
-                   (drop)="onItemDrop($event, folder.id)">
-                <div class="card-body p-4 flex flex-row items-center gap-3">
-                  <!-- Folder Link Wrapper -->
-                  <button class="flex-1 flex items-center gap-3 overflow-hidden text-left cursor-pointer" (click)="navigateTo(folder.id)">
-                    <div class="p-2.5 bg-primary/10 rounded-xl text-primary group-hover:bg-primary group-hover:text-primary-content transition-all duration-300">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                      </svg>
-                    </div>
-                    <span class="truncate font-semibold text-base-content group-hover:text-primary transition-colors">{{ folder.name }}</span>
-                  </button>
-
-                  <!-- Options Dropdown -->
-                  <div class="dropdown dropdown-end shrink-0">
-                    <button tabindex="0" class="btn btn-ghost btn-xs btn-circle text-base-content/50 hover:text-base-content">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                      </svg>
-                    </button>
-                    <ul tabindex="0" class="dropdown-content menu bg-base-100 border border-base-300/40 rounded-box z-10 w-40 p-2 shadow-lg">
-                      <li>
-                        <a (click)="renameFolder(folder)" class="rounded-lg py-2 text-sm flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                          Rename
-                        </a>
-                      </li>
-                      <li>
-                        <a (click)="openMove({ kind: 'folder', folder })" class="rounded-lg py-2 text-sm flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                          Move To
-                        </a>
-                      </li>
-                      <hr class="border-base-300/40 my-1">
-                      <li>
-                        <a (click)="deleteFolder(folder)" class="rounded-lg py-2 text-sm text-error hover:bg-error/10 flex items-center gap-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                          Delete
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
+        <div class="space-y-3 mb-3">
+          @for (folder of folders(); track folder.id) {
+            <div class="group flex items-center gap-3 rounded-2xl border border-base-300/40 bg-base-100 px-4 py-3 shadow-xs transition-all duration-300 hover:border-primary/30"
+                 draggable="true"
+                 (dragstart)="onItemDragStart($event, 'folder', folder.id)"
+                 (dragover)="onFolderDragOver($event)"
+                 (drop)="onItemDrop($event, folder.id)">
+              <button class="flex min-w-0 flex-1 items-center gap-3 text-left cursor-pointer" (click)="navigateTo(folder.id)">
+                <div class="shrink-0 rounded-xl bg-base-300/40 p-2.5 text-base-content/70">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
                 </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="truncate font-bold text-base-content">{{ folder.name }}</span>
+                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-500 text-white" title="End-to-end encrypted">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <p class="text-xs text-base-content/50">Folder</p>
+                </div>
+              </button>
+
+              <div class="dropdown dropdown-end shrink-0">
+                <button tabindex="0" class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h.01M12 12h.01M18 12h.01" />
+                  </svg>
+                </button>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 border border-base-300/40 rounded-box z-10 w-44 p-2 shadow-lg">
+                  <li><a (click)="renameFolder(folder)" class="rounded-lg py-2 text-sm">Rename</a></li>
+                  <li><a (click)="openMove({ kind: 'folder', folder })" class="rounded-lg py-2 text-sm">Move To</a></li>
+                  <hr class="border-base-300/40 my-1">
+                  <li><a (click)="deleteFolder(folder)" class="rounded-lg py-2 text-sm text-error hover:bg-error/10">Delete</a></li>
+                </ul>
               </div>
-            }
-          </div>
+            </div>
+          }
         </div>
       }
 
-      <!-- Files Table -->
+      <!-- File (lista card) -->
       @if (files().length > 0) {
-        <div class="bg-base-100 border border-base-300/40 shadow-xs rounded-2xl overflow-hidden mb-8">
-          <div class="px-5 py-4 border-b border-base-300/40">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40">Files</h2>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="table w-full">
-              <thead>
-                <tr class="border-base-300/40 text-xs uppercase tracking-wider opacity-60">
-                  <th class="pl-6">Name</th>
-                  <th>Size</th>
-                  <th>Uploaded</th>
-                  <th class="text-right pr-6">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (file of files(); track file.id) {
-                  <!-- Draggable File Row -->
-                  <tr class="hover:bg-base-200/50 border-base-300/30 transition-colors group cursor-grab active:cursor-grabbing"
-                      draggable="true"
-                      (dragstart)="onItemDragStart($event, 'file', file.id)">
-                    <td class="pl-6 font-semibold text-base-content flex items-center gap-3 py-3.5">
-                      <div class="p-2 bg-secondary/10 text-secondary rounded-lg shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <span class="truncate max-w-xs md:max-w-md" [title]="file.name">{{ file.name }}</span>
-                    </td>
-                    <td class="text-sm text-base-content/70">{{ format(file.size) }}</td>
-                    <td class="text-sm text-base-content/70">{{ file.uploadedAt | date: 'mediumDate' }}</td>
-                    <td class="text-right pr-6 py-2">
-                      <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
-                        <!-- Preview Button -->
-                        <button class="btn btn-ghost btn-xs text-secondary font-semibold flex items-center justify-center p-1 rounded-lg"
-                                (click)="openPreview(file)"
-                                title="Preview File">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
+        <div class="space-y-3 mb-8">
+          @for (file of files(); track file.id) {
+            <div class="group flex items-center gap-3 rounded-2xl border border-base-300/40 bg-base-100 px-4 py-3 shadow-xs transition-all duration-300 hover:border-primary/30 cursor-grab active:cursor-grabbing"
+                 draggable="true"
+                 (dragstart)="onItemDragStart($event, 'file', file.id)">
+              <button class="flex min-w-0 flex-1 items-center gap-3 text-left cursor-pointer" (click)="openPreview(file)">
+                <div class="shrink-0 rounded-xl bg-base-300/40 p-2.5 text-base-content/70">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="truncate font-bold text-base-content" [title]="file.name">{{ file.name }}</span>
+                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-emerald-500 text-white" title="End-to-end encrypted">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                      </svg>
+                    </span>
+                  </div>
+                  <p class="text-xs text-base-content/50">{{ format(file.size) }} • {{ file.uploadedAt | date: 'MM/dd/yy, hh:mm a' }}</p>
+                </div>
+              </button>
 
-                        <!-- Download Button -->
-                        <button class="btn btn-ghost btn-xs text-primary font-semibold flex items-center justify-center p-1 rounded-lg" 
-                                (click)="download(file)" 
-                                [disabled]="downloadingId() === file.id"
-                                title="Download">
-                          @if (downloadingId() === file.id) {
-                            <span class="loading loading-spinner loading-xs"></span>
-                          } @else {
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                          }
-                        </button>
-
-                        <!-- Share Button -->
-                        <button class="btn btn-ghost btn-xs text-primary font-semibold flex items-center justify-center p-1 rounded-lg"
-                                (click)="shareFile(file)"
-                                title="Share File by Email">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                          </svg>
-                        </button>
-
-                        <!-- Public Link Button -->
-                        <button class="btn btn-ghost btn-xs text-info font-semibold flex items-center justify-center p-1 rounded-lg"
-                                (click)="publishFile(file)"
-                                title="Copy public link">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m8.656-1.828a4 4 0 000-5.656l-.5-.5a4 4 0 00-5.656 0l-3 3a4 4 0 000 5.656" />
-                          </svg>
-                        </button>
-
-                        <!-- Revoke Public Link Button -->
-                        <button class="btn btn-ghost btn-xs text-base-content/40 flex items-center justify-center p-1 rounded-lg"
-                                (click)="unpublishFile(file)"
-                                title="Revoke public link">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                          </svg>
-                        </button>
-
-                        <!-- Rename Button -->
-                        <button class="btn btn-ghost btn-xs text-base-content/60 flex items-center justify-center p-1 rounded-lg"
-                                (click)="renameFile(file)"
-                                title="Rename File">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                          </svg>
-                        </button>
-
-                        <!-- Move Button -->
-                        <button class="btn btn-ghost btn-xs text-base-content/60 flex items-center justify-center p-1 rounded-lg"
-                                (click)="openMove({ kind: 'file', meta: file })"
-                                title="Move File">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                          </svg>
-                        </button>
-
-                        <!-- Delete Button -->
-                        <button class="btn btn-ghost btn-xs text-error flex items-center justify-center p-1 rounded-lg hover:bg-error/10"
-                                (click)="removeFile(file)"
-                                title="Delete File">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+              <div class="dropdown dropdown-end shrink-0">
+                <button tabindex="0" class="btn btn-ghost btn-sm btn-circle text-base-content/50 hover:text-base-content">
+                  @if (downloadingId() === file.id) {
+                    <span class="loading loading-spinner loading-xs"></span>
+                  } @else {
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h.01M12 12h.01M18 12h.01" />
+                    </svg>
+                  }
+                </button>
+                <ul tabindex="0" class="dropdown-content menu bg-base-100 border border-base-300/40 rounded-box z-10 w-48 p-2 shadow-lg">
+                  <li><a (click)="openPreview(file)" class="rounded-lg py-2 text-sm">Preview</a></li>
+                  <li><a (click)="download(file)" class="rounded-lg py-2 text-sm">Download</a></li>
+                  <li><a (click)="shareFile(file)" class="rounded-lg py-2 text-sm">Share by email</a></li>
+                  <li><a (click)="publishFile(file)" class="rounded-lg py-2 text-sm">Copy public link</a></li>
+                  <li><a (click)="unpublishFile(file)" class="rounded-lg py-2 text-sm">Revoke public link</a></li>
+                  <hr class="border-base-300/40 my-1">
+                  <li><a (click)="renameFile(file)" class="rounded-lg py-2 text-sm">Rename</a></li>
+                  <li><a (click)="openMove({ kind: 'file', meta: file })" class="rounded-lg py-2 text-sm">Move To</a></li>
+                  <hr class="border-base-300/40 my-1">
+                  <li><a (click)="removeFile(file)" class="rounded-lg py-2 text-sm text-error hover:bg-error/10">Delete</a></li>
+                </ul>
+              </div>
+            </div>
+          }
         </div>
       }
 
