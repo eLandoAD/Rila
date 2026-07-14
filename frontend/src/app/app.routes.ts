@@ -19,6 +19,7 @@ export const routes: Routes = [
   { path: 'filemanager/files', canActivate: [authGuard], loadComponent: () => import('./filemanager/files/files').then(m => m.Files)},
   { path: 'filemanager/uploads', canActivate: [authGuard], loadComponent: () => import('./filemanager/upload/upload').then(m => m.Upload)},
   { path: 'filemanager/shared', canActivate: [authGuard], loadComponent: () => import('./filemanager/shared/shared').then(m => m.Shared)},
+  { path: 'filemanager/settings', canActivate: [authGuard], loadComponent: () => import('./filemanager/settings/settings').then(m => m.Settings)},
   { path: 'filemanager', redirectTo: 'filemanager/dashboard', pathMatch: 'full' },
   { path: 'share', loadComponent: () => import('./share/share').then(m => m.ShareComponent) },
   { path: '**', loadComponent: () => import('./not-found/not-found').then(m => m.NotFound)},

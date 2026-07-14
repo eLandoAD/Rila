@@ -52,6 +52,11 @@ export class AuthService {
     this.persistToken(null);
   }
 
+  // elimina definitivamente l'account dell'utente autenticato
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>(`${environment.apiBaseUrl}/users/me`);
+  }
+
   // vari metodi per reset password, verifica, e via dicendo
   forgotPassword(email: string): Observable<string> {
     return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });

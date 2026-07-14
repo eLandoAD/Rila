@@ -1,15 +1,22 @@
 package com.securevault.backend.services;
 
 import com.securevault.backend.dto.ResetInfoResponse;
+import com.securevault.backend.entities.Folder;
+import com.securevault.backend.entities.StoredFile;
 import com.securevault.backend.entities.User;
+import com.securevault.backend.repositories.FolderRepository;
+import com.securevault.backend.repositories.SharedFileRepository;
+import com.securevault.backend.repositories.StoredFileRepository;
 import com.securevault.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +28,42 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final StoredFileRepository storedFileRepository;
+    private final FolderRepository folderRepository;
+    private final SharedFileRepository sharedFileRepository;
+    private final FileStorageService fileStorageService;
+
+    /**
+     * Elimina definitivamente l'account: condivisioni (ricevute e inviate), file
+     * (blob su disco + record DB), cartelle e infine l'utente. Irreversibile.
+     */
+    @Transactional
+    public void deleteAccount(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        // 1. condivisioni ricevute e inviate (referenziano file/utenti via FK)
+        sharedFileRepository.deleteAll(sharedFileRepository.findByReceiver(user));
+        sharedFileRepository.deleteAll(sharedFileRepository.findBySender(user));
+
+        // 2. file: prima il blob su disco, poi la riga DB
+        List<StoredFile> files = storedFileRepository.findByUser(user);
+        for (StoredFile f : files) {
+            fileStorageService.deleteFile(f.getStoragePath());
+        }
+        storedFileRepository.deleteAll(files);
+
+        // 3. cartelle: annullo il parent (self-FK) e poi elimino tutto
+        List<Folder> folders = folderRepository.findByUser(user);
+        folders.forEach(f -> f.setParentFolder(null));
+        folderRepository.saveAll(folders);
+        folderRepository.deleteAll(folders);
+
+        // 4. utente
+        userRepository.delete(user);
+
+        log.info("Account eliminato per l'utente {}", username);
+    }
 
     /**
      * Registra un utente con username, email, password hashata e il materiale di

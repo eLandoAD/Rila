@@ -15,5 +15,7 @@ public interface SharedFileRepository extends JpaRepository<SharedFile, UUID> {
 
     List<SharedFile> findByReceiver(User receiver);
 
+    List<SharedFile> findBySender(User sender);
+
     Optional<SharedFile> findByFileAndReceiver(StoredFile file, User receiver);
 }

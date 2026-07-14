@@ -2,9 +2,12 @@ package com.securevault.backend.controllers;
 
 import com.securevault.backend.entities.User;
 import com.securevault.backend.repositories.UserRepository;
+import com.securevault.backend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +21,7 @@ import java.util.Map;
 @RequestMapping("/api/users")
 public class UserController {
     private final UserRepository userRepository;
+    private final UserService userService;
 
     // rsa pubblica di un user
     @GetMapping("/public-key")
@@ -28,5 +32,13 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recipient has no sharing key");
         }
         return ResponseEntity.ok(Map.of("publicKey", user.getPublicKey()));
+    }
+
+    // elimina definitivamente l'account dell'utente autenticato
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteAccount() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        userService.deleteAccount(username);
+        return ResponseEntity.noContent().build();
     }
 }
