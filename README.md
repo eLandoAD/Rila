@@ -6,7 +6,14 @@ With SecureVault you can store your files securely, organize them in folders, an
 with other users, all while keeping absolute privacy.
 
 **🔗 Live demo:** https://securevault.alessio.hackclub.app
-_Register with your email → click the verification link we send you → log in._
+
+**Try it instantly — demo account:**
+- **Username:** `demo`
+- **Password:** `SecureVaultDemo2026`
+
+_Or register with your own email → click the verification link we send you → log in._
+
+![SecureVault file manager — end-to-end encrypted files](docs/files_image.png)
 
 ## Features
 - JWT auth
@@ -61,8 +68,10 @@ Set via environment variables (see `docker-compose.yml`):
 | Var | Purpose |
 |-----|---------|
 | `JWT_SECRET` | secret for signing JWTs (use a long random value) |
-| `DB_PASSWORD` | PostgreSQL password |
+| `JWT_EXPIRATION` | token lifetime in ms (default `3600000` = 1h) |
+| `DB_USERNAME` / `DB_PASSWORD` | PostgreSQL credentials (username defaults to `postgres`) |
 | `FRONTEND_URL` | base URL used in email links |
+| `PROXY_PORT` | host port the reverse proxy is published on (default `4205`) |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASSWORD` | mail relay (Mailpit in dev; a real SMTP relay in prod) |
 | `SMTP_AUTH` / `SMTP_STARTTLS` | set to `true` for a real SMTP server |
 
@@ -82,8 +91,9 @@ per-file keys, RSA sharing, recovery key, and password reset).
 ## Status
 
 **Done:** auth + email verification, E2EE for file contents and names, per-file keys wrapped by a
-master key, user → user sharing (RSA) and public share links, previews, storage quota, and
-password reset via a recovery key (no data loss).
+master key, user → user sharing (RSA) and public share links, previews, storage quota,
+password reset via a recovery key (no data loss), and **real transactional email in production**
+via an SMTP relay (verification, password reset and share notifications are actually delivered).
 
-**Partial / future:** Content-Security-Policy (currently report-only, to be enforced), a real SMTP
-relay for production email, and automated crypto tests.
+**Partial / future:** Content-Security-Policy (currently report-only, to be enforced) and
+automated crypto tests.
