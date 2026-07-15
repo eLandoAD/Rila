@@ -97,3 +97,6 @@ via an SMTP relay (verification, password reset and share notifications are actu
 
 **Partial / future:** Content-Security-Policy (currently report-only, to be enforced) and
 automated crypto tests.
+
+
+Thank you for reading this, I hope you like the project :)
