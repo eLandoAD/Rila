@@ -23,6 +23,8 @@ services:
     image: rila-backend
     container_name: rila-backend
     restart: unless-stopped
+    # limite RAM del container (VPS 2GB): lascia spazio a postgres/frontend/proxy
+    mem_limit: 750m
     depends_on:
       postgres-db:
         condition: service_healthy
@@ -31,6 +33,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-password}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      # tieni l'heap JVM dentro il mem_limit del container (60% di 750m ~ 450MB heap)
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=60.0"
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-0123456789-0123456789-0123456789-abcdef}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-3600000}
       # SMTP — default sul catcher Mailpit; valori reali (SMTP reale) via .env
