@@ -2,6 +2,7 @@ services:
   postgres-db:
     image: postgres:16-alpine
     container_name: securevault_postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
