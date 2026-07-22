@@ -171,7 +171,6 @@ security over convenience.
 
 - **PBKDF2 → Argon2** (via WASM) for stronger resistance to GPU cracking.
 - **Enforce CSP** (currently report-only) once external avatar images are self-hosted.
-- **Automated crypto tests** for the wrap/unwrap and sharing paths.
 - The recovery key reuses the user salt for simplicity; a distinct salt would be marginally
   stronger.
 - A compromised browser at unlock time can read the in-memory keys — inherent to any browser-based

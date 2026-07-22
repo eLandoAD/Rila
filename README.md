@@ -95,8 +95,7 @@ master key, user → user sharing (RSA) and public share links, previews, storag
 password reset via a recovery key (no data loss), and **real transactional email in production**
 via an SMTP relay (verification, password reset and share notifications are actually delivered).
 
-**Partial / future:** Content-Security-Policy (currently report-only, to be enforced) and
-automated crypto tests.
+**Partial / future:** Content-Security-Policy (currently report-only, to be enforced).
 
 
 Thank you for reading this, I hope you like the project :)
