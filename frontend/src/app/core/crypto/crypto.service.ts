@@ -1,5 +1,4 @@
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable } from '@angular/core';
 import { IRegistrationKeys } from '../interfaces/IRegistrationKeys';
 import { IRecoveryResult } from '../interfaces/IRecoveryResult';
 import { IEncryptedPrivateKey } from '../interfaces/IEncryptedPrivateKey';
@@ -8,77 +7,64 @@ import { IWrappedFileKey } from '../interfaces/IWrappedFileKey';
 import { IEncryptedData } from '../interfaces/IEncryptedData';
 
 /**
- * encryption AES-GCM client-side. La dek viene derivata dalla password dell'utente
- * o da una recovery key e viene salvata in memoria solo durante la sessione
+ * client-side AES-GCM encryption. The dek is derived from the user's password
+ * or from a recovery key and is kept in memory only for the duration of the session
  */
 @Injectable({ providedIn: 'root' })
 export class CryptoService {
-  // verifico sia un browser
-  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
-
-  // dek, tenuto in memoria solo durante la sessione
+  // dek, kept only in memory for the session's duration: never in sessionStorage/localStorage,
+  // otherwise an XSS at unlock time could steal it even after a reload (see SECURITY.md §8)
   private currentDek: CryptoKey | null = null;
 
-  // chiave RSA privata, tenuta in memoria come la currentDek
+  // private RSA key, kept in memory like currentDek
   private currentPrivateKey: CryptoKey | null = null;
 
-  // privata (già cifrata) + iv
-  private readonly PRIVKEY_STORAGE_KEY = 'sv_epk';
-  private readonly PRIVKEY_IV_STORAGE_KEY = 'sv_epk_iv';
-
   /**
-   * dek persistente (raw, base64) così la sessione sopravvive ai ricaricamenti della pagina
-   * o a problemi vari, come riavvi del server.
-   * sta in sessionStorage, vive con la scheda, e non viene mai inviata al backend
-   */
-  private readonly DEK_STORAGE_KEY = 'sv_dek';
-
-  /**
-   * encripta dei dati usando la chiave dek
+   * encrypts data using the dek key
    */
   async encrypt(data: ArrayBuffer): Promise<{ cipher: ArrayBuffer; iv: string }> {
-    // uso il metodo wrapper per prendermi la dek attuale
+    // use the wrapper method to get the current dek
     const key = this.getRequiredKey();
-    // genero l'iv casuale
+    // generate a random iv
     const ivBytes = crypto.getRandomValues(new Uint8Array(12));
-    // applico cifratura
+    // apply encryption
     const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivBytes }, key, data);
-    // ritorno cipher + iv (la dek la tengo in memoria, non serve ritornarla)
+    // return cipher + iv (the dek is kept in memory, no need to return it)
     return { cipher, iv: this.toBase64(ivBytes) };
   }
 
   /**
-   * encripta una piccola stringa usando dek, utile per il filename
+   * encrypts a small string using the dek, useful for the filename
    */
   async encryptText(text: string, iv: string): Promise<string> {
-    // mi prendo la dek
+    // get the dek
     const key = this.getRequiredKey();
-    // rispetto all'altro prendo l'iv come parametro
-    // quindi genero direttamente cripto
+    // unlike the other method, take the iv as a parameter
+    // so encrypt directly
     const cipher = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
       key,
       new TextEncoder().encode(text)
     );
-    // qua ritorno solo stringa, tanto ho gia l'iv
+    // return just the string here, since we already have the iv
     return this.toBase64(new Uint8Array(cipher));
   }
 
   /**
-   * decripta un file usando la dek
+   * decrypts a file using the dek
    */
   async decrypt(cipher: ArrayBuffer, iv: string): Promise<ArrayBuffer> {
-    // prende la dek attuale
+    // get the current dek
     const key = this.getRequiredKey();
-    // ritorna il risultato decriptato, passando anche la dek e il testo
+    // return the decrypted result, passing the dek and the ciphertext too
     return crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.fromBase64(iv) as any }, key, cipher);
   }
 
   /**
-   * decripta una piccola stringa (filename) usando la dek
+   * decrypts a small string (filename) using the dek
    */
   async decryptText(encText: string, iv: string): Promise<string> {
-    // solito
+    // as usual
     const key = this.getRequiredKey();
     const plain = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
@@ -89,46 +75,39 @@ export class CryptoService {
   }
 
   /**
-   * supporto per la registrazione: genera tutto il necessario, compresa la recovery key
-   * ritorna una promise contenente le varie chiavi + iv
+   * support for registration: generates everything needed, including the recovery key
+   * returns a promise containing the various keys + iv
    */
   async setupRegistrationKeys(password: string): Promise<IRegistrationKeys> {
-    // genero salt casuale, che viene poi mixato con la password
+    // generate a random salt, which is then mixed with the password
     const salt = crypto.getRandomValues(new Uint8Array(16));
-    // genero un dek casuale
+    // generate a random dek
     const dek = await this.generateDEK();
 
-    // kek, derivata da password e salt
-    // obiettivo salt --> aumentare casualità
+    // kek, derived from password and salt
+    // salt's purpose --> increase randomness
     // password + saltA -> key a
     // password + saltB -> key b
     const kek = await this.deriveKEK(password, salt);
-    // mi prendo pure iv e dek criptato
+    // get the iv and the encrypted dek too
     const { encryptedDek, iv } = await this.encryptDEK(dek, kek);
 
-    // preparo la recovery key, basata sulla kek
+    // prepare the recovery key, based on the kek
     const recoveryKey = this.generateRecoveryKeyString();
-    // uso lo stesso salt per semplicità
+    // reuse the same salt for simplicity
     const emergencyKek = await this.deriveKEK(recoveryKey, salt);
     const { encryptedDek: recoveryEncDek, iv: recoveryIv } = await this.encryptDEK(dek, emergencyKek);
 
-    // rsa x sharing
+    // rsa for sharing
     const keyPair = await this.generateKeyPair();
     const publicKey = this.toBase64(new Uint8Array(await crypto.subtle.exportKey('spki', keyPair.publicKey)))
     const { encryptedPrivateKey, iv: privateKeyIv } = await this.wrapPrivateKey(keyPair.privateKey, dek)
     this.currentPrivateKey = keyPair.privateKey;
 
-    // salvo la dek nel sessionStorage
+    // dek and private key stay only in memory for this session
     this.currentDek = dek;
-    await this.persistDek();
 
-    // aggiungo anche chiave privata + iv
-    if (this.isBrowser) {
-      sessionStorage.setItem(this.PRIVKEY_STORAGE_KEY, encryptedPrivateKey)
-      sessionStorage.setItem(this.PRIVKEY_IV_STORAGE_KEY, privateKeyIv)
-    }
-
-    // ritorno ogni oggetto dell'interfaccia IRegistrationKeys
+    // return every field of the IRegistrationKeys interface
     return {
       encryptedDek,
       iv,
@@ -143,210 +122,133 @@ export class CryptoService {
   }
 
   /**
-   * per il login: decripta la dek per la password
+   * for login: decrypts the dek using the password
    */
   async setupLoginKeys(password: string, encryptedDek: string, iv: string, salt: string, encryptedPrivateKey?: string, privateKeyIv?: string): Promise<void> {
-    // ottengo la kek
+    // get the kek
     const saltBytes = this.fromBase64(salt);
     const kek = await this.deriveKEK(password, saltBytes);
-    // decripto la dek e la salvo nel sessionStorage
+    // decrypt the dek, kept only in memory
     this.currentDek = await this.decryptDEK(encryptedDek, iv, kek);
-    await this.persistDek();
 
-    // carico la rsa se il backend ce l'ha già pronta
+    // load the rsa key if the backend already has it ready
     if (encryptedPrivateKey && privateKeyIv) {
       this.currentPrivateKey = await this.unwrapPrivateKey(encryptedPrivateKey, privateKeyIv, this.currentDek);
-      // salvo nel sessionStorage
-      if (this.isBrowser) {
-        sessionStorage.setItem(this.PRIVKEY_STORAGE_KEY, encryptedPrivateKey);
-        sessionStorage.setItem(this.PRIVKEY_IV_STORAGE_KEY, privateKeyIv);
-      }
     }
   }
 
   /**
-   * per reset/recovery: decripta la dek usando la recovery key, e la reincripta
-   * con la nuova password creata
+   * for reset/recovery: decrypts the dek using the recovery key, and re-encrypts it
+   * with the newly created password
    */
   async setupRecoveryKeys(recoveryKey: string, recoveryEncryptedDek: string, recoveryDekIv: string, salt: string, newPassword: string): Promise<IRecoveryResult> {
     const saltBytes = this.fromBase64(salt);
 
-    // decripto la dek originale con la recovery key
+    // decrypt the original dek with the recovery key
     const emergencyKek = await this.deriveKEK(recoveryKey, saltBytes);
     const dek = await this.decryptDEK(recoveryEncryptedDek, recoveryDekIv, emergencyKek);
 
-    // encripto nuovamente con la nuova password
+    // re-encrypt with the new password
     const newKek = await this.deriveKEK(newPassword, saltBytes);
     const { encryptedDek: newEncDek, iv: newIv } = await this.encryptDEK(dek, newKek);
 
-    // aggiorno il dek nel sessionStorage
     this.currentDek = dek;
-    await this.persistDek();
     return {
       newEncryptedDek: newEncDek,
       newDekIv: newIv
     };
   }
 
-  // svuoto tutto della sessione
+  // clear the whole session (nothing else to do: dek and private key live only in memory)
   clearSession(): void {
     this.currentDek = null;
     this.currentPrivateKey = null;
-    if (this.isBrowser) {
-      sessionStorage.removeItem(this.DEK_STORAGE_KEY);
-      sessionStorage.removeItem(this.PRIVKEY_STORAGE_KEY)
-      sessionStorage.removeItem(this.PRIVKEY_IV_STORAGE_KEY)
-    }
   }
 
   /**
-   * Dek viene salvata in memoria nello sessionStorage, così se la pagina si ricarica
-   * o in generale qualcosa si ricarica, non si perde la capacità
-   * di decriptare i file
-   */
-  private async persistDek(): Promise<void> {
-    // se non mi trovo sul browser e se la dek è diversa
-    if (!this.isBrowser || !this.currentDek) {
-      return;
-    }
-    // prendo la dek e la salvo dentro il sessionStorage
-    try {
-      const raw = await crypto.subtle.exportKey('raw', this.currentDek);
-      sessionStorage.setItem(this.DEK_STORAGE_KEY, this.toBase64(new Uint8Array(raw)));
-    } catch {
-      // ignoro
-    }
-  }
-
-  /**
-   * recupera la dek dal sessionStorage dopo un reload.
-   * @returns true se c'è una chiave utilizzabile in memoria
-   * La usa la auth guard per evitare di essere loggati, ma non poter decriptare i file/cartelle
-   */
-  async restoreSession(): Promise<boolean> {
-    // chiave trovata
-    if (this.currentDek) {
-      return true;
-    }
-    if (!this.isBrowser) {
-      return false;
-    }
-    // chiave non trovata
-    const stored = sessionStorage.getItem(this.DEK_STORAGE_KEY);
-    if (!stored) {
-      return false;
-    }
-    try {
-      // prende la chiave dal session storage e la passa al current dek
-      this.currentDek = await crypto.subtle.importKey(
-        'raw',
-        this.fromBase64(stored) as any,
-        'AES-GCM',
-        true,
-        ['encrypt', 'decrypt']
-      );
-
-      const epk = sessionStorage.getItem(this.PRIVKEY_STORAGE_KEY)
-      const epkIv = sessionStorage.getItem(this.PRIVKEY_IV_STORAGE_KEY)
-
-      if (epk && epkIv && this.currentDek) {
-        try {
-          this.currentPrivateKey = await this.unwrapPrivateKey(epk, epkIv, this.currentDek);
-        } catch {
-          // privata, non ripristinabile. Gli share non funzioneranno se non si rifà il login
-        }
-      }
-      return true;
-    } catch {
-      sessionStorage.removeItem(this.DEK_STORAGE_KEY);
-      return false;
-    }
-  }
-
-  /**
-   * metodo per verificare se c'è una dek in memoria o meno
+   * method to check whether a dek is present in memory or not
    */
   hasSession(): boolean {
     return this.currentDek !== null;
   }
 
   /**
-   * Cripta il nome di un file/cartella
-   * L'iv per-file è incorporato nella stringa che si ritorna,
+   * Encrypts a file/folder name
+   * The per-file iv is embedded in the returned string,
    */
   async encryptName(name: string): Promise<string> {
-    // contenuto + cipher e iv
+    // content -> cipher and iv
     const data = new TextEncoder().encode(name);
     const { cipher, iv } = await this.encrypt(data.buffer as ArrayBuffer);
-    // ritorno iv:cipher
+    // return iv:cipher
     return `${iv}:${this.toBase64(new Uint8Array(cipher))}`;
   }
 
   /**
-   * Decripta un nome prodotto da {@link encryptName}
+   * Decrypts a name produced by {@link encryptName}
    */
   async decryptName(encName: string): Promise<string> {
-    // indice separatore :
+    // index of the : separator
     const sep = encName.indexOf(':');
-    // vuol dire che non c'è nulla
+    // means there's nothing there
     if (sep === -1) {
       return encName;
     }
 
-    // taglio iv
+    // slice out the iv
     const iv = encName.slice(0, sep);
-    // e cipher
+    // and the cipher
     const cipher = this.fromBase64(encName.slice(sep + 1));
-    // ottengo testo
+    // get the plaintext
     const plain = await this.decrypt(cipher.buffer as ArrayBuffer, iv);
-    // ritorno il testo decriptato
+    // return the decrypted text
     return new TextDecoder().decode(plain);
   }
 
   /**
-   * Metodo wrapper di supporto
-   * @returns la chiave dek
+   * Supporting wrapper method
+   * @returns the dek key
    */
   private getRequiredKey(): CryptoKey {
-    // controlla che la dek ci sia, e che quindi l'user sia loggato
+    // check that the dek is present, meaning the user is logged in
     if (!this.currentDek) {
       throw new Error('Encryption key not initialized. Please log in.');
     }
-    // ritorna la dek
+    // return the dek
     return this.currentDek;
   }
 
   /**
-   * helper per generare la dek
+   * helper to generate the dek
    */
   private async generateDEK(): Promise<CryptoKey> {
     return crypto.subtle.generateKey(
       { name: 'AES-GCM', length: 256 },
-      true, // estraibile per  wrap/unwrap
+      true, // extractable for wrap/unwrap
       ['encrypt', 'decrypt']
     );
   }
 
-  // coppia RSA-OAEP 2048 per lo sharing dei file
+  // RSA-OAEP 2048 key pair for file sharing
   private async generateKeyPair(): Promise<CryptoKeyPair> {
     return crypto.subtle.generateKey(
       { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
-      true, // estraibile
+      true, // extractable
       ['encrypt', 'decrypt']
     );
   }
 
-  // avvolge la privata PKCS8 con la master dek
+  // wraps the PKCS8 private key with the master dek
   private async wrapPrivateKey(privateKey: CryptoKey, masterDek: CryptoKey): Promise<IEncryptedPrivateKey> {
     const pkcs8 = await crypto.subtle.exportKey('pkcs8', privateKey);
-    // iv e cipher
+    // iv and cipher
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, masterDek, pkcs8);
-    // ritorna chiave privata + iv
+    // return private key + iv
     return { encryptedPrivateKey: this.toBase64(new Uint8Array(cipher)), iv: this.toBase64(iv) };
   }
 
-  // sblocco la privata con la master dek e la importa
+  // unlocks the private key with the master dek and imports it
   private async unwrapPrivateKey(encryptedPrivateKey: string, iv: string, masterDek: CryptoKey): Promise<CryptoKey> {
     const pkcs8 = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
@@ -356,13 +258,13 @@ export class CryptoService {
     return crypto.subtle.importKey('pkcs8', pkcs8, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['decrypt']);
   }
 
-  // prende la kek, partendo dalla secret e da un salt
+  // derives the kek, starting from the secret and a salt
   private async deriveKEK(secret: string, salt: Uint8Array): Promise<CryptoKey> {
     // encoder + secret bytes
     const encoder = new TextEncoder();
     const secretBytes = encoder.encode(secret);
 
-    // importo la chiave
+    // import the key
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
       secretBytes,
@@ -371,7 +273,7 @@ export class CryptoService {
       ['deriveKey']
     );
 
-    // derivo la chiave usando il salt e la ritorno
+    // derive the key using the salt and return it
     return crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
@@ -386,9 +288,9 @@ export class CryptoService {
     );
   }
 
-  // cripta la dek
+  // encrypts the dek
   private async encryptDEK(dek: CryptoKey, kek: CryptoKey): Promise<IEncryptedDek> {
-    // genero un iv casuale
+    // generate a random iv
     const iv = crypto.getRandomValues(new Uint8Array(12));
 
     const wrappedDek = await crypto.subtle.wrapKey(
@@ -398,42 +300,42 @@ export class CryptoService {
       { name: 'AES-GCM', iv }
     );
 
-    // ritorno dek criptata + iv
+    // return the encrypted dek + iv
     return {
       encryptedDek: this.toBase64(new Uint8Array(wrappedDek)),
       iv: this.toBase64(iv),
     };
   }
 
-  // metodo inverso al precedente
+  // inverse of the previous method
   private async decryptDEK(encryptedDek: string, iv: string, kek: CryptoKey): Promise<CryptoKey> {
-    // estraggo il dek
+    // extract the dek
     return crypto.subtle.unwrapKey(
       'raw',
       this.fromBase64(encryptedDek) as any,
       kek,
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
       { name: 'AES-GCM', length: 256 },
-      true, // si può estrarre, per i link di sharing
+      true, // extractable, for sharing links
       ['encrypt', 'decrypt']
     );
   }
 
-  // ottengo il raw dek
+  // get the raw dek
   async getRawDek(): Promise<string> {
-    // ottengo la chiave
+    // get the key
     const key = this.getRequiredKey();
-    // prendo il dek raw
+    // get the raw dek
     const raw = await crypto.subtle.exportKey('raw', key);
-    // ritorno
+    // return
     return this.toBase64(new Uint8Array(raw));
   }
 
-  // importo il raw dek
+  // import the raw dek
   async importRawDek(b64Key: string): Promise<CryptoKey> {
     // raw bytes
     const rawBytes = this.fromBase64(b64Key);
-    // processo inverso al metodo precedente
+    // inverse of the previous method
     return crypto.subtle.importKey(
       'raw',
       rawBytes,
@@ -443,81 +345,81 @@ export class CryptoService {
     );
   }
 
-  // metodo per decriptare una volta che si ha la chiave
+  // method to decrypt once you already have the key
   async decryptWithKey(cipher: ArrayBuffer, iv: string, key: CryptoKey): Promise<ArrayBuffer> {
     return crypto.subtle.decrypt({ name: 'AES-GCM', iv: this.fromBase64(iv) as any }, key, cipher);
   }
 
   /**
-   * dek per file
-   * Ogni file ha la sua chiave, avvolta poi dalla master dek
-   * Quando si condivide un file, si condivide solo la chiave, non la master
-   * @returns crypto key aes-gcm
+   * per-file dek
+   * Each file has its own key, which is then wrapped by the master dek
+   * When sharing a file, only that key is shared, never the master
+   * @returns aes-gcm crypto key
    */
   async generateFileKey(): Promise<CryptoKey> {
     return crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
   }
 
-  // avvolge una dek con la master dek -> per salvare lato server
+  // wraps a dek with the master dek -> to save server-side
   async wrapFileKey(fileKey: CryptoKey): Promise<IWrappedFileKey> {
-    // otengo la master + la raw
+    // get the master key + the raw key
     const master = this.getRequiredKey();
     const raw = await crypto.subtle.exportKey('raw', fileKey)
-    // genero iv casuale + ottengo il cipher
+    // generate a random iv + get the cipher
     const iv = crypto.getRandomValues(new Uint8Array(12))
     const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, master, raw);
-    // ritorno dek wrappata + dekIv
+    // return the wrapped dek + dekIv
     return { wrappedDek: this.toBase64(new Uint8Array(cipher)), dekIv: this.toBase64(iv) }
   }
 
-  // sblocco un dek di file con la master dek
+  // unlocks a file dek with the master dek
   async unwrapFileKey(wrappedDek: string, dekIv: string): Promise<CryptoKey> {
-    // ottengo la master e in seguito la raw
+    // get the master key and then the raw key
     const master = this.getRequiredKey()
     const raw = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: this.fromBase64(dekIv) as any },
       master,
       this.fromBase64(wrappedDek) as any
     )
-    // estraibile, in fase di condivisione bisogna esportare il raw per poi cirfarlo con RSA
+    // extractable, since during sharing the raw key must be exported and then encrypted with RSA
     return crypto.subtle.importKey('raw', raw, 'AES-GCM', true, ['encrypt', 'decrypt'])
   }
 
-  // cifra dati con un chiave, iv casuale
+  // encrypts data with a key, random iv
   async encryptWithKey(data: ArrayBuffer, key: CryptoKey): Promise<IEncryptedData> {
-    // genero iv in bytes
+    // generate iv bytes
     const ivBytes = crypto.getRandomValues(new Uint8Array(12))
     const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: ivBytes }, key, data);
     return { cipher, iv: this.toBase64(ivBytes) }
   }
 
-  // cifra un nome con una chiave data sempre iv casuale
+  // encrypts a name with a given key, always a random iv
   async encryptNameWithKey(name: string, key: CryptoKey): Promise<string> {
     const data = new TextEncoder().encode(name);
-    // iv dedicato al nome
+    // iv dedicated to the name
     const { cipher, iv } = await this.encryptWithKey(data.buffer as ArrayBuffer, key);
     return `${iv}:${this.toBase64(new Uint8Array(cipher))}`;
   }
 
-  // decifra un nome prodotto da encryptNameWithKey con iv incorporato
+  // decrypts a name produced by encryptNameWithKey with the embedded iv
   async decryptNameWithKey(encName: string, key: CryptoKey): Promise<string> {
-    // indice separatore
+    // separator index
     const sep = encName.indexOf(':')
 
     if (sep === -1) return encName;
 
-    // ottengo iv + cipher
+    // get iv + cipher
     const iv = encName.slice(0, sep)
     const cipher = this.fromBase64(encName.slice(sep + 1))
-    // con l'iv ottengo il testo plain
+    // use the iv to get the plaintext
     const plain = await this.decryptWithKey(cipher.buffer as ArrayBuffer, iv, key)
-    // ritorno il testo normale
+    // return the plain text
     return new TextDecoder().decode(plain);
   }
 
-  // decripta il testo partendo con iv e chiave
+  // decrypts the text starting from iv and key
   async decryptTextWithKey(encText: string, iv: string, key: CryptoKey): Promise<string> {
-    // ottengo prima il plain
+    // get the plaintext first
     const plain = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: this.fromBase64(iv) as any },
       key,
@@ -526,15 +428,15 @@ export class CryptoService {
     return new TextDecoder().decode(plain);
   }
 
-  // genera la recovery key per la password
+  // generates the recovery key for the password
   private generateRecoveryKeyString(): string {
-    // alfabeto di partenza
+    // starting alphabet
     const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    // 20 bytes casuali
+    // 20 random bytes
     const bytes = crypto.getRandomValues(new Uint8Array(20));
-    // si parte con SV-
+    // starts with SV-
     let key = 'SV-';
-    // per ogni quattro aggiungo un - per comodità
+    // add a - every four characters for readability
     for (let i = 0; i < bytes.length; i++) {
       if (i > 0 && i % 4 === 0) key += '-';
       key += alphabet[bytes[i] % alphabet.length];
@@ -542,7 +444,7 @@ export class CryptoService {
     return key;
   }
 
-  // metodo che prende dei bytes e li porta in base 64
+  // method that takes bytes and turns them into base64
   private toBase64(bytes: Uint8Array): string {
     let binary = '';
     for (let i = 0; i < bytes.byteLength; i++) {
@@ -551,7 +453,7 @@ export class CryptoService {
     return btoa(binary);
   }
 
-  // metodo inverso al precedente
+  // inverse of the previous method
   private fromBase64(b64: string): Uint8Array<ArrayBuffer> {
     const binary = atob(b64);
     const bytes = new Uint8Array(new ArrayBuffer(binary.length));
@@ -561,7 +463,7 @@ export class CryptoService {
     return bytes;
   }
 
-  // cifra la chiave di un file con la pubblica del destinatario
+  // encrypts a file's key with the recipient's public key
   async encryptKeyForRecipient(fileKey: CryptoKey, recipientPubliKeySpki: string): Promise<string> {
     const raw = await crypto.subtle.exportKey('raw', fileKey);
     const pub = await crypto.subtle.importKey('spki', this.fromBase64(recipientPubliKeySpki) as any, { name: 'RSA-OAEP', hash: 'SHA-256' }, false, ['encrypt'])
@@ -569,14 +471,14 @@ export class CryptoService {
     return this.toBase64(new Uint8Array(cipher))
   }
 
-  // decifra la chiave di un file condiviso con la mia privata, e la importa come chiave AES
+  // decrypts a shared file's key with my private key, and imports it as an AES key
   async decryptSharedKey(ciphertext: string): Promise<CryptoKey> {
     if (!this.currentPrivateKey) throw new Error('Private key not loaded, login again');
     const raw = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, this.currentPrivateKey, this.fromBase64(ciphertext) as any)
     return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
   }
 
-  // esporta la dek di un file in base64
+  // exports a file's dek in base64
   async getFileKeyBase64(wrappedDek: string, dekIv: string): Promise<string> {
     const fileKey = await this.unwrapFileKey(wrappedDek, dekIv);
     const raw = await crypto.subtle.exportKey('raw', fileKey)
