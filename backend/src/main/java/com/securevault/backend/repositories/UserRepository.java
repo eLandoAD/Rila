@@ -10,16 +10,16 @@ import com.securevault.backend.entities.*;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // utente per username
+    // user by username
     Optional<User> findByUsername(String username);
 
-    // utente per mail
+    // user by email
     Optional<User> findByEmail(String email);
 
-    // verifica se esiste un utente per questo username
+    // check whether a user exists for this username
     Optional<User> existsByUsername(String username);
-    
-    // verifica se esiste un utente per questo username
+
+    // check whether a user exists for this email
     Optional<User> existsByEmail(String email);
 
     Optional<User> findByVerificationToken(String token);

@@ -53,13 +53,13 @@ public class FileController {
                                                      @RequestParam(value = "folder_id", required = false) UUID folderId) {
 
         try {
-            // recupero user
+            // get user
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            // non posso gestirlo senza l'eccezione, essendo un optional
+            // can't handle it without the exception, since it's an optional
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // quota di storage per utente: blocco se si supera il limite
+            // per-user storage quota: block if the limit is exceeded
             long QUOTA_BYTES = 1L * 1024 * 1024 * 1024; // 1 GB
             long used = storedFileRepository.findByUser(user).stream()
                     .mapToLong(f -> f.getFileSize() == null ? 0L : f.getFileSize())
@@ -68,11 +68,11 @@ public class FileController {
                 throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Storage quota exceeded (1 GB limit)");
             }
 
-            // genero nome univoco, ho scelto UUID
+            // generate unique name, chose UUID
             String physicalName = UUID.randomUUID().toString();
             fileStorageService.saveFile(file.getInputStream(), physicalName);
 
-            // cerco la cartella
+            // look up the folder
             Folder folder = null;
             if (folderId != null) {
                 folder = folderRepository.findById(folderId)
@@ -84,8 +84,8 @@ public class FileController {
 
             }
 
-            // non uso il costruttore (ho messo allArgs, quindi vorrebbe anche id e data creazione),
-            // per ovviare a questo problema uso i setter
+            // not using the constructor (used allArgs, which would also want id and creation date),
+            // using setters instead to work around this
             StoredFile storedFile = new StoredFile();
             storedFile.setEncName(encName);
             storedFile.setIv(iv);
@@ -93,17 +93,17 @@ public class FileController {
             storedFile.setDekIv(dekIv);
             storedFile.setStoragePath(physicalName);
             storedFile.setUser(user);
-            // associo la cartella padre o null se root
+            // link to the parent folder, or null if root
             storedFile.setFolder(folder);
-            // prendo la dimensione dal file Multipart
+            // get the size from the Multipart file
             storedFile.setFileSize(file.getSize());
 
-            // salvo nel db
+            // save to db
             storedFileRepository.save(storedFile);
 
             return ResponseEntity.ok(new FileUploadResponse(storedFile.getId().toString(), encName, "Upload successful!"));
         } catch (ResponseStatusException e) {
-            // preserva gli status espliciti (es. quota superata = 413)
+            // preserve explicit statuses (e.g. quota exceeded = 413)
             throw e;
         } catch(Exception e) {
             throw new RuntimeException("Error while uploading the file: ", e);
@@ -113,14 +113,14 @@ public class FileController {
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadFile(@PathVariable UUID id) {
         try {
-            // prendo lo username attuale
+            // get the current username
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            // cerco il file nel DB
+            // find the file in the DB
             StoredFile storedFile = storedFileRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
-            // controllo che il proprietario sia l'utente loggato O che sia condiviso con lui
+            // check that the owner is the logged-in user OR that it's shared with them
             boolean isOwner = storedFile.getUser().getUsername().equals(username);
             boolean isShared = false;
             if (!isOwner) {
@@ -133,7 +133,7 @@ public class FileController {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you do not have access to this file");
             }
 
-            // recupero fisico
+            // fetch from disk
             Resource fileContent = fileStorageService.loadFileAsResource(storedFile.getStoragePath());
 
             return ResponseEntity.ok()
@@ -141,7 +141,7 @@ public class FileController {
                     .header("x-iv", storedFile.getIv())
                     .header("x-enc-name", storedFile.getEncName())
                     .body(fileContent);
-            
+
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
@@ -152,16 +152,16 @@ public class FileController {
     @GetMapping
     public ResponseEntity<List<FileResponse>> listFiles() {
         try {
-            // come prima recupero username e User dal DB
+            // same as before: get username and User from the DB
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
-            // recupero tutti i file dell'utente
+            // get all of the user's files
             List<StoredFile> files = storedFileRepository.findByUser(user);
 
-            // da stored file a FileResponse
+            // map stored file to FileResponse
             List<FileResponse> response = files.stream().map(file -> {
                 FileResponse dto = new FileResponse();
                 dto.setId(file.getId());
@@ -185,20 +185,20 @@ public class FileController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         try {
-            // prendo come prima username e cerco il file nel DB
+            // same as before: get username and find the file in the DB
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
             StoredFile storedFile = storedFileRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("File not found!"));
 
-            // controllo che il proprietario sia l'utente loggato
+            // check that the owner is the logged-in user
             if (!storedFile.getUser().getUsername().equals(username)) {
                 throw new RuntimeException("Access denied: you are not the owner of this file");
             }
 
-            // elimino il file dal disco
+            // delete the file from disk
             fileStorageService.deleteFile(storedFile.getStoragePath());
-            // rimuovo anche dal database
+            // also remove from the database
             storedFileRepository.delete(storedFile);
 
             return ResponseEntity.noContent().build();
@@ -211,22 +211,22 @@ public class FileController {
     @PatchMapping("/{id}")
     public ResponseEntity<Void> rename(@PathVariable UUID id, @RequestBody RenameRequest request) {
         try {
-            // prendo lo username
+            // get the username
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-            // trovo il file
+            // find the file
             StoredFile storedFile = storedFileRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("File not found!"));
 
-            // controllo che l'utente sia l'owner
+            // check that the user is the owner
             if (!storedFile.getUser().getUsername().equals(username)) {
                 throw new RuntimeException("Access denied: you are not the owner of this file");
             }
 
-            // cambio nome dell'entità
+            // change the entity's name
             storedFile.setEncName(request.newEncName);
 
-            // salvo la modifica nel DB
+            // save the change to the DB
             storedFileRepository.save(storedFile);
 
             return ResponseEntity.ok().build();
@@ -245,8 +245,8 @@ public class FileController {
     @GetMapping("/public/{token}")
     public ResponseEntity<Resource> downloadFilePublic(@PathVariable String token) {
         try {
-            // serve SOLO i file esplicitamente pubblicati: lookup per share token,
-            // non per id. I file non pubblicati non sono raggiungibili pubblicamente.
+            // serves ONLY explicitly published files: lookup by share token,
+            // not by id. Unpublished files are not publicly reachable.
             StoredFile storedFile = storedFileRepository.findByShareToken(token)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
@@ -360,8 +360,8 @@ public class FileController {
         }
     }
 
-    // Pubblica un file: genera (una sola volta) un token di condivisione non
-    // indovinabile e lo restituisce. Solo il proprietario puo' farlo.
+    // Publishes a file: generates (only once) an unguessable share token
+    // and returns it. Only the owner can do this.
     @PostMapping("/{id}/publish")
     public ResponseEntity<String> publish(@PathVariable UUID id) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -369,12 +369,12 @@ public class FileController {
         StoredFile storedFile = storedFileRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
 
-        // controllo proprietario: senza, chiunque potrebbe pubblicare i file altrui
+        // owner check: without it, anyone could publish someone else's files
         if (!storedFile.getUser().getUsername().equals(username)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
         }
 
-        // riuso il token se gia' presente, altrimenti ne genero uno (64 hex, ~244 bit)
+        // reuse the token if already present, otherwise generate one (64 hex, ~244 bit)
         if (storedFile.getShareToken() == null) {
             storedFile.setShareToken(
                     UUID.randomUUID().toString().replace("-", "")
@@ -384,7 +384,7 @@ public class FileController {
         return ResponseEntity.ok(storedFile.getShareToken());
     }
 
-    // Revoca la condivisione pubblica: azzera il token. Solo il proprietario.
+    // Revokes public sharing: clears the token. Owner only.
     @PostMapping("/{id}/unpublish")
     public ResponseEntity<Void> unpublish(@PathVariable UUID id) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

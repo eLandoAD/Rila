@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-// esempio easy di controller
+// simple example controller
 @RestController
 @RequestMapping("/api")
 public class StatusController {
 
-    // endpoint status
+    // status endpoint
     @GetMapping("/status")
     public Map<String, String> getStatus() {
         return Map.of(

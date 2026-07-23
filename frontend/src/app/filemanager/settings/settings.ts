@@ -11,18 +11,18 @@ import { FileService } from '../../core/files/file.service';
   templateUrl: './settings.html',
 })
 export class Settings implements OnInit {
-  // servizi
+  // services
   private readonly auth = inject(AuthService);
   private readonly fileService = inject(FileService);
   private readonly router = inject(Router);
 
-  // dati
+  // data
   readonly username = this.auth.username;
   readonly usedGb = signal(0);
   readonly totalGb = signal(10);
 
   readonly initials = computed(() => {
-    // pulisco la stringa
+    // clean up the string
     const u = (this.username() ?? 'User').trim()
     const parts = u.split(/\s+/)
     const raw = parts.length > 1 ? parts[0][0] + parts[1][0] : u.slice(0, 2);
@@ -32,13 +32,13 @@ export class Settings implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       const files = await this.fileService.getAllFiles()
-      // calcolo tutti i bytes, e poi in gb
+      // sum all bytes, then convert to gb
       const bytes = files.reduce((s, f) => s + f.size, 0);
 
-      // converto in GB arrotondato a 2 decimali (*100 -> round -> /100)
+      // convert to GB rounded to 2 decimals (*100 -> round -> /100)
       this.usedGb.set(Math.round(bytes / (1024**3) * 100) / 100);
     } catch {
-      // nessun backend in dev: lascio 0
+      // no backend in dev: leave at 0
     }
   }
 
@@ -56,7 +56,7 @@ export class Settings implements OnInit {
     this.deleting.set(true);
     try {
       await firstValueFrom(this.auth.deleteAccount());
-      // account eliminato: pulisco la sessione e torno al login
+      // account deleted: clear the session and go back to login
       this.auth.logout();
       this.router.navigateByUrl('/login');
     } catch {

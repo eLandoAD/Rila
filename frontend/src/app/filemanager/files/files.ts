@@ -333,12 +333,12 @@ export class Files implements OnInit {
     this.sharingSuccess.set(false);
 
     try {
-      // prendo la chaive pubblica del dest
+      // get the recipient's public key
       const publicKey = await this.fileService.getPublicKey(trimmedEmail);
-      // sblocco la chiave del file e la cifro solo x il destinatario
+      // unlock the file key and encrypt it only for the recipient
       const fileKey = await this.crypto.unwrapFileKey(file.wrappedDek, file.dekIv)
       const encryptedKey = await this.crypto.encryptKeyForRecipient(fileKey, publicKey)
-      // condivido
+      // share
       await this.fileService.shareByEmail(file.id, trimmedEmail, encryptedKey)
       this.sharingSuccess.set(true);
     } catch (err: any) {

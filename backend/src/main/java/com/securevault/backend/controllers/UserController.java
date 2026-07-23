@@ -23,7 +23,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final UserService userService;
 
-    // rsa pubblica di un user
+    // a user's public RSA key
     @GetMapping("/public-key")
     public ResponseEntity<Map<String, String>> getPublicKey(@RequestParam String email) {
         User user = userRepository.findByEmail(email)
@@ -34,7 +34,7 @@ public class UserController {
         return ResponseEntity.ok(Map.of("publicKey", user.getPublicKey()));
     }
 
-    // elimina definitivamente l'account dell'utente autenticato
+    // permanently deletes the authenticated user's account
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();

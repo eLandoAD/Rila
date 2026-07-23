@@ -23,31 +23,31 @@ public class FolderService {
 
     @Transactional
     public void deleteFolderRecursive(UUID id, String username) {
-        // recupero l'entità cartella dal DB
+        // fetch the folder entity from the DB
         Folder folder = folderRepository.findById(id)
              .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        // verifico l'utente
+        // verify the user
         if (folder.getUser() == null || !folder.getUser().getUsername().equals(username)) {
             throw new RuntimeException("Access denied: you are not the owner");
         }
 
-        // prima di toccare il DB raccolgo i path
+        // collect the paths before touching the DB
         List<String> filePaths = new ArrayList<>();
         collectFilePaths(folder, folder.getUser(), filePaths);
 
-        // elimino l'intero sottoalbero dal DB
+        // delete the whole subtree from the DB
         deleteSubtree(folder, folder.getUser());
 
 
-        // elimino dal disco
+        // delete from disk
         filePaths.forEach(fileStorageService::deleteFile);
 
     }
 
 
-    // metodo wrapper di supporto
-    // Elimina ricorsivamente prima i figli, poi il padre
+    // supporting wrapper method
+    // recursively deletes children first, then the parent
     private void deleteSubtree(Folder folder, User user) {
         List<StoredFile> files = storedFileRepository.findByUserAndFolder(user, folder);
         storedFileRepository.deleteAll(files);
@@ -59,7 +59,7 @@ public class FolderService {
     }
 
 
-    // Raccoglie ricorsivamente tutti i path senza toccare nulla
+    // recursively collects all paths without touching anything
     private void collectFilePaths(Folder folder, User user, List<String> paths) {
         storedFileRepository.findByUserAndFolder(user, folder)
                 .stream()
@@ -72,47 +72,47 @@ public class FolderService {
 
     @Transactional
     public void moveFolder(UUID folderId, UUID targetFolderId, String username) {
-        // trovo la cartella da spostare
+        // find the folder to move
         Folder sourceFolder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        // verifico owner
+        // verify owner
         if (!sourceFolder.getUser().getUsername().equals(username)) {
             throw new RuntimeException("Access denied: you are not the owner");
         }
 
-        // spostamento nella root
+        // move to root
         if (targetFolderId == null) {
             sourceFolder.setParentFolder(null);
             folderRepository.save(sourceFolder);
             return;
         }
 
-        // recupero cartella di destinazione
+        // fetch destination folder
         Folder destFolder = folderRepository.findById(targetFolderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
 
-        // controllo che appartenga allo stesso utente
+        // check that it belongs to the same user
         if (!destFolder.getUser().getUsername().equals(username)) {
             throw new RuntimeException("Access denied: you are not the owner");
         }
 
 
-        // controllo che non la sposti dentro se stesa
+        // check that it's not being moved into itself
         if (isDescendantOrSelf(destFolder, sourceFolder)) {
             throw new RuntimeException("Cannot move a folder into itself or its subfolder");
         }
 
-        // cambio il parent folder e salvo
+        // change the parent folder and save
         sourceFolder.setParentFolder(destFolder);
         folderRepository.save(sourceFolder);
     }
 
-    // metodo wrapper
+    // wrapper method
     private boolean isDescendantOrSelf(Folder dest, Folder source) {
-        // risalgo l'albero verso la root
-        // se trovo sourceFolder nel percorso, destFolder è un suo discendente
+        // walk up the tree towards the root
+        // if sourceFolder is found along the path, destFolder is a descendant of it
         Folder current = dest;
         while (current != null) {
             if (current.getId().equals(source.getId())) {
@@ -125,16 +125,16 @@ public class FolderService {
 
     @Transactional
     public void renameFolder(UUID folderId, String newEncName, String newIv, String username) {
-        // recupero la cartella
+        // fetch the folder
         Folder folder = folderRepository.findById(folderId)
                 .orElseThrow(() -> new RuntimeException("Folder not found"));
 
-        // verifico owner
+        // verify owner
         if (!folder.getUser().getUsername().equals(username)) {
             throw new RuntimeException("Access denied: you are not the owner");
         }
 
-        // aggiorno nome cifrato e iv
+        // update encrypted name and iv
         folder.setEncName(newEncName);
         folder.setIv(newIv);
         folderRepository.save(folder);
@@ -142,28 +142,28 @@ public class FolderService {
 
     @Transactional
     public void moveFile(UUID fileId, UUID targetFolderId, String username) {
-        // recupero il file
+        // fetch the file
         StoredFile file = storedFileRepository.findById(fileId)
                 .orElseThrow(() -> new RuntimeException("File not found"));
 
-        // verifico owner del file
+        // verify file owner
         if (!file.getUser().getUsername().equals(username)) {
             throw new RuntimeException("Access denied: you are not the owner of this file");
         }
 
         Folder destFolder = null;
         if (targetFolderId != null) {
-            // recupero cartella di destinazione
+            // fetch destination folder
             destFolder = folderRepository.findById(targetFolderId)
                     .orElseThrow(() -> new RuntimeException("Target folder not found"));
 
-            // verifico owner della cartella
+            // verify folder owner
             if (!destFolder.getUser().getUsername().equals(username)) {
                 throw new RuntimeException("Access denied: target folder belongs to another user");
             }
         }
 
-        // sposto e salvo
+        // move and save
         file.setFolder(destFolder);
         storedFileRepository.save(file);
     }

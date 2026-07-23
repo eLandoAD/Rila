@@ -17,9 +17,9 @@ import java.nio.file.StandardCopyOption;
 @Service
 public class FileStorageService {
 
-    // Directory di storage configurabile via APP_STORAGE_PATH.
-    // In Docker punta al volume persistente (/storage); in locale, di default,
-    // alla cartella ../storage relativa alla working directory del backend.
+    // Storage directory configurable via APP_STORAGE_PATH.
+    // In Docker it points to the persistent volume (/storage); locally, by default,
+    // to the ../storage folder relative to the backend's working directory.
     @Value("${app.storage.path:../storage}")
     private String storagePath;
 
@@ -27,14 +27,14 @@ public class FileStorageService {
         return Paths.get(storagePath).toAbsolutePath().normalize();
     }
 
-    // salva lo stream cifrato su disco senza bufferizzare il file intero in RAM
+    // save the encrypted stream to disk without buffering the whole file in RAM
     public void saveFile(InputStream in, String fileName) {
         Path storageDirectory = storageDirectory();
 
         try {
             Files.createDirectories(storageDirectory);
             Path targetPath = storageDirectory.resolve(fileName);
-            // stream diretto su disco, a blocchi -> non carico in RAM interamente
+            // stream directly to disk, in chunks -> not loaded fully into RAM
             Files.copy(in, targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch(IOException ioe) {
             throw new RuntimeException("Error while saving the file" + ioe.getMessage(), ioe);
@@ -54,7 +54,7 @@ public class FileStorageService {
     public void deleteFile(String fileName) {
         Path filePath = storageDirectory().resolve(fileName);
 
-        // lo elimino se esiste
+        // delete it if it exists
         try {
             Files.deleteIfExists(filePath);
         } catch(IOException ioe) {

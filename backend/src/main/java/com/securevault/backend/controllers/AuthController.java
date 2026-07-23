@@ -26,7 +26,7 @@ public class AuthController {
     // POST /api/auth/register
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        // registro l'utente; la mail di verifica viene inviata dal service
+        // register the user; the verification email is sent by the service
         userService.registerUser(
             request.getUsername(), 
             request.getEmail(), 
@@ -49,11 +49,11 @@ public class AuthController {
     // POST /api/auth/login
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        // chiamo userService
+        // call userService
         Optional<User> user = userService.findByUsernameOrEmail(loginRequest.getUsernameOrEmail());
 
-        // stesso messaggio per "utente inesistente" e "password errata":
-        // evita la user enumeration
+        // same message for "user doesn't exist" and "wrong password":
+        // avoids user enumeration
         if (user.isEmpty() || !passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
             return ResponseEntity.status(401).body(new AuthResponse(null, "Invalid credentials"));
         }
@@ -97,7 +97,7 @@ public class AuthController {
 
     @GetMapping("/reset-info")
     public ResponseEntity<ResetInfoResponse> getResetInfo(@RequestParam String token) {
-        // chiamiamo il service
+        // call the service
         ResetInfoResponse info = userService.getResetInfo(token);
         return ResponseEntity.ok(info);
     }

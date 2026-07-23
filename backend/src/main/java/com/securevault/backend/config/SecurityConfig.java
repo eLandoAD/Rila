@@ -1,7 +1,7 @@
 package com.securevault.backend.config;
 
-// classe easy per togliere momentaneamente login
-// e fare dei test per i CORS
+// simple class to temporarily remove login
+// and run some CORS tests
 
 import com.securevault.backend.filters.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
@@ -29,39 +29,39 @@ import org.springframework.beans.factory.annotation.Value;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // inietto il filtro
+    // inject the filter
     private final JwtAuthFilter jwtAuthFilter;
 
     @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
 
-    @Bean // oggetto
+    @Bean // bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // abilito CORS usando il bean sotto
+            // enable CORS using the bean below
             .cors(Customizer.withDefaults())
-            // disabilitato
+            // disabled
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // accesso senza login
+                // access without login
                 .requestMatchers("/api/status").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/files/public/**").permitAll()
-                // accesso admin
+                // admin access
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()              
+                .anyRequest().authenticated()
             )
             // stateless
             .sessionManagement(session -> session
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            // filtro
+            // filter
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
 
-    // CORS per il frontend (dev :4200, container Docker :4000)
+    // CORS for the frontend (dev :4200, Docker container :4000)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
@@ -73,7 +73,7 @@ public class SecurityConfig {
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        // headers custom del download leggibili lato browser (servono per decifrare)
+        // custom download headers readable client-side (needed for decryption)
         config.setExposedHeaders(List.of("x-iv", "x-enc-name"));
         config.setAllowCredentials(true);
 
@@ -83,7 +83,7 @@ public class SecurityConfig {
     }
 
 
-    // per password
+    // for passwords
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);

@@ -18,24 +18,24 @@ public class Folder {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // nome criptato
+    // encrypted name
     @Column(name = "enc_name", nullable = false)
     private String encName;
 
     @Column(name = "iv")
     private String iv;
 
-    // riferimento a tutto l'utente
+    // reference to the owning user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // riferimento a una cartella padre
+    // reference to a parent folder
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Folder parentFolder;
 
-    // data creazione
+    // creation date
     @Column(name = "created_at", nullable = false, updatable = false)
     private Long createdAt = System.currentTimeMillis();
 

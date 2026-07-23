@@ -23,44 +23,44 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StoredFile {
 
-    // id, questa volta UUID
+    // id, this time UUID
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    // nome file cifrato
+    // encrypted file name
     @Column(name = "enc_name", nullable = false)
     private String encName;
 
-    // token non condiviso
+    // unshared token
     @Column(name = "share_token", unique = true, length = 64)
     private String shareToken;
 
-    // path su disco
+    // path on disk
     @Column(name = "storage_path", nullable = false, unique = true)
     private String storagePath;
 
-    // initialization vector, per cifratura
+    // initialization vector, for encryption
     @Column(nullable = false)
     private String iv;
 
-    // dek del file, avvolta con la master dek del proprietario
+    // file's dek, wrapped with the owner's master dek
     @Column(name = "wrapped_dek", length = 512)
     private String wrappedDek;
 
     @Column(name = "dek_iv", length = 255)
     private String dekIv;
 
-    // dimensione del file, comodo da avere
+    // file size, handy to have
     @Column(name = "file_size")
     private Long fileSize;
 
-    // riferimento a tutto l'utente
+    // reference to the owning user
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // ora creazione
+    // creation time
     @Column(name = "created_at", nullable = false, updatable = false)
     private Long createdAt = System.currentTimeMillis();
 

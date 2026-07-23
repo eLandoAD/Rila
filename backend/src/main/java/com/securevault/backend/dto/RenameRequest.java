@@ -1,6 +1,6 @@
 package com.securevault.backend.dto;
 
-// il frontend manda un json col nuovo nome
+// the frontend sends a json with the new name
 
 import lombok.Data;
 

@@ -2,7 +2,7 @@ package com.securevault.backend.dto;
 
 import lombok.Data;
 
-// il frontend manda il nuovo nome cifrato e il relativo iv
+// the frontend sends the new encrypted name and its iv
 @Data
 public class RenameFolderRequest {
     private String newEncName;

@@ -14,7 +14,7 @@ import java.util.Date;
 @Service
 public class JwtService {
 
-    // valori presi da application.yml
+    // values taken from application.yml
     @Value("${jwt.secret}")
     private String secretKey;
 
@@ -22,22 +22,22 @@ public class JwtService {
     private long expiration;
 
     /**
-     * Metodo che genera un token, basandosi su chiave segreta impostata dal dev
-     * e usando hmac genera una chiave sicura. La chiave viene anche generata con data e scadenza
-     * e contiene come payload lo username
-     * @param username Lo username dell'utente al quale viene generata la key
-     * @return ritorno il token jwt in formato String
+     * Method that generates a token, based on a secret key set by the dev
+     * and using hmac to generate a secure key. The key is also generated with issue date and expiry
+     * and contains the username as payload
+     * @param username The username of the user for whom the key is generated
+     * @return the jwt token as a String
      */
     public String generateToken(String username) {
-        // generazione chiave sicura
+        // secure key generation
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
-        // data emissione e scadenza
+        // issue and expiry date
         Date now = new Date();
-        // scadenza presa dalla configurazione (jwt.expiration)
+        // expiry taken from configuration (jwt.expiration)
         Date expiryDate = new Date(now.getTime() + expiration);
 
-        // creazione jwt token
+        // create jwt token
         String jwt = Jwts.builder()
                 .subject(username)
                 .issuedAt(now)
@@ -50,24 +50,24 @@ public class JwtService {
 
 
     /**
-     * Metodo che estrae lo username dal token, utilizzando jwts
-     * @param token Token dal quale estrarre lo username
-     * @return lo username estratto, o null in caso di mancanza di username o problemi vari
+     * Method that extracts the username from the token, using jwts
+     * @param token Token from which to extract the username
+     * @return the extracted username, or null if the username is missing or on other issues
      */
     public String extractUsername(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
-        // in caso non si trovi, null, molto chiaro
+        // null if not found, nice and clear
         String username = null;
-        // importante gestione eccezioni
+        // important exception handling
         try {
-            // uso il parser di jwts per verificare la sessione e tirare fuori il payload
+            // use the jwts parser to verify the session and pull out the payload
             Claims claims = Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
 
-            // estraggo quello che mi interessa
+            // extract what I need
             username = claims.getSubject();
 
 
@@ -83,15 +83,15 @@ public class JwtService {
 
 
     /**
-     * metodo che verifica se un token è valido o meno
-     * @param token Token da analizzare
-     * @return ritorna vero o falso in base alla validità del token
+     * method that checks whether a token is valid or not
+     * @param token Token to analyze
+     * @return true or false depending on the token's validity
      */
     public boolean isTokenValid(String token) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
 
         try {
-            // uso il parser di jwts per verificare la sessione
+            // use the jwts parser to verify the session
             Jwts.parser()
                     .verifyWith(key)
                     .build()

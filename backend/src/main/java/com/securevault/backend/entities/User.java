@@ -32,7 +32,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    // password hashata
+    // hashed password
     @JsonIgnore
     @Column(nullable = false, length = 255)
     private String password;
@@ -40,36 +40,36 @@ public class User {
     // roles
     @Column(nullable = false)
     private String roles = "ROLE_USER";
-    // Esempi validi:
+    // Valid examples:
     // "ROLE_USER"
     // "ROLE_USER,ROLE_ADMIN"
     // "ROLE_USER,ROLE_TESTER"
     // "ROLE_USER,ROLE_ADMIN,ROLE_TESTER"
 
-    // per disabilitare un utente
+    // to disable a user
     @Column(nullable = false)
     private Boolean enabled = false;
 
-    // tempo creazione
+    // creation time
     @Column(name = "created_at", nullable = false, updatable = false)
     private Long createdAt = System.currentTimeMillis();
 
-    // tempo update
+    // update time
     @Column(name = "updated_at")
     private Long updatedAt;
 
-    // sempre update
+    // always update
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = System.currentTimeMillis();
     }
 
-    // token univoco per la verifica
+    // unique token for verification
     @JsonIgnore
     @Column(name = "verification_token", length = 255)
     private String verificationToken;
 
-    // per reset password
+    // for password reset
     @JsonIgnore
     @Column(name = "reset_token", length = 255)
     private String resetToken;
@@ -97,11 +97,11 @@ public class User {
     @Column(name = "recovery_dek_iv", length = 255)
     private String recoveryDekIv;
 
-    // rsa per sharing dei file (deve essere visibile)
+    // rsa for file sharing (must be visible)
     @Column(name = "public_key", length = 1024)
     private String publicKey;
 
-    // rsa private ky, avvolta con la master dek dell'utente
+    // rsa private key, wrapped with the user's master dek
     @JsonIgnore
     @Column(name = "private_key", length = 4096)
     private String encryptedPrivateKey;

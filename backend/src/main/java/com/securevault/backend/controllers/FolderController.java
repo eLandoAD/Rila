@@ -29,18 +29,18 @@ public class FolderController {
 
     @PostMapping("/create")
     public ResponseEntity<FolderResponse> createFolder(@RequestBody CreateFolderRequest request) {
-        // recupero user loggato
+        // get the logged-in user
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // cartella genitore
+        // parent folder
         Folder parent = null;
         if (request.getParentId() != null) {
             parent = folderRepository.findById(request.getParentId())
                     .orElseThrow(() -> new RuntimeException("Parent folder not found"));
 
-            // se c'è, verifico che sia dell'utente loggato
+            // if present, verify it belongs to the logged-in user
             if(!parent.getUser().getUsername().equals(username)) {
                 throw new RuntimeException("Access denied to parent folder: you are not the owner");
             }
@@ -50,18 +50,18 @@ public class FolderController {
         folder.setUser(user);
         folder.setEncName(request.getEncName());
         folder.setIv(request.getIv());
-        // se parent = null -> cartella root
+        // if parent = null -> root folder
         folder.setParentFolder(parent);
 
         folderRepository.save(folder);
 
-        // ritorno
+        // return
         return ResponseEntity.ok(new FolderResponse(folder.getId(), folder.getEncName(), folder.getIv(), request.getParentId()));
     }
 
     @GetMapping("/content")
     public ResponseEntity<FolderContentResponse> getFolderContent(@RequestParam(required = false) UUID folderId) {
-        // recupero l'utente
+        // get the user
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
@@ -71,7 +71,7 @@ public class FolderController {
         // default Home
         String currentFolderName = "Root";
 
-        // se folderId è presente -> recuperiamo la cartella attuale
+        // if folderId is present -> fetch the current folder
         if (folderId != null) {
             currentFolder = folderRepository.findById(folderId)
                     .orElseThrow(() -> new RuntimeException("Folder not found"));
@@ -84,11 +84,11 @@ public class FolderController {
             currentFolderName = currentFolder.getEncName();
         }
 
-        // recupero sottocartelle e file
+        // get subfolders and files
         List<Folder> folders = folderRepository.findByUserAndParentFolder(user, currentFolder);
         List<StoredFile> files = storedFileRepository.findByUserAndFolder(user, currentFolder);
 
-        // mappatura in dto delle cartelle e dei file
+        // map folders and files to dto
         List<FolderResponse> folderResponses = folders.stream()
                 .map(f -> new FolderResponse(f.getId(), f.getEncName(), f.getIv(), folderId))
                 .toList();
@@ -118,13 +118,13 @@ public class FolderController {
             temp = temp.getParentFolder();
         }
 
-        // ritorno la risposta completa
+        // return the full response
         return ResponseEntity.ok(new FolderContentResponse(folderResponses, fileResponses, breadcrumbs, folderId, currentFolderName));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFolder(@PathVariable UUID id) {
-        // recupero identità
+        // get identity
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         folderService.deleteFolderRecursive(id, username);
@@ -147,7 +147,7 @@ public class FolderController {
         // username
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // chiamo il service
+        // call the service
         folderService.moveFolder(id, request.getTargetFolderId(), username);
 
         return ResponseEntity.noContent().build();

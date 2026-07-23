@@ -22,13 +22,13 @@ export class FileService {
   async upload(file: File, folderId: string | null = null, onProgress?: (percent: number) => void): Promise<void> {
     const buffer = await file.arrayBuffer();
     
-    // e2ee -> chaive dedicata al file, avvolta con la master dek
+    // e2ee -> dedicated file key, wrapped with the master dek
     const fileKey = await this.crypto.generateFileKey()
     const { cipher, iv } = await this.crypto.encryptWithKey(buffer, fileKey);
     const encName = await this.crypto.encryptNameWithKey(file.name, fileKey);
     const { wrappedDek, dekIv } = await this.crypto.wrapFileKey(fileKey)
 
-    // prepara formData
+    // prepare formData
     const form = new FormData();
     form.append('file', new Blob([cipher]), 'blob');
     form.append('iv', iv);
@@ -39,7 +39,7 @@ export class FileService {
       form.append('folder_id', folderId);
     }
 
-    // uploado effettivamente
+    // actually upload
     await new Promise<void>((resolve, reject) => {
       this.http
         .post<IFileUploadResponse>(`${this.baseUrl}/upload`, form, {
@@ -58,7 +58,7 @@ export class FileService {
         });
     });
 
-    // se siamo in una cartella, ricarico il contenuto, per mostrare il nuovo file
+    // if we're inside a folder, reload its content to show the new file
     await this.folderService.loadFolderContent(this.folderService.currentFolderId());
   }
 
@@ -67,7 +67,7 @@ export class FileService {
       this.http.get(`${this.baseUrl}/download/${meta.id}`, { responseType: 'arraybuffer' })
     );
 
-    // sblocco la chiave del file e decifro il contenuto con quella
+    // unlock the file key and decrypt the content with it
     const fileKey = await this.crypto.unwrapFileKey(meta.wrappedDek, meta.dekIv);
     const plain = await this.crypto.decryptWithKey(cipher, meta.iv, fileKey);
 
@@ -80,7 +80,7 @@ export class FileService {
     URL.revokeObjectURL(url);
   }
 
-  // serve anche wrappedDek+dekIv per sbloccare la chiave del file
+  // also needs wrappedDek+dekIv to unlock the file key
   async downloadAndDecryptRaw(id: string, iv: string, wrappedDek: string, dekIv: string): Promise<ArrayBuffer> {
     const cipher = await firstValueFrom(
       this.http.get(`${this.baseUrl}/download/${id}`, { responseType: 'arraybuffer' })
@@ -105,7 +105,7 @@ export class FileService {
    * so the server only ever sees ciphertext.
    */
   async rename(meta: IStoredFileMeta, newName: string): Promise<void> {
-    // sblocco la chiave del file e cifro il nuovo nome con quella (iv nuovo dentro encName)
+    // unlock the file key and encrypt the new name with it (new iv embedded in encName)
     const fileKey = await this.crypto.unwrapFileKey(meta.wrappedDek, meta.dekIv);
     const newEncName = await this.crypto.encryptNameWithKey(newName, fileKey);
     await firstValueFrom(this.http.patch(`${this.baseUrl}/${meta.id}`, { newEncName }));
@@ -126,7 +126,7 @@ export class FileService {
     );
     return Promise.all(
       res.map(async (f) => {
-        // sblocco la chiave del file per decifrare il nome
+        // unlock the file key to decrypt the name
         const fileKey = await this.crypto.unwrapFileKey(f.wrappedDek, f.dekIv);
         return {
           id: f.id,
@@ -160,7 +160,7 @@ export class FileService {
     );
   }
 
-  // ottiene la public key di un determinato utente
+  // gets a given user's public key
   async getPublicKey(email: string): Promise<string> {
     const res = await firstValueFrom(
       this.http.get<{ publicKey: string }>(`${environment.apiBaseUrl}/users/public-key`, { params: { email } })
@@ -169,7 +169,7 @@ export class FileService {
   }
 
   async publish(id: string): Promise<string> {
-    // backend risponde con token 
+    // backend responds with the token
     return firstValueFrom(
       this.http.post(`${this.baseUrl}/${id}/publish`, {}, { responseType: 'text' })
     )

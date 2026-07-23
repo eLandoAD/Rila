@@ -13,10 +13,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Rate limiting semplice e in-memory sugli endpoint di autenticazione, per
- * mitigare brute force (login) ed email bombing (forgot/resend).
- * Limite: MAX_REQUESTS per IP per finestra di WINDOW_MS su ciascun path.
- * Nota: stato in memoria, ok per singola istanza (come questo deploy).
+ * Simple in-memory rate limiting on authentication endpoints, to
+ * mitigate brute force (login) and email bombing (forgot/resend).
+ * Limit: MAX_REQUESTS per IP per WINDOW_MS window on each path.
+ * Note: in-memory state, fine for a single instance (as in this deployment).
  */
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
@@ -32,8 +32,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             "/api/users/public-key"
     );
 
-    private static final int MAX_REQUESTS = 10;     // richieste consentite
-    private static final long WINDOW_MS = 60_000;   // per finestra (1 minuto)
+    private static final int MAX_REQUESTS = 10;     // requests allowed
+    private static final long WINDOW_MS = 60_000;   // per window (1 minute)
 
     private final Map<String, Window> buckets = new ConcurrentHashMap<>();
 
@@ -42,7 +42,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        // accetto sia il match che il prefisso
+        // accept both exact match and prefix
         boolean limited = LIMITED_PATHS.contains(path) || path.startsWith("/api/files/public");
         if (!limited) {
             filterChain.doFilter(request, response);
@@ -62,7 +62,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private synchronized boolean allow(String key) {
         long now = System.currentTimeMillis();
-        // pulizia -> butto via bucket con finestra scaduta
+        // cleanup -> discard buckets with an expired window
         buckets.entrySet().removeIf(e -> now - e.getValue().windowStart >= WINDOW_MS);
         Window w = buckets.computeIfAbsent(key, k -> new Window(now));
         if (now - w.windowStart >= WINDOW_MS) {
@@ -73,13 +73,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         return w.count <= MAX_REQUESTS;
     }
 
-    // IP reale del client: penultimo di X-Forwarded-For (impostato da nginx),
-    // con fallback all'indirizzo della connessione.
+    // real client IP: second-to-last of X-Forwarded-For (set by nginx),
+    // with fallback to the connection address.
     private String clientIp(HttpServletRequest request) {
         String xff = request.getHeader("X-Forwarded-For");
         if (xff != null && !xff.isBlank()) {
             String[] parts = xff.split(",");
-            // prendo il penultimo, dato che [client, ingress]
+            // take the second-to-last, since [client, ingress]
             int i = parts.length >= 2 ? parts.length - 2 : 0;
             return parts[i].trim();
         }

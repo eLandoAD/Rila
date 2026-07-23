@@ -14,50 +14,50 @@ const TOKEN_KEY = 'sv_token';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  // injection dei due servizi necessari
+  // inject the two required services
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
-  // verifico sia browser e prendo l'url base dall'.env
+  // check whether it's the browser and get the base url from .env
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private readonly baseUrl = `${environment.apiBaseUrl}/auth`;
 
   private readonly tokenSignal: WritableSignal<string | null> = signal<string | null>(this.readToken());
 
-  // mi salvo il token come readonly
+  // store the token as readonly
   readonly token = this.tokenSignal.asReadonly();
-  // computed per gestire autenticazione, usato poi nel resto del codice
+  // computed to manage authentication, used elsewhere in the code
   readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
 
-  // computed per gestire username di utente autenticato
-  // usato nel resto del codice
+  // computed to manage the authenticated user's username
+  // used elsewhere in the code
   readonly username = computed(() => {
     const token = this.tokenSignal();
     return token ? this.extractSubject(token) : null;
   });
 
-  // metodo per registrarsi, che punta all'endpoint register dell'api
+  // method for registering, pointing to the api's register endpoint
   register(request: IRegisterRequest): Observable<IAuthResponse> {
     return this.http.post<IAuthResponse>(`${this.baseUrl}/register`, request);
   }
 
-  // metodo per loggarsi, che punta all'endpoint login dell'api
+  // method for logging in, pointing to the api's login endpoint
   login(request: ILoginRequest): Observable<IAuthResponse> {
     return this.http
       .post<IAuthResponse>(`${this.baseUrl}/login`, request)
       .pipe(tap((res) => this.persistToken(res.token)));
   }
 
-  // metodo per effettuare il logout
+  // method for logging out
   logout(): void {
     this.persistToken(null);
   }
 
-  // elimina definitivamente l'account dell'utente autenticato
+  // permanently deletes the authenticated user's account
   deleteAccount(): Observable<void> {
     return this.http.delete<void>(`${environment.apiBaseUrl}/users/me`);
   }
 
-  // vari metodi per reset password, verifica, e via dicendo
+  // various methods for password reset, verification, and so on
   forgotPassword(email: string): Observable<string> {
     return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
   }

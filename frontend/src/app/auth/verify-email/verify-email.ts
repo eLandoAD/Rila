@@ -27,7 +27,7 @@ export class VerifyEmail implements OnInit {
   readonly resent = signal(false);
   readonly error = signal<string | null>(null);
 
-  // stati della verifica automatica dal link email
+  // states for automatic verification from the email link
   readonly verifying = signal(false);
   readonly verified = signal(false);
 
@@ -35,7 +35,7 @@ export class VerifyEmail implements OnInit {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    // se arriviamo dal link email (con token) verifichiamo subito, senza azioni utente
+    // if we arrive from the email link (with a token), verify immediately, without user action
     if (this.token) {
       this.verifying.set(true);
       this.auth.verifyEmail(this.token).subscribe({

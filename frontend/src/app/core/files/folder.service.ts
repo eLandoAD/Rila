@@ -40,7 +40,7 @@ export class FolderService {
       );
 
       // 2. Decrypt file names
-      // ogni file ha la sua chiave (avvolta): la sblocco e decifro il nome con quella
+      // each file has its own (wrapped) key: unlock it and decrypt the name with it
       const decryptedFiles: IStoredFileMeta[] = await Promise.all(
         res.files.map(async (f) => {
           const fileKey = await this.crypto.unwrapFileKey(f.wrappedDek, f.dekIv);

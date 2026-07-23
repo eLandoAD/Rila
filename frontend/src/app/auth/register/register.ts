@@ -57,7 +57,7 @@ export class Register {
         .subscribe({
           next: () => {
             this.loading.set(false);
-            // invece di fare il redirect, mostro la recovery key
+            // instead of redirecting, show the recovery key
             this.recoveryKey.set(keys.recoveryKey);
           },
           error: (err: HttpErrorResponse) => {
@@ -122,7 +122,7 @@ export class Register {
     this.downloaded.set(true);
   }
 
-  // dopo aver salvato la recovery key vado al login; la verifica avviene via email
+  // after saving the recovery key, go to login; verification happens via email
   finish(): void {
     this.router.navigateByUrl('/login?registered=true');
   }

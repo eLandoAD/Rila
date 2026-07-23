@@ -3,8 +3,8 @@ import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // le rotte di autenticazione sono pubbliche: non allegare il token
-  // (un token stale farebbe fallire la richiesta sul filtro lato server)
+  // auth routes are public: don't attach the token
+  // (a stale token would make the request fail on the server-side filter)
   if (req.url.includes('/api/auth/')) {
     return next(req);
   }

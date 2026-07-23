@@ -24,7 +24,7 @@ export class Shared implements OnInit {
 
   protected readonly downloadingId: WritableSignal<string | null> = signal(null);
 
-  // stati preview 
+  // preview states
   protected readonly previewFile: WritableSignal<any | null> = signal(null);
   protected readonly previewLoading: WritableSignal<boolean> = signal(false);
   protected readonly previewUrl: WritableSignal<any> = signal(null);
@@ -46,7 +46,7 @@ export class Shared implements OnInit {
           let decName = 'Decryption Failed';
           let fileKey: CryptoKey | null = null;
           try {
-            // decifro la chiave del file con la mia privata, 1 volta
+            // decrypt the file key with my private key, once
             fileKey = await this.crypto.decryptSharedKey(sf.dek)
             decName = await this.crypto.decryptNameWithKey(sf.encName, fileKey);
           } catch (err) {

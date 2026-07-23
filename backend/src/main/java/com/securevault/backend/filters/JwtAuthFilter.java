@@ -27,18 +27,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
-    // override obbligatorio del metodo
+    // mandatory method override
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
 
-        // controllo prima che non sia valido
+        // first check that it's not invalid
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // estraggo il token, rimuovendo "Bearer " (7 chars)
+        // extract the token, stripping "Bearer " (7 chars)
         String jwtToken = authHeader.substring(7);
 
         try {
@@ -50,11 +50,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 User user = userRepository.findByUsername(username).orElse(null);
 
-                // autentico SOLO se l'utente esiste ed è ancora abilitato:
-                // un account disabilitato dopo il login non passa più, anche con token valido
+                // authenticate ONLY if the user exists and is still enabled:
+                // an account disabled after login no longer passes, even with a valid token
                 if (user != null && Boolean.TRUE.equals(user.getEnabled())) {
 
-                    // carico i ruoli reali dal DB come authorities (es. ROLE_USER, ROLE_ADMIN)
+                    // load the real roles from the DB as authorities (e.g. ROLE_USER, ROLE_ADMIN)
                     String rolesRaw = user.getRoles() == null ? "" : user.getRoles();
                     List<SimpleGrantedAuthority> authorities = Arrays.stream(rolesRaw.split(","))
                             .map(String::trim)
@@ -72,14 +72,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         } catch (Exception e) {
-            // errore 401
+            // 401 error
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Invalid token or expired\"}");
             return;
         }
 
-        //continua la catena dei filtri verso il Controller
+        // continue the filter chain towards the Controller
         filterChain.doFilter(request, response);
     }
 }

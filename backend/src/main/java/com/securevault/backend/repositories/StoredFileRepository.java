@@ -14,7 +14,7 @@ import java.util.UUID;
 @Repository
 public interface StoredFileRepository extends JpaRepository<StoredFile, UUID> {
 
-    // vedere la lista dei file di un utente
+    // see a user's file list
     List<StoredFile> findByUser(User user);
 
     List<StoredFile> findByUserAndFolder(User user, Folder folder);
