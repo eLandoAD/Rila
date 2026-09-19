@@ -193,7 +193,7 @@ public class FileController {
 
             // check that the owner is the logged-in user
             if (!storedFile.getUser().getUsername().equals(username)) {
-                throw new RuntimeException("Access denied: you are not the owner of this file");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
             }
 
             // delete the file from disk
@@ -202,6 +202,8 @@ public class FileController {
             storedFileRepository.delete(storedFile);
 
             return ResponseEntity.noContent().build();
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error while deleting the file: " + e.getMessage(), e);
         }
@@ -220,7 +222,7 @@ public class FileController {
 
             // check that the user is the owner
             if (!storedFile.getUser().getUsername().equals(username)) {
-                throw new RuntimeException("Access denied: you are not the owner of this file");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
             }
 
             // change the entity's name
@@ -230,6 +232,8 @@ public class FileController {
             storedFileRepository.save(storedFile);
 
             return ResponseEntity.ok().build();
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error while renaming the file: " + e.getMessage(), e);
         }
