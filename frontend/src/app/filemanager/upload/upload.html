@@ -45,7 +45,7 @@
     <!-- Selected Files Queue -->
     @if (items().length > 0) {
       <div class="mt-8">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/40 mb-3 px-1">Selected Files Queue</h2>
+        <h2 class="text-xs font-bold uppercase tracking-wider text-base-content/60 mb-3 px-1">Selected Files Queue</h2>
         
         <div class="space-y-3">
           @for (item of items(); track $index) {
@@ -95,7 +95,7 @@
                 @if (item.status === 'uploading' || item.status === 'done') {
                   <div class="w-full mt-1">
                     <progress class="progress progress-primary w-full h-1.5" [value]="item.progress" max="100"></progress>
-                    <div class="flex justify-between text-[10px] text-base-content/40 mt-1">
+                    <div class="flex justify-between text-[10px] text-base-content/60 mt-1">
                       <span>Encrypting...</span>
                       <span>{{ item.progress }}%</span>
                     </div>
@@ -127,7 +127,7 @@
         </div>
       </div>
     } @else {
-      <div class="mt-12 flex flex-col items-center justify-center py-6 text-center max-w-sm mx-auto text-base-content/40 select-none">
+      <div class="mt-12 flex flex-col items-center justify-center py-6 text-center max-w-sm mx-auto text-base-content/60 select-none">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 opacity-60 mb-3 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>

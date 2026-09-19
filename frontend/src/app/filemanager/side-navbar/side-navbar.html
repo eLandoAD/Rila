@@ -23,7 +23,7 @@
 
     @if (!collapsed()) {
     <button type="button"
-      class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200 transition-all"
+      class="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content hover:bg-base-200 transition-all"
       (click)="toggle()" [attr.aria-label]="collapsed() ? 'Expand menu' : 'Collapse menu'">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
@@ -36,7 +36,7 @@
   @if (collapsed()) {
   <div class="hidden justify-center py-2.5 border-b border-base-300/40 lg:flex">
     <button type="button"
-      class="btn btn-ghost btn-xs btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200"
+      class="btn btn-ghost btn-xs btn-circle text-base-content/60 hover:text-base-content hover:bg-base-200"
       (click)="toggle()" [attr.aria-label]="collapsed() ? 'Expand menu' : 'Collapse menu'">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 rotate-180" fill="none" viewBox="0 0 24 24"
         stroke="currentColor">
@@ -125,7 +125,7 @@
       @if (!collapsed()) {
       <div class="min-w-0 flex-1 hidden lg:block">
         <p class="text-xs font-semibold text-base-content truncate">{{ username() }}</p>
-        <p class="text-[9px] text-base-content/40 tracking-wider uppercase font-bold">Encrypted Vault</p>
+        <p class="text-[9px] text-base-content/60 tracking-wider uppercase font-bold">Encrypted Vault</p>
       </div>
       }
     </div>
