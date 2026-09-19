@@ -33,7 +33,7 @@ export class ShareComponent implements OnInit {
       return;
     }
     const params = this.route.snapshot.queryParamMap;
-    // il link pubblico ora usa il "token" di condivisione, non l'id del file
+    // the public link carries the share token, not the file id
     const token = params.get('token');
     const name = params.get('name');
     const iv = params.get('iv');
@@ -118,9 +118,14 @@ export class ShareComponent implements OnInit {
       console.error('Download/Decryption failed', err);
       this.loading.set(false);
       this.decrypting.set(false);
-      this.error.set(
-        'Decryption failed. The link might be corrupted or the key is invalid.'
-      );
+      // the backend answers 404 both for a revoked and for an expired link
+      if (err?.status === 404) {
+        this.error.set('This link has expired or has been revoked by its owner.');
+      } else {
+        this.error.set(
+          'Decryption failed. The link might be corrupted or the key is invalid.'
+        );
+      }
     }
   }
 }

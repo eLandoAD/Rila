@@ -122,6 +122,11 @@ master DEK). The server relays an opaque wrapped key it cannot read; it never se
 client-side: anyone with the full link can decrypt in-browser, while the server only ever sees the
 opaque share token and ciphertext.
 
+The link can be issued with an **expiry** (24 hours, 7 days, or none) and can be **revoked** at any
+time by its owner. Expiry and revocation are both enforced server-side on the token lookup, and both
+answer `404`, so a dead link leaks nothing about whether the file ever existed. Revoking clears the
+token: a previously shared URL stops resolving even though the key in its fragment is still valid.
+
 ---
 
 ## 7. Password reset (no data loss)

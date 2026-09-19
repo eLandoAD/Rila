@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.securevault.backend.dto.PublishRequest;
 import com.securevault.backend.dto.ShareFileRequest;
 import com.securevault.backend.dto.SharedFileResponse;
 import com.securevault.backend.entities.SharedFile;
@@ -171,6 +172,8 @@ public class FileController {
                 dto.setIv(file.getIv());
                 dto.setWrappedDek(file.getWrappedDek());
                 dto.setDekIv(file.getDekIv());
+                dto.setPublished(file.getShareToken() != null);
+                dto.setShareTokenExpiresAt(file.getShareTokenExpiresAt());
                 return dto;
             }).toList();
 
@@ -253,6 +256,12 @@ public class FileController {
             // not by id. Unpublished files are not publicly reachable.
             StoredFile storedFile = storedFileRepository.findByShareToken(token)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found"));
+
+            // an expired link is indistinguishable from a non-existing one
+            Long expiresAt = storedFile.getShareTokenExpiresAt();
+            if (expiresAt != null && expiresAt < System.currentTimeMillis()) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "File not found");
+            }
 
             Resource fileContent = fileStorageService.loadFileAsResource(storedFile.getStoragePath());
 
@@ -367,7 +376,7 @@ public class FileController {
     // Publishes a file: generates (only once) an unguessable share token
     // and returns it. Only the owner can do this.
     @PostMapping("/{id}/publish")
-    public ResponseEntity<String> publish(@PathVariable UUID id) {
+    public ResponseEntity<String> publish(@PathVariable UUID id, @RequestBody(required = false) PublishRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         StoredFile storedFile = storedFileRepository.findById(id)
@@ -378,13 +387,21 @@ public class FileController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied: you are not the owner of this file");
         }
 
+        Integer hours = (request == null) ? null : request.hours();
+        if (hours != null && (hours < 1 || hours > 8760)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid duration");
+        }
+
         // reuse the token if already present, otherwise generate one (64 hex, ~244 bit)
         if (storedFile.getShareToken() == null) {
             storedFile.setShareToken(
                     UUID.randomUUID().toString().replace("-", "")
                   + UUID.randomUUID().toString().replace("-", ""));
-            storedFileRepository.save(storedFile);
         }
+        // re-publishing with a different duration resets the expiry
+        storedFile.setShareTokenExpiresAt(
+                hours == null ? null : System.currentTimeMillis() + hours * 3_600_000L);
+        storedFileRepository.save(storedFile);
         return ResponseEntity.ok(storedFile.getShareToken());
     }
 
@@ -401,6 +418,7 @@ public class FileController {
         }
 
         storedFile.setShareToken(null);
+        storedFile.setShareTokenExpiresAt(null);
         storedFileRepository.save(storedFile);
         return ResponseEntity.noContent().build();
     }

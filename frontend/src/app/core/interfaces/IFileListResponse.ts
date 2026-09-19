@@ -6,4 +6,6 @@ export interface IFileListResponse {
   iv: string;
   wrappedDek: string;
   dekIv: string;
+  published: boolean;
+  shareTokenExpiresAt: number | null;
 }

@@ -137,6 +137,8 @@ export class FileService {
           uploadedAt: f.createdAt,
           wrappedDek: f.wrappedDek,
           dekIv: f.dekIv,
+          published: f.published,
+          shareExpiresAt: f.shareTokenExpiresAt
         };
       })
     );
@@ -168,10 +170,10 @@ export class FileService {
     return res.publicKey;
   }
 
-  async publish(id: string): Promise<string> {
+  async publish(id: string, hours: number | null): Promise<string> {
     // backend responds with the token
-    return firstValueFrom(
-      this.http.post(`${this.baseUrl}/${id}/publish`, {}, { responseType: 'text' })
+    return await firstValueFrom(
+      this.http.post(`${this.baseUrl}/${id}/publish`, { hours }, { responseType: 'text' })
     )
   }
 

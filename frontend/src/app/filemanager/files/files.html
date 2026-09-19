@@ -142,6 +142,15 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
                       </svg>
                     </span>
+                    @if (file.published) {
+                      <span class="badge badge-sm badge-outline shrink-0 gap-1 font-medium"
+                            [title]="file.shareExpiresAt ? 'Public link, expires on ' + (file.shareExpiresAt | date: 'MM/dd/yy, hh:mm a') : 'Public link, never expires'">
+                        Public link
+                        @if (file.shareExpiresAt) {
+                          <span class="opacity-60">&middot; {{ file.shareExpiresAt | date: 'd MMM' }}</span>
+                        }
+                      </span>
+                    }
                   </div>
                   <p class="text-xs text-base-content/50">{{ format(file.size) }} • {{ file.uploadedAt | date: 'MM/dd/yy, hh:mm a' }}</p>
                 </div>
@@ -161,8 +170,12 @@
                   <li><a (click)="openPreview(file)" class="rounded-lg py-2 text-sm">Preview</a></li>
                   <li><a (click)="download(file)" class="rounded-lg py-2 text-sm">Download</a></li>
                   <li><a (click)="shareFile(file)" class="rounded-lg py-2 text-sm">Share by email</a></li>
-                  <li><a (click)="publishFile(file)" class="rounded-lg py-2 text-sm">Copy public link</a></li>
-                  <li><a (click)="unpublishFile(file)" class="rounded-lg py-2 text-sm">Revoke public link</a></li>
+                  <li><a (click)="publishFile(file, 24)" class="rounded-lg py-2 text-sm">Public link &middot; 24 hours</a></li>
+                  <li><a (click)="publishFile(file, 168)" class="rounded-lg py-2 text-sm">Public link &middot; 7 days</a></li>
+                  <li><a (click)="publishFile(file, null)" class="rounded-lg py-2 text-sm">Public link &middot; no expiry</a></li>
+                  @if (file.published) {
+                    <li><a (click)="unpublishFile(file)" class="rounded-lg py-2 text-sm text-error hover:bg-error/10">Revoke public link</a></li>
+                  }
                   <hr class="border-base-300/40 my-1">
                   <li><a (click)="renameFile(file)" class="rounded-lg py-2 text-sm">Rename</a></li>
                   <li><a (click)="openMove({ kind: 'file', meta: file })" class="rounded-lg py-2 text-sm">Move To</a></li>
@@ -283,7 +296,17 @@
               </svg>
               {{ file.name }}
             </h3>
-            <p class="text-[10px] text-base-content/50 mt-0.5 font-medium">Size: {{ format(file.size) }} | Decrypted locally in browser</p>
+            <p class="text-[10px] text-base-content/50 mt-0.5 font-medium">
+              Size: {{ format(file.size) }} | Decrypted locally in browser
+              @if (file.published) {
+                |
+                @if (file.shareExpiresAt) {
+                  Public link until {{ file.shareExpiresAt | date: 'MM/dd/yy, hh:mm a' }}
+                } @else {
+                  Public link, no expiry
+                }
+              }
+            </p>
           </div>
           <button class="btn btn-sm btn-ghost btn-circle text-base-content/40 hover:text-base-content hover:bg-base-200" (click)="closePreview()">
             ✕

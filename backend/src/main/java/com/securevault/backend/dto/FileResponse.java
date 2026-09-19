@@ -17,4 +17,6 @@ public class FileResponse {
     private String iv;
     private String wrappedDek;
     private String dekIv;
+    private boolean published;
+    private Long shareTokenExpiresAt;
 }

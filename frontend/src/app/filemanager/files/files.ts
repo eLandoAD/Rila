@@ -381,9 +381,9 @@ export class Files implements OnInit {
     }
   }
 
-  async publishFile(meta: IStoredFileMeta): Promise<void> {
+  async publishFile(meta: IStoredFileMeta, hours: number | null): Promise<void> {
     try {
-      const token = await this.fileService.publish(meta.id)
+      const token = await this.fileService.publish(meta.id, hours)
       const rawKey = await this.crypto.getFileKeyBase64(meta.wrappedDek, meta.dekIv)
       const link = `${window.location.origin}/share?token=${token}`
         + `&name=${encodeURIComponent(meta.encName)}`
@@ -393,6 +393,7 @@ export class Files implements OnInit {
       await navigator.clipboard.writeText(link);
       this.linkCopied.set(true)
       setTimeout(() => this.linkCopied.set(false), 2000)
+      await this.folderService.loadFolderContent(this.folderService.currentFolderId());
     } catch (error) {
       this.error.set('Failed to create public link')
     }
@@ -401,6 +402,7 @@ export class Files implements OnInit {
   async unpublishFile(meta: IStoredFileMeta): Promise<void> {
     try {
       await this.fileService.unpublish(meta.id)
+      await this.folderService.loadFolderContent(this.folderService.currentFolderId());
     } catch (error) {
       this.error.set('Failed to remove public link')
     }

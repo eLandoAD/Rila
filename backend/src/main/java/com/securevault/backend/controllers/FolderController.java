@@ -103,6 +103,8 @@ public class FolderController {
                     dto.setIv(f.getIv());
                     dto.setWrappedDek(f.getWrappedDek());
                     dto.setDekIv(f.getDekIv());
+                    dto.setPublished(f.getShareToken() != null);
+                    dto.setShareTokenExpiresAt(f.getShareTokenExpiresAt());
                     return dto;
                 }).toList();
 

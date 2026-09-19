@@ -36,6 +36,10 @@ public class StoredFile {
     @Column(name = "share_token", unique = true, length = 64)
     private String shareToken;
 
+    // public link expiry, epoch millis. null = never expires
+    @Column(name = "share_token_expires_at")
+    private Long shareTokenExpiresAt;
+
     // path on disk
     @Column(name = "storage_path", nullable = false, unique = true)
     private String storagePath;

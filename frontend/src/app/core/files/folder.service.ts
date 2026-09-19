@@ -53,6 +53,8 @@ export class FolderService {
             uploadedAt: f.createdAt,
             wrappedDek: f.wrappedDek,
             dekIv: f.dekIv,
+            published: f.published,
+            shareExpiresAt: f.shareTokenExpiresAt
           };
         })
       );
