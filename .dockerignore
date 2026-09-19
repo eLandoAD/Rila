@@ -1,0 +1,4 @@
+# Il proxy builda dal root del repo e gli serve solo nginx.conf:
+# senza questo file il contesto e` tutta la repo (backend/build, node_modules, .git).
+*
+!nginx.conf
