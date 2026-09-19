@@ -1,5 +1,52 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
-@plugin "daisyui";
 
+@plugin "daisyui" {
+  themes: false;
+}
+
+/* Tema unico dell'app: scuro, sugli stessi colori scritti a mano nella landing.
+   La scala base- segue l'uso reale dei template, non la convenzione di daisyUI:
+   200 e' lo sfondo pagina, 100 le card sopra, 300 bordi e hover. */
+@plugin "daisyui/theme" {
+  name: "securevault";
+  default: true;
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #131826;
+  --color-base-200: #0B0E17;
+  --color-base-300: #232A3A;
+  --color-base-content: oklch(97.807% 0.029 256.847);
+
+  /* Su fondo scuro il primary deve essere CHIARO: `text-primary` e `border-primary`
+     vivono sulla pagina, quindi il contrasto si misura contro #0B0E17.
+     Di conseguenza il testo sopra un fondo primary va scuro, non bianco.
+     Con L 58% (il valore del tema dark di daisyUI) `text-primary` sta a 4,14:1 e non passa. */
+  --color-primary: oklch(70% 0.17 277.117);        /* #8691FF - 6,89:1 sulla pagina */
+  --color-primary-content: oklch(22% 0.07 277.117); /* #14153A - 6,27:1 sopra il primary */
+  --color-secondary: oklch(70% 0.21 354.308);   /* 65% non arrivava a 4,5:1 come testo su fondo tinta */
+  --color-secondary-content: oklch(94% 0.028 342.258);
+  --color-accent: oklch(77% 0.152 181.912);
+  --color-accent-content: oklch(38% 0.063 188.416);
+  --color-neutral: oklch(14% 0.005 285.823);
+  --color-neutral-content: oklch(92% 0.004 286.32);
+  --color-info: oklch(74% 0.16 232.661);
+  --color-info-content: oklch(29% 0.066 243.157);
+  --color-success: oklch(76% 0.177 163.223);
+  --color-success-content: oklch(37% 0.077 168.94);
+  --color-warning: oklch(82% 0.189 84.429);
+  --color-warning-content: oklch(41% 0.112 45.904);
+  --color-error: oklch(71% 0.194 13.428);
+  --color-error-content: oklch(27% 0.105 12.094);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+}
