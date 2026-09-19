@@ -45,6 +45,10 @@ services:
       SPRING_MAIL_PASSWORD: ${SMTP_PASSWORD:-}
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: "${SMTP_AUTH:-false}"
       SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: "${SMTP_STARTTLS:-false}"
+      # niente timeout = un relay muto blocca il thread della registrazione
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_CONNECTIONTIMEOUT: "5000"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_TIMEOUT: "5000"
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_WRITETIMEOUT: "5000"
       APP_MAIL_FROM: ${SMTP_USER:-noreply@securevault.app}
       APP_FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4200}
       # Storage persistente: punta esplicitamente al volume montato sotto /storage
