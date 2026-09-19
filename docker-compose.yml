@@ -60,6 +60,14 @@ services:
       - "127.0.0.1:8085:8080"
     volumes:
       - securevault_storage:/storage
+    healthcheck:
+      # niente actuator e niente curl nell'immagine: si prova la porta a mano
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080'"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      # la JVM col mem_limit a 750m ci mette il suo a salire
+      start_period: 60s
 
   frontend:
     build:
@@ -83,8 +91,11 @@ services:
     container_name: rila-proxy
     restart: unless-stopped
     depends_on:
-      - backend
-      - frontend
+      # aspetta che il backend risponda davvero, invece di servire 502 all'avvio
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_started
     ports:
       - "${PROXY_PORT:-4205}:80"
 
