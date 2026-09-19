@@ -38,4 +38,5 @@ out/
 
 
 .env
-application.yml
+application.yml# test config: no secrets, must be versioned
+!src/test/resources/application.yml
